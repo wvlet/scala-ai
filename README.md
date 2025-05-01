@@ -7,7 +7,7 @@ Build production-ready LLM applications in Scala 3, without the boilerplate.
 * Writing verbose code for authentication, request building, and response parsing.
 * Manually crafting and parsing complex JSON payloads specific to each model.
 * Handling intricate streaming APIs and callback mechanisms.
-* Stitching together disparate components for tasks like RAG (Retrieval-Augmented Generation) or agentic workflows.
+* Stitching together disparate components for tasks like RAG (Retrieval-Augmented Generation), Model Context Protocol (MCP) servers, or agentic workflows.
 
 **The Solution: `wvlet/scala-ai`**
 
