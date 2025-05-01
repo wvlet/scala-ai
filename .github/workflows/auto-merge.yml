@@ -1,0 +1,40 @@
+name: auto-merge
+on: pull_request
+
+jobs:
+  auto-merge-dependabot:
+    name: Auto-Merge Dependabot PRs
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Generate token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Dependabot metadata
+        id: metadata
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        uses: dependabot/fetch-metadata@v2.3.0
+      - name: Enable auto-merge PR for minor updates
+        if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
+        run: gh pr merge --squash --auto "${{ github.event.pull_request.html_url }}"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+  auto-merge-scala-steward:
+    name: Auto-Merge Scala Steward PRs
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'xerial-bot' || github.actor == 'scala-steward-wvlet[bot]' }}
+    steps:
+      - name: Generate token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Enable auto-merge PR for minor updates
+        if: ${{ ! contains(github.event.issue.labels.*.name, 'semver-spec-major') }}
+        run: gh pr merge --squash --auto "${{ github.event.pull_request.html_url }}"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
