@@ -3,13 +3,27 @@ package wvlet.ai.agent
 import wvlet.ai.agent.chat.ToolSpec
 
 case class LLMAgent(
+    // Name of this agent
     name: String,
+    // Description of this agent's purpose and capabilities
     description: String,
-    model: String,
-    /**
-      * Instruction for the model to follow.
-      */
-    instruction: String = "",
+    // LLM Model to use for this agent
+    model: LLM,
+    // System prompt defining the agent's behavior, instructions, and persona
+    systemPrompt: String = "",
+    // List of tools (functions) the agent is allowed to call
     tools: List[ToolSpec] = Nil,
+    // Additional model configuration parameters (e.g., temperature, top-p, max output tokens)
     modelConfig: ModelConfig = ModelConfig()
-)
+):
+  def withName(newName: String): LLMAgent               = this.copy(name = newName)
+  def withDescription(newDescription: String): LLMAgent = this.copy(description = newDescription)
+  def withModel(newModel: LLM): LLMAgent                = this.copy(model = newModel)
+  def withSystemPrompt(newSystemPrompt: String): LLMAgent = this.copy(systemPrompt =
+    newSystemPrompt
+  )
+
+  def withTools(newTools: List[ToolSpec]): LLMAgent = this.copy(tools = newTools)
+  def withModelConfig(updater: ModelConfig => ModelConfig): LLMAgent = this.copy(modelConfig =
+    updater(modelConfig)
+  )
