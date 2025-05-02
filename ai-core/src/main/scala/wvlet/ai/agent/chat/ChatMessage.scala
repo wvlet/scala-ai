@@ -10,22 +10,16 @@ enum ChatRole:
   // Message from a tool
   case TOOL
 
-trait ChatMessage:
-  def role: ChatRole
+trait ChatMessage(val role: ChatRole):
   def text: String
 
 object ChatMessage:
-  case class SystemMessage(text: String) extends ChatMessage:
-    override def role = ChatRole.SYSTEM
-
-  case class UserMessage(text: String) extends ChatMessage:
-    override def role = ChatRole.USER
-
+  case class SystemMessage(text: String) extends ChatMessage(ChatRole.SYSTEM)
+  case class UserMessage(text: String) extends ChatMessage(ChatRole.USER)
   /**
     * AI message with optional tool call requests
     */
-  case class AIMessage(text: String, toolCalls: Seq[ToolCallRequest] = Nil) extends ChatMessage:
-    override def role         = ChatRole.AI
+  case class AIMessage(text: String, toolCalls: Seq[ToolCallRequest] = Nil) extends ChatMessage(ChatRole.AI):
     def hasToolCalls: Boolean = toolCalls.nonEmpty
 
   case class ToolCallRequest(id: String, name: String, args: List[String])
@@ -33,5 +27,4 @@ object ChatMessage:
   /**
     * Result of a tool call
     */
-  case class ToolMessage(id: String, toolName: String, text: String) extends ChatMessage:
-    override def role: ChatRole = ChatRole.TOOL
+  case class ToolMessage(id: String, toolName: String, text: String) extends ChatMessage(ChatRole.TOOL):

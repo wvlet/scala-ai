@@ -1,7 +1,6 @@
 package wvlet.ai.agent.chat
 
-trait ChatResponse:
-  def format: ChatResponseFormat
+trait ChatResponse(val format: ChatResponseFormat)
 
 enum ChatResponseFormat:
   case TEXT
