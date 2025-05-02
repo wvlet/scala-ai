@@ -77,7 +77,9 @@ case class ModelConfig(
       .stopSequences
       .orElse(this.stopSequences), // Use orElse for Option override
     candidateCount = other.candidateCount.orElse(this.candidateCount),
-    reasoningConfig = other.reasoningConfig.orElse(this.reasoningConfig) // Add reasoningConfig override
+    reasoningConfig = other
+      .reasoningConfig
+      .orElse(this.reasoningConfig) // Add reasoningConfig override
   )
 
 end ModelConfig
@@ -90,4 +92,3 @@ case class ReasoningConfig(
       */
     reasoningBudget: Option[Long] = None
 )
-

@@ -13,5 +13,3 @@ case class LLMAgent(
     tools: List[ToolSpec] = Nil,
     modelConfig: ModelConfig = ModelConfig()
 )
-
-

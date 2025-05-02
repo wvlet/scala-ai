@@ -145,4 +145,3 @@ class ModelConfigTest extends AirSpec:
   }
 
 end ModelConfigTest
-
