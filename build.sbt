@@ -20,7 +20,7 @@ val buildSettings = Seq[Setting[?]](
 // Root project aggregating others
 lazy val root = project
   .in(file("."))
-  .settings(name := "ai", publish / skip := true)
+  .settings(buildSettings, name := "ai", publish / skip := true)
   .aggregate(core, bedrock)
 
 lazy val core = project
@@ -37,6 +37,12 @@ lazy val bedrock = project
     buildSettings,
     name        := "ai-bedrock",
     description := "AWS Bedrock integration",
-    libraryDependencies ++= Seq("software.amazon.awssdk" % "bedrockruntime" % AWS_SDK_VERSION)
+    libraryDependencies ++=
+      Seq(
+        "software.amazon.awssdk" % "bedrockruntime" % AWS_SDK_VERSION,
+        // Add langchain4j as a reference implementation
+        "dev.langchain4j" % "langchain4j"         % "1.0.0-beta3" % Test,
+        "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta3" % Test
+      )
   )
   .dependsOn(core)
