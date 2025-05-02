@@ -9,7 +9,7 @@ class ModelConfigTest extends AirSpec:
       temperature = Some(0.7),
       topP = Some(0.9),
       topK = Some(50),
-      maxOutputTokens = Some(1024L),
+      maxOutputTokens = Some(1024),
       stopSequences = Some(List("stop1")),
       candidateCount = Some(1)
     )
@@ -18,7 +18,7 @@ class ModelConfigTest extends AirSpec:
       temperature = Some(0.8), // Override
       topP = None,             // Keep base
       // topK is None          // Keep base
-      maxOutputTokens = Some(2048L),       // Override
+      maxOutputTokens = Some(2048),        // Override
       stopSequences = Some(List("stop2")), // Override
       candidateCount = None                // Keep base
     )
@@ -28,7 +28,7 @@ class ModelConfigTest extends AirSpec:
     mergedConfig.temperature shouldBe Some(0.8)
     mergedConfig.topP shouldBe Some(0.9)
     mergedConfig.topK shouldBe Some(50)
-    mergedConfig.maxOutputTokens shouldBe Some(2048L)
+    mergedConfig.maxOutputTokens shouldBe Some(2048)
     mergedConfig.stopSequences shouldBe Some(List("stop2"))
     mergedConfig.candidateCount shouldBe Some(1)
   }
@@ -94,14 +94,14 @@ class ModelConfigTest extends AirSpec:
       .withTemperature(0.8)
       .withTopP(0.95)
       .withTopK(40)
-      .withMaxOutputTokens(512L)
+      .withMaxOutputTokens(512)
       .withStopSequences(List("end", "stop"))
       .withCandidateCount(2)
 
     config.temperature shouldBe Some(0.8)
     config.topP shouldBe Some(0.95)
     config.topK shouldBe Some(40)
-    config.maxOutputTokens shouldBe Some(512L)
+    config.maxOutputTokens shouldBe Some(512)
     config.stopSequences shouldBe Some(List("end", "stop"))
     config.candidateCount shouldBe Some(2)
 
@@ -116,7 +116,7 @@ class ModelConfigTest extends AirSpec:
     val baseConfig = ModelConfig()
     baseConfig.reasoningConfig shouldBe None
 
-    val reasoning1 = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(100L))
+    val reasoning1 = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(100))
     val configWithReasoning = baseConfig.withReasoning(reasoning1)
     configWithReasoning.reasoningConfig shouldBe Some(reasoning1)
 

@@ -22,7 +22,7 @@ case class ModelConfig(
     /**
       * The maximum number of tokens allowed in the generated response.
       */
-    maxOutputTokens: Option[Long] = None,
+    maxOutputTokens: Option[Int] = None,
 
     /**
       * A list of strings that, if encountered one of them, will stop the generation process. None
@@ -42,10 +42,10 @@ case class ModelConfig(
     reasoningConfig: Option[ReasoningConfig] = None
 ):
 
-  def withTemperature(t: Double): ModelConfig     = this.copy(temperature = Some(t))
-  def withTopP(p: Double): ModelConfig            = this.copy(topP = Some(p))
-  def withTopK(k: Int): ModelConfig               = this.copy(topK = Some(k))
-  def withMaxOutputTokens(max: Long): ModelConfig = this.copy(maxOutputTokens = Some(max))
+  def withTemperature(t: Double): ModelConfig    = this.copy(temperature = Some(t))
+  def withTopP(p: Double): ModelConfig           = this.copy(topP = Some(p))
+  def withTopK(k: Int): ModelConfig              = this.copy(topK = Some(k))
+  def withMaxOutputTokens(max: Int): ModelConfig = this.copy(maxOutputTokens = Some(max))
   def withStopSequences(sequences: List[String]): ModelConfig = this.copy(stopSequences =
     Some(sequences)
   )
@@ -90,5 +90,5 @@ case class ReasoningConfig(
     /**
       * The maximum number of tokens allowed for reasoning.
       */
-    reasoningBudget: Option[Long] = None
+    reasoningBudget: Option[Int] = None
 )
