@@ -4,7 +4,7 @@ import wvlet.airspec.AirSpec
 
 class ModelConfigTest extends AirSpec:
 
-  test("overrideWith should merge configurations correctly") {
+  test("overrideWith should merge defined parameters") {
     val baseConfig = ModelConfig(
       temperature = Some(0.7),
       topP = Some(0.9),
@@ -33,7 +33,7 @@ class ModelConfigTest extends AirSpec:
     mergedConfig.candidateCount shouldBe Some(1)
   }
 
-  test("overrideWith with empty override config") {
+  test("overrideWith should keep base config if override is empty") {
     val baseConfig = ModelConfig(
       temperature = Some(0.7),
       topP = Some(0.9),
@@ -44,7 +44,7 @@ class ModelConfigTest extends AirSpec:
     mergedConfig shouldBe baseConfig
   }
 
-  test("overrideWith empty base config") {
+  test("overrideWith should use override config if base is empty") {
     val baseConfig     = ModelConfig()
     val overrideConfig = ModelConfig(temperature = Some(0.5), stopSequences = Some(List("end")))
     val mergedConfig   = baseConfig.overrideWith(overrideConfig)
@@ -89,7 +89,7 @@ class ModelConfigTest extends AirSpec:
     baseConfig3.overrideWith(overrideConfig9).stopSequences shouldBe Some(List("stop4"))
   }
 
-  test("testWithMethods") {
+  test("builder methods should set options") {
     val config = ModelConfig()
       .withTemperature(0.8)
       .withTopP(0.95)
@@ -105,11 +105,43 @@ class ModelConfigTest extends AirSpec:
     config.stopSequences shouldBe Some(List("end", "stop"))
     config.candidateCount shouldBe Some(2)
 
-    val config2 = config.withoutStopSequences
+    val config2 = config.noStopSequences
     config2.stopSequences shouldBe Some(Nil)
 
     // Check if original config is unchanged (immutability)
     config.stopSequences shouldBe Some(List("end", "stop"))
+  }
+
+  test("reasoningConfig should be managed correctly") {
+    val baseConfig = ModelConfig()
+    baseConfig.reasoningConfig shouldBe None
+
+    val reasoning1 = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(100L))
+    val configWithReasoning = baseConfig.withReasoning(reasoning1)
+    configWithReasoning.reasoningConfig shouldBe Some(reasoning1)
+
+    val configNoReasoning = configWithReasoning.noReasoning
+    configNoReasoning.reasoningConfig shouldBe None
+
+    // Test overrideWith
+    val reasoning2 = ReasoningConfig(outputThoughts = Some(false))
+
+    // Base None, Override Some
+    val merged1 = baseConfig.overrideWith(configWithReasoning)
+    merged1.reasoningConfig shouldBe Some(reasoning1)
+
+    // Base Some, Override None
+    val merged2 = configWithReasoning.overrideWith(baseConfig)
+    merged2.reasoningConfig shouldBe Some(reasoning1)
+
+    // Base Some, Override Some
+    val overrideConfig = ModelConfig(reasoningConfig = Some(reasoning2))
+    val merged3        = configWithReasoning.overrideWith(overrideConfig)
+    merged3.reasoningConfig shouldBe Some(reasoning2)
+
+    // Base None, Override None
+    val merged4 = baseConfig.overrideWith(baseConfig)
+    merged4.reasoningConfig shouldBe None
   }
 
 end ModelConfigTest
