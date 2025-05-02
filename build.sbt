@@ -41,7 +41,7 @@ lazy val bedrock = project
       Seq(
         "software.amazon.awssdk" % "bedrockruntime" % AWS_SDK_VERSION,
         // Add langchain4j as a reference implementation
-        "dev.langchain4j" % "langchain4j"         % "1.0.0-beta3" % Test,
+        "dev.langchain4j" % "langchain4j"         % "1.0.0-rc1"   % Test,
         "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta3" % Test
       )
   )
