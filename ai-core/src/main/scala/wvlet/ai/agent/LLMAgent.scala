@@ -29,29 +29,33 @@ case class LLMAgent(
   )
 
   /**
-   * Process a chat request and generate a response.
-   *
-   * @param request The chat request containing the user's message and optional configuration overrides
-   * @return A ChatResponse containing the LLM's response
-   * @throws IllegalArgumentException if the request is invalid
-   * @throws RuntimeException if there's an error processing the request
-   */
-  def runChat(request: ChatRequest): TextChatResponse = {
+    * Process a chat request and generate a response.
+    *
+    * @param request
+    *   The chat request containing the user's message and optional configuration overrides
+    * @return
+    *   A ChatResponse containing the LLM's response
+    * @throws IllegalArgumentException
+    *   if the request is invalid
+    * @throws RuntimeException
+    *   if there's an error processing the request
+    */
+  def runChat(request: ChatRequest): TextChatResponse =
     // Validate the request
-    if (request == null) {
+    if request == null then
       throw new IllegalArgumentException("Chat request cannot be null")
-    }
 
-    if (request.message == null || request.message.trim.isEmpty) {
+    if request.message == null || request.message.trim.isEmpty then
       throw new IllegalArgumentException("Chat message cannot be null or empty")
-    }
 
-    try {
+    try
       // Merge the agent's model config with any overrides in the request
-      val effectiveConfig = request.overrideConfig match {
-        case Some(overrideConfig) => modelConfig.overrideWith(overrideConfig)
-        case None => modelConfig
-      }
+      val effectiveConfig =
+        request.overrideConfig match
+          case Some(overrideConfig) =>
+            modelConfig.overrideWith(overrideConfig)
+          case None =>
+            modelConfig
 
       // Here we would typically call the LLM API with the request and configuration
       // Since the actual implementation depends on the specific LLM API being used,
@@ -64,30 +68,32 @@ case class LLMAgent(
 
       // For now, we'll just return a placeholder response
       TextChatResponse(s"Response from ${model.name} to message: ${request.message}")
-    } catch {
+    catch
       case e: Exception =>
         // Log the error
         System.err.println(s"Error processing chat request: ${e.getMessage}")
         // Rethrow as a RuntimeException
         throw new RuntimeException(s"Error processing chat request: ${e.getMessage}", e)
-    }
-  }
+
+  end runChat
 
   /**
-   * Process a chat request as required by the ChatModel interface.
-   * This implementation delegates to runChat and prints the response.
-   *
-   * @param request The chat request containing the user's message and optional configuration overrides
-   * @return Unit (as defined by the ChatModel interface)
-   */
-  override def chat(request: ChatRequest): Unit = {
-    try {
+    * Process a chat request as required by the ChatModel interface. This implementation delegates
+    * to runChat and prints the response.
+    *
+    * @param request
+    *   The chat request containing the user's message and optional configuration overrides
+    * @return
+    *   Unit (as defined by the ChatModel interface)
+    */
+  override def chat(request: ChatRequest): Unit =
+    try
       val response = runChat(request)
       println(s"Chat response: ${response.text}")
-    } catch {
+    catch
       case e: Exception =>
         System.err.println(s"Error in chat: ${e.getMessage}")
-        // In a real implementation, we might want to handle the error differently
-        // For example, we might want to return an error response to the user
-    }
-  }
+      // In a real implementation, we might want to handle the error differently
+      // For example, we might want to return an error response to the user
+
+end LLMAgent
