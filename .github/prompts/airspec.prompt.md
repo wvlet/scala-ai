@@ -97,7 +97,7 @@ class MyTest extends AirSpec:
       pending("this test is pending")
     }
   }
-
+```
 
 ## DI Example
 
