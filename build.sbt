@@ -6,12 +6,12 @@ val AWS_SDK_VERSION  = "2.31.34"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
-  organization       := "org.wvlet",
-  description        := "Scala 3 library for building AI (LLM) applications",
-  scalaVersion       := SCALA_3_VERSION,
-  crossPaths         := true,
-  publishMavenStyle  := true,
-  Test / logBuffered := false,
+  organization             := "org.wvlet",
+  description              := "Scala 3 library for building AI (LLM) applications",
+  scalaVersion             := SCALA_3_VERSION,
+  crossPaths               := true,
+  publishMavenStyle        := true,
+  Test / parallelExecution := false,
   // Use AirSpec for testing
   libraryDependencies ++= Seq("org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test),
   testFrameworks += new TestFramework("wvlet.airspec.Framework")
