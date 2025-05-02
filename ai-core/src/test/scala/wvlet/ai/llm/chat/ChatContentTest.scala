@@ -1,4 +1,4 @@
-package wvlet.ai.chat
+package wvlet.ai.llm.chat
 
 import ChatMessage.SystemMessage
 import wvlet.airspec.AirSpec

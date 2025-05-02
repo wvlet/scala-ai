@@ -1,4 +1,4 @@
-package wvlet.ai.chat
+package wvlet.ai.llm.chat
 
 enum ChatRole:
   case SYSTEM, // Message from the system
