@@ -1,6 +1,6 @@
-package wvlet.ai.llm.chat.bedrock
+package wvlet.ai.agent.chat.bedrock
 
-import wvlet.ai.llm.chat.{ChatModel, ChatRequest}
+import wvlet.ai.agent.chat.{ChatModel, ChatRequest}
 
 class BedrockChat extends ChatModel:
   override def chat(request: ChatRequest): Unit = ???

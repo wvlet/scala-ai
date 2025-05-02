@@ -1,10 +1,14 @@
-package wvlet.ai.llm.chat
+package wvlet.ai.agent.chat
 
 enum ChatRole:
-  case SYSTEM, // Message from the system
-    USER,      // Message from the user
-    AI,        // Message from the LLM
-    TOOL       // Message from a tool
+  // Message from the system
+  case SYSTEM
+  // Message from the user
+  case USER
+  // Message from the LLM
+  case AI
+  // Message from a tool
+  case TOOL
 
 trait ChatMessage:
   def role: ChatRole
@@ -31,10 +35,3 @@ object ChatMessage:
     */
   case class ToolMessage(id: String, toolName: String, text: String) extends ChatMessage:
     override def role: ChatRole = ChatRole.TOOL
-
-trait ChatResponse:
-  def format: ChatResponseFormat
-
-enum ChatResponseFormat:
-  case TEXT,
-    JSON
