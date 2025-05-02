@@ -13,7 +13,7 @@ class LLMAgentTest extends AirSpec:
   )
 
   test("should have default values") {
-    baseAgent.systemPrompt shouldBe ""
+    baseAgent.systemPrompt shouldBe empty
     baseAgent.tools shouldBe Nil
     baseAgent.modelConfig shouldBe ModelConfig()
   }
@@ -41,7 +41,7 @@ class LLMAgentTest extends AirSpec:
 
   test("withSystemPrompt should update systemPrompt") {
     val updatedAgent = baseAgent.withSystemPrompt("You are a helpful assistant.")
-    updatedAgent.systemPrompt shouldBe "You are a helpful assistant."
+    updatedAgent.systemPrompt shouldBe Some("You are a helpful assistant.")
     updatedAgent.name shouldBe baseAgent.name
   }
 

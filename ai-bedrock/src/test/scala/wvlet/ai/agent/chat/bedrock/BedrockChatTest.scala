@@ -2,6 +2,7 @@ package wvlet.ai.agent.chat.bedrock
 
 import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, ReasoningConfig}
 import wvlet.ai.agent.chat.{ChatMessage, ChatRequest}
+import wvlet.ai.core.AIException
 import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*
@@ -113,6 +114,18 @@ class BedrockChatTest extends AirSpec:
     val converseRequest = chat.newConverseRequest(dummyRequest)
 
     converseRequest.additionalModelRequestFields() shouldBe null
+  }
+
+  test("should throw exception for invalid maxTokens") {
+    val modelConfig = ModelConfig().withMaxOutputTokens(10000) // Exceeds limit
+    val agent       = createAgent(modelConfig)
+    val chat        = createChat(agent)
+
+    val ex = intercept[AIException] {
+      chat.newConverseRequest(dummyRequest)
+    }
+    ex.statusCode shouldBe wvlet.ai.core.StatusCode.INVALID_MODEL_CONFIG
+    ex.getMessage shouldContain "maxTokens is limited to 8129 in Bedrock"
   }
 
 end BedrockChatTest

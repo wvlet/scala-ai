@@ -4,7 +4,8 @@ import software.amazon.awssdk.auth.credentials.{AwsCredentialsProvider, DefaultC
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.model.{
   ConverseStreamRequest,
-  InferenceConfiguration
+  InferenceConfiguration,
+  SystemContentBlock
 }
 import software.amazon.awssdk.services.bedrockruntime.{
   BedrockRuntimeAsyncClient,
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.bedrockruntime.{
 }
 import wvlet.ai.agent.LLMAgent
 import wvlet.ai.agent.chat.{ChatModel, ChatObserver, ChatRequest}
+import wvlet.ai.core.StatusCode
 import wvlet.log.LogSupport
 
 import scala.jdk.CollectionConverters.*
@@ -41,10 +43,28 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
 
     val builder = ConverseStreamRequest.builder().modelId(agent.model.id)
 
+    // Reasoning config
+    builder.ifDefined(agent.modelConfig.reasoningConfig) { (builder, config) =>
+      builder.additionalModelRequestFields(
+        DocumentUtil.fromMap(
+          Map("thinking" -> Map("type" -> "enabled", "budget_tokens" -> config.reasoningBudget))
+        )
+      )
+    }
+
+    // Set a system prompt
+    builder.ifDefined(agent.systemPrompt) { (builder, systemPrompt) =>
+      builder.system(SystemContentBlock.builder().text(systemPrompt).build())
+    }
+
     // Set inference configuration
     val inferenceConfig = InferenceConfiguration
       .builder()
       .ifDefined(agent.modelConfig.maxOutputTokens) { (builder, maxTokens) =>
+        if maxTokens > 8192 then
+          throw StatusCode
+            .INVALID_MODEL_CONFIG
+            .newException(s"maxTokens is limited to 8129 in Bedrock, but ${maxTokens} is given")
         builder.maxTokens(maxTokens.toInt)
       }
       .ifDefined(agent.modelConfig.temperature) { (builder, temperature) =>
@@ -54,7 +74,7 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
         builder.topP(topP.toFloat)
       }
       .ifDefined(agent.modelConfig.topK) { (builder, topK) =>
-        warn(s"top-k parameter is not supported in Bedrock")
+        warn(s"Ignoring top-k parameter ${topK}, which is not supported in Bedrock")
         builder
       }
       .ifDefined(agent.modelConfig.stopSequences) { (builder, stopSequences) =>
@@ -63,15 +83,6 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
       .build()
 
     builder.inferenceConfig(inferenceConfig)
-
-    // Reasoning config
-    builder.ifDefined(agent.modelConfig.reasoningConfig) { (builder, config) =>
-      builder.additionalModelRequestFields(
-        DocumentUtil.fromMap(
-          Map("thinking" -> Map("type" -> "enabled", "budget_tokens" -> config.reasoningBudget))
-        )
-      )
-    }
 
     builder.build()
 
