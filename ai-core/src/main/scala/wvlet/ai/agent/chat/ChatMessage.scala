@@ -15,11 +15,13 @@ trait ChatMessage(val role: ChatRole):
 
 object ChatMessage:
   case class SystemMessage(text: String) extends ChatMessage(ChatRole.SYSTEM)
-  case class UserMessage(text: String) extends ChatMessage(ChatRole.USER)
+  case class UserMessage(text: String)   extends ChatMessage(ChatRole.USER)
+
   /**
     * AI message with optional tool call requests
     */
-  case class AIMessage(text: String, toolCalls: Seq[ToolCallRequest] = Nil) extends ChatMessage(ChatRole.AI):
+  case class AIMessage(text: String, toolCalls: Seq[ToolCallRequest] = Nil)
+      extends ChatMessage(ChatRole.AI):
     def hasToolCalls: Boolean = toolCalls.nonEmpty
 
   case class ToolCallRequest(id: String, name: String, args: List[String])
@@ -27,4 +29,5 @@ object ChatMessage:
   /**
     * Result of a tool call
     */
-  case class ToolMessage(id: String, toolName: String, text: String) extends ChatMessage(ChatRole.TOOL):
+  case class ToolMessage(id: String, toolName: String, text: String)
+      extends ChatMessage(ChatRole.TOOL)
