@@ -7,7 +7,7 @@ object DataType:
   case object StringType                                                  extends DataType
   case object JsonType                                                    extends DataType
   case object IntegerType                                                 extends DataType
-  case object FloadType                                                   extends DataType
+  case object FloatType                                                   extends DataType
   case object ByteArrayType                                               extends DataType
   case object AnyType                                                     extends DataType
   case object ObjectType                                                  extends DataType
@@ -17,4 +17,3 @@ object DataType:
   case class GenericType(typeParams: List[DataType], fields: List[Field]) extends DataType
 
   case class Field(name: String, dataType: DataType, description: String = "", isRequired: Boolean)
-      extends DataType
