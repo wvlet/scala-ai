@@ -1,18 +1,14 @@
 package wvlet.ai.agent.chat.bedrock
 
-import wvlet.ai.agent.chat.{ChatRequestParameters, ToolSpec}
+import wvlet.ai.agent.chat.ToolSpec
 
-case class BedrockChatRequestParameters(
-    modelName: String,
-    temperature: Option[Double] = None,
-    topP: Option[Double] = None,
-    topK: Option[Int] = None,
-    maxOutputTokens: Option[Long] = None,
-    toolSpecs: List[ToolSpec] = Nil,
-    stopSequences: List[String] = Nil,
-    reasoningConfig: Option[BedrockReasoningConfig] = None
-) extends ChatRequestParameters:
-  def withReasoning(tokenBudget: Long): this.type = this.copy(reasoningConfig =
+/**
+  * Bedrock-specific configuration parameters that can be specified at request time. Common
+  * parameters like temperature, topP, etc., should be configured in LLMAgent.modelConfig or
+  * overridden in ChatRequest.overrideConfig.
+  */
+case class BedrockChatRequestParameters(reasoningConfig: Option[BedrockReasoningConfig] = None):
+  def withReasoning(tokenBudget: Long): BedrockChatRequestParameters = this.copy(reasoningConfig =
     Some(BedrockReasoningConfig(tokenBudget))
   )
 

@@ -1,0 +1,1 @@
+- Use AirSpec testing framework to test the code. For assertions use `shouldBe` or `shouldMatch` syntax.
