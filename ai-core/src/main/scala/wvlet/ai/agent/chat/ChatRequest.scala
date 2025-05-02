@@ -11,4 +11,4 @@ import wvlet.ai.agent.ModelConfig
   *   Optional configuration parameters to override the agent's default ModelConfig for this
   *   specific request. Only non-None values in this ModelConfig will be used as overrides.
   */
-case class ChatRequest(message: String, overrideConfig: Option[ModelConfig] = None)
+case class ChatRequest(messages: Seq[ChatMessage], overrideConfig: Option[ModelConfig] = None)
