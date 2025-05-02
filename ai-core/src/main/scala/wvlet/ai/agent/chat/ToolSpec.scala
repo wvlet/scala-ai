@@ -1,4 +1,4 @@
-package wvlet.ai.llm.chat
+package wvlet.ai.agent.chat
 
 case class ToolSpec(
     name: String,

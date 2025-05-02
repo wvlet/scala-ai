@@ -1,4 +1,4 @@
-package wvlet.ai.llm.chat
+package wvlet.ai.agent.chat
 
 trait ChatModel:
   def chat(request: ChatRequest): Unit
