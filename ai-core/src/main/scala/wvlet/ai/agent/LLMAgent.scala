@@ -1,6 +1,6 @@
 package wvlet.ai.agent
 
-import wvlet.ai.agent.chat.ToolSpec
+import wvlet.ai.agent.chat.{ChatRequest, ToolSpec}
 
 case class LLMAgent(
     // Name of this agent

@@ -28,7 +28,8 @@ lazy val core = project
   .settings(
     buildSettings,
     name        := "ai-core",
-    description := "Core interface for AI (LLM) applications"
+    description := "Core interface for AI (LLM) applications",
+    libraryDependencies ++= Seq("org.wvlet.airframe" %% "airframe" % AIRFRAME_VERSION)
   )
 
 lazy val bedrock = project
