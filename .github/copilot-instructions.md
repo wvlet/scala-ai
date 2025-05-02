@@ -1,3 +1,3 @@
-- Use AirSpec testing framework and `shouldBe`, `shouldMatch` assertion syntax. Test names should be concise and descriptive written in plain English.
+- Use AirSpec testing framework and `shouldBe`, `shouldMatch` assertion syntax. Test names should be concise and descriptive, written in plain English.
 - case classes for configuration should have withXXX(...) methods for all fields and noXXX(...) methods for all optional fields.
 - For commit messages, add prefix from one of feature, fix, internal, doc to classify change types. Focus on `why` and `what` of the change, not `how`. 
