@@ -26,6 +26,7 @@ import wvlet.ai.agent.chat.{ChatMessage, ChatModel, ChatObserver, ChatRequest, T
 import wvlet.ai.core.StatusCode
 import wvlet.log.LogSupport
 
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.*
 
@@ -37,7 +38,7 @@ case class BedrockConfig(
 )
 
 class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with LogSupport:
-
+  import BedrockChat.*
   import wvlet.ai.core.ChainingUtil.*
 
   private val client = BedrockRuntimeAsyncClient
@@ -47,8 +48,12 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
     .pipe(config.asyncClientConfig(_))
     .build()
 
-  override def chat(request: ChatRequest): Unit                               = ???
-  override def chatStream(request: ChatRequest, observer: ChatObserver): Unit = ???
+  override def chat(request: ChatRequest): Unit = ???
+  override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
+    val converseRequest = newConverseRequest(request)
+    val reasoning       = StringBuilder()
+    val chatText        = StringBuilder()
+    // val finalResponse = AtomicReference[]()
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
 
@@ -118,6 +123,9 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
 
   end newConverseRequest
 
+end BedrockChat
+
+object BedrockChat:
   private[bedrock] def extractBedrockChatMessages(messages: Seq[ChatMessage]): Seq[Message] =
     val bedrockMessages = Seq.newBuilder[Message]
     val contentBlocks   = Seq.newBuilder[ContentBlock]

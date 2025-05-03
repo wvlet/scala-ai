@@ -1,15 +1,9 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.services.bedrockruntime.model.{
-  ContentBlock,
-  ConversationRole,
-  Message,
-  ToolResultBlock,
-  ToolResultContentBlock
-}
-import wvlet.ai.agent.{LLM, LLMAgent}
-import wvlet.ai.agent.chat.{ChatMessage, ChatRole}
+import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole
 import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolMessage, UserMessage}
+import wvlet.ai.agent.chat.{ChatMessage, ChatRole}
+import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.ai.core.{AIException, StatusCode}
 import wvlet.airspec.AirSpec
 
@@ -27,7 +21,7 @@ class BedrockChatMessageTest extends AirSpec:
 
   test("extract single user message") {
     val messages = Seq(UserMessage("Hello"))
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 1
     result(0).role() shouldBe ConversationRole.USER
@@ -37,7 +31,7 @@ class BedrockChatMessageTest extends AirSpec:
 
   test("extract user and AI messages") {
     val messages = Seq(UserMessage("Hi"), AIMessage("How can I help?"))
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 2
     result(0).role() shouldBe ConversationRole.USER
@@ -55,7 +49,7 @@ class BedrockChatMessageTest extends AirSpec:
       ),
       ToolMessage("tool1", "get_weather", "It's sunny.")
     )
-    val result = bedrockChat.extractBedrockChatMessages(messages)
+    val result = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 3
     result(0).role() shouldBe ConversationRole.USER
@@ -85,7 +79,7 @@ class BedrockChatMessageTest extends AirSpec:
       ToolMessage("tool_apple", "search", "Apples are red."),
       ToolMessage("tool_orange", "search", "Oranges are orange.")
     )
-    val result = bedrockChat.extractBedrockChatMessages(messages)
+    val result = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 3 // User, AI, User(ToolResults)
     result(0).role() shouldBe ConversationRole.USER
@@ -109,7 +103,7 @@ class BedrockChatMessageTest extends AirSpec:
       UserMessage("How are you?"),
       AIMessage("I'm doing well, thank you!")
     )
-    val result = bedrockChat.extractBedrockChatMessages(messages)
+    val result = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 4
     result(0).role() shouldBe ConversationRole.USER
@@ -120,7 +114,7 @@ class BedrockChatMessageTest extends AirSpec:
 
   test("ignore SystemMessage") {
     val messages = Seq(ChatMessage.SystemMessage("System prompt"), UserMessage("Hello"))
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 1
     result(0).role() shouldBe ConversationRole.USER
@@ -129,13 +123,13 @@ class BedrockChatMessageTest extends AirSpec:
 
   test("handle empty message list") {
     val messages = Seq.empty[ChatMessage]
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
     result.isEmpty shouldBe true
   }
 
   test("handle starting with AI message") {
     val messages = Seq(AIMessage("Greetings!"))
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 1
     result(0).role() shouldBe ConversationRole.ASSISTANT
@@ -144,7 +138,7 @@ class BedrockChatMessageTest extends AirSpec:
 
   test("handle starting with Tool message") {
     val messages = Seq(ToolMessage("tool_start", "init", "Tool started"))
-    val result   = bedrockChat.extractBedrockChatMessages(messages)
+    val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 1
     result(0).role() shouldBe ConversationRole.USER // Tool messages grouped under USER
@@ -160,7 +154,7 @@ class BedrockChatMessageTest extends AirSpec:
 
     val messages = Seq(UserMessage("Hello"), UnsupportedMessage("Invalid"))
     val e = intercept[AIException] {
-      bedrockChat.extractBedrockChatMessages(messages)
+      BedrockChat.extractBedrockChatMessages(messages)
     }
     e.statusCode shouldBe StatusCode.INVALID_MESSAGE_TYPE
     e.getMessage shouldContain "Unsupported message type: UnsupportedMessage(Invalid)"
