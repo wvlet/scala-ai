@@ -18,6 +18,7 @@ enum StatusCode(val statusType: StatusType):
   // User errors
   case TEST_FAILED          extends StatusCode(StatusType.UserError)
   case INVALID_MODEL_CONFIG extends StatusCode(StatusType.UserError)
+  case INVALID_MESSAGE_TYPE extends StatusCode(StatusType.UserError)
 
   // Internal errors
   case INTERNAL_ERROR extends StatusCode(StatusType.InternalError)

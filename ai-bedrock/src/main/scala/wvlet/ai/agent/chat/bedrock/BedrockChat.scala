@@ -3,12 +3,17 @@ package wvlet.ai.agent.chat.bedrock
 import software.amazon.awssdk.auth.credentials.{AwsCredentialsProvider, DefaultCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.model.{
+  ContentBlock,
+  ConversationRole,
   ConverseStreamRequest,
   InferenceConfiguration,
+  Message,
   SystemContentBlock,
   Tool,
   ToolConfiguration,
   ToolInputSchema,
+  ToolResultBlock,
+  ToolResultContentBlock,
   ToolSpecification
 }
 import software.amazon.awssdk.services.bedrockruntime.{
@@ -16,7 +21,8 @@ import software.amazon.awssdk.services.bedrockruntime.{
   BedrockRuntimeAsyncClientBuilder
 }
 import wvlet.ai.agent.LLMAgent
-import wvlet.ai.agent.chat.{ChatModel, ChatObserver, ChatRequest, ToolSpec}
+import wvlet.ai.agent.chat.ChatMessage.{AIMessage, SystemMessage, ToolMessage, UserMessage}
+import wvlet.ai.agent.chat.{ChatMessage, ChatModel, ChatObserver, ChatRequest, ToolSpec}
 import wvlet.ai.core.StatusCode
 import wvlet.log.LogSupport
 
@@ -104,9 +110,76 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
       }
     builder.toolConfig(ToolConfiguration.builder().tools(tools.asJava).build())
 
+    // Set messages
+    val messages: Seq[Message] = extractBedrockChatMessages(request.messages)
+    builder.messages(messages.asJava)
+
     builder.build()
 
   end newConverseRequest
+
+  private[bedrock] def extractBedrockChatMessages(messages: Seq[ChatMessage]): Seq[Message] =
+    val bedrockMessages = Seq.newBuilder[Message]
+    val contentBlocks   = Seq.newBuilder[ContentBlock]
+    messages
+      .zipWithIndex
+      .foreach { case (message, index) =>
+        message match
+          case s: SystemMessage =>
+          // skip
+          case u: UserMessage =>
+            bedrockMessages +=
+              Message
+                .builder()
+                .role(ConversationRole.USER)
+                .content(ContentBlock.fromText(u.text))
+                .build()
+          case m: AIMessage =>
+            bedrockMessages +=
+              Message
+                .builder()
+                .role(ConversationRole.ASSISTANT)
+                .content(ContentBlock.fromText(m.text))
+                .build()
+          case t: ToolMessage =>
+            val contentBlock = ContentBlock
+              .builder()
+              .toolResult(
+                ToolResultBlock
+                  .builder()
+                  .toolUseId(t.id)
+                  .content(ToolResultContentBlock.builder().text(t.text).build())
+                  .build()
+              )
+              .build()
+            contentBlocks += contentBlock
+
+            val isLastOrNextIsNotToolMessage =
+              index + 1 >= messages.size || {
+                messages(index + 1) match
+                  case _: ToolMessage =>
+                    false
+                  case _ =>
+                    true
+              }
+
+            if isLastOrNextIsNotToolMessage then
+              bedrockMessages +=
+                Message
+                  .builder()
+                  .role(ConversationRole.USER)
+                  .content(contentBlocks.result().asJava)
+                  .build()
+              contentBlocks.clear()
+          case other =>
+            throw StatusCode
+              .INVALID_MESSAGE_TYPE
+              .newException(s"Unsupported message type: ${other}")
+      }
+
+    bedrockMessages.result()
+
+  end extractBedrockChatMessages
 
   private[bedrock] def extractToolInputSchema(tool: ToolSpec): ToolInputSchema =
     // Convert the tool's input schema to Bedrock's ToolInputSchema format
