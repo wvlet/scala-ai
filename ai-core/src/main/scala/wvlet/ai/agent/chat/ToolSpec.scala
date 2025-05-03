@@ -13,6 +13,5 @@ case class ToolParameter(
     name: String,
     description: String,
     dataType: DataType,
-    required: Boolean,
     defaultValue: Option[Any] = None
 )

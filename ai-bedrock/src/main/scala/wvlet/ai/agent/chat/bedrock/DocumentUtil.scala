@@ -1,6 +1,8 @@
 package wvlet.ai.agent.chat.bedrock
 
+import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
+
 import scala.jdk.CollectionConverters.*
 
 object DocumentUtil:
@@ -81,5 +83,34 @@ object DocumentUtil:
     builder.build()
 
   end fromMap
+
+  def toMap(d: Document): Map[String, Any] =
+    def toAny(d: Document): Any =
+      d match
+        case d if d.isNull =>
+          null
+        case d if d.isString =>
+          d.asString()
+        case d if d.isBoolean =>
+          d.asBoolean()
+        case d if d.isNumber =>
+          d.asNumber()
+        case d if d.isList =>
+          d.asList().asScala.map(toAny).toList
+        case d if d.isMap =>
+          d.asMap()
+            .asScala
+            .map { case (k, v) =>
+              k -> toAny(v)
+            }
+            .toMap
+        case v =>
+          v
+
+    val m = d.asMap().asScala
+    m.map { case (k, v) =>
+        k -> toAny(v)
+      }
+      .toMap
 
 end DocumentUtil
