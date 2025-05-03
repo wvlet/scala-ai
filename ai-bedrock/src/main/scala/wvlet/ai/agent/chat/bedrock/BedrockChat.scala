@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   ContentBlock,
   ConversationRole,
   ConverseStreamRequest,
+  ConverseStreamResponseHandler,
   InferenceConfiguration,
   Message,
   SystemContentBlock,
@@ -39,7 +40,7 @@ case class BedrockConfig(
 
 class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with LogSupport:
   import BedrockChat.*
-  import wvlet.ai.core.ChainingUtil.*
+  import wvlet.ai.core.ops.*
 
   private val client = BedrockRuntimeAsyncClient
     .builder()
@@ -51,9 +52,22 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
   override def chat(request: ChatRequest): Unit = ???
   override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
     val converseRequest = newConverseRequest(request)
-    val reasoning       = StringBuilder()
-    val chatText        = StringBuilder()
     // val finalResponse = AtomicReference[]()
+
+    val chatStreamHandler = BedrockChatStreamHandler()
+    ConverseStreamResponseHandler
+      .builder()
+      .subscriber(
+        ConverseStreamResponseHandler
+          .Visitor
+          .builder()
+          .onContentBlockStart(chatStreamHandler.onEvent)
+          .onContentBlockDelta(chatStreamHandler.onEvent)
+          .onContentBlockStop(chatStreamHandler.onEvent)
+          .onMetadata(chatStreamHandler.onEvent)
+          .onMessageStart(chatStreamHandler.onEvent)
+          .build()
+      )
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
 
