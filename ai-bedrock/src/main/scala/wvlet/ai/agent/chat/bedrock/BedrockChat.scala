@@ -126,7 +126,6 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
 end BedrockChat
 
 object BedrockChat:
-
   private[bedrock] def extractBedrockChatMessages(messages: Seq[ChatMessage]): Seq[Message] =
     val bedrockMessages = Seq.newBuilder[Message]
     val contentBlocks   = Seq.newBuilder[ContentBlock]
