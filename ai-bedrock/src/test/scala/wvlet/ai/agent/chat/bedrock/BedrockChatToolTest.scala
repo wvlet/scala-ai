@@ -66,17 +66,17 @@ class BedrockChatToolTest extends AirSpec:
     // Note: We are assuming DocumentUtil correctly serializes the schema.
     // A more robust test might involve parsing the JSON string if a library is available.
     schema1("type") shouldBe "object"
-    schema1("properties") shouldMatch { case props1: Map[String, Any] =>
-      props1("location") shouldMatch { case location: Map[String, Any] =>
+    schema1("properties") shouldMatch { case props1: Map[String, Any] @unchecked =>
+      props1("location") shouldMatch { case location: Map[String, Any] @unchecked =>
         location("type") shouldBe "string"
         location("description") shouldBe "The city and state, e.g., San Francisco, CA"
       }
-      props1("unit") shouldMatch { case unit: Map[String, Any] =>
+      props1("unit") shouldMatch { case unit: Map[String, Any] @unchecked =>
         unit("type") shouldBe "string" // OptionalType maps to base type
         unit("description") shouldBe "The temperature unit (celsius or fahrenheit)"
       }
     }
-    schema1("required") shouldMatch { case required1: Seq[String] =>
+    schema1("required") shouldMatch { case required1: Seq[String] @unchecked =>
       required1 shouldContain "location"
       required1 shouldNotContain "unit" // Optional parameter
     }
@@ -87,13 +87,13 @@ class BedrockChatToolTest extends AirSpec:
     bedrockTool2.description() shouldBe "Search the web for a query"
     val schema2 = DocumentUtil.toMap(bedrockTool2.inputSchema().json())
     schema2("type") shouldBe "object"
-    schema2("properties") shouldMatch { case props2: Map[String, Any] =>
-      props2("query") shouldMatch { case query: Map[String, Any] =>
+    schema2("properties") shouldMatch { case props2: Map[String, Any] @unchecked =>
+      props2("query") shouldMatch { case query: Map[String, Any] @unchecked =>
         query("type") shouldBe "string"
         query("description") shouldBe "The search query"
       }
     }
-    schema2("required") shouldMatch { case required2: Seq[String] =>
+    schema2("required") shouldMatch { case required2: Seq[String] @unchecked =>
       required2.size shouldBe 1
       required2 shouldContain "query"
     }
