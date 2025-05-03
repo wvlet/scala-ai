@@ -116,7 +116,7 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
         .parameters
         .foreach { p =>
           m += p.name ->
-            Map[String, Any]("type" -> p.dataType.toString, "description" -> p.description)
+            Map[String, Any]("type" -> p.dataType.jsonType, "description" -> p.description)
         }
       m.result()
 
