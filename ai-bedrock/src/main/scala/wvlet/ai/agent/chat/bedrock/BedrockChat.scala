@@ -5,17 +5,22 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.model.{
   ConverseStreamRequest,
   InferenceConfiguration,
-  SystemContentBlock
+  SystemContentBlock,
+  Tool,
+  ToolConfiguration,
+  ToolInputSchema,
+  ToolSpecification
 }
 import software.amazon.awssdk.services.bedrockruntime.{
   BedrockRuntimeAsyncClient,
   BedrockRuntimeAsyncClientBuilder
 }
 import wvlet.ai.agent.LLMAgent
-import wvlet.ai.agent.chat.{ChatModel, ChatObserver, ChatRequest}
+import wvlet.ai.agent.chat.{ChatModel, ChatObserver, ChatRequest, ToolSpec}
 import wvlet.ai.core.StatusCode
 import wvlet.log.LogSupport
 
+import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.*
 
 case class BedrockConfig(
@@ -84,8 +89,53 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
 
     builder.inferenceConfig(inferenceConfig)
 
+    // Set up tools
+    val tools = agent
+      .tools
+      .map { tool =>
+        Tool.fromToolSpec(
+          ToolSpecification
+            .builder()
+            .name(tool.name)
+            .description(tool.description)
+            .inputSchema(extractToolInputSchema(tool))
+            .build()
+        )
+      }
+    builder.toolConfig(ToolConfiguration.builder().tools(tools.asJava).build())
+
     builder.build()
 
   end newConverseRequest
+
+  private[bedrock] def extractToolInputSchema(tool: ToolSpec): ToolInputSchema =
+    // Convert the tool's input schema to Bedrock's ToolInputSchema format
+    val properties: ListMap[String, Map[String, Any]] =
+      val m = ListMap.newBuilder[String, Map[String, Any]]
+      tool
+        .parameters
+        .foreach { p =>
+          m += p.name ->
+            Map[String, Any]("type" -> p.dataType.toString, "description" -> p.description)
+        }
+      m.result()
+
+    val requiredParams: Seq[String] = tool
+      .parameters
+      .filter { p =>
+        p.dataType.isRequired
+      }
+      .map(_.name)
+
+    val inputSchema = ToolInputSchema.fromJson(
+      DocumentUtil.fromMap(
+        Map(
+          "type"       -> "object",
+          "properties" -> properties,
+          "required"   -> DocumentUtil.fromArray(requiredParams)
+        )
+      )
+    )
+    inputSchema
 
 end BedrockChat

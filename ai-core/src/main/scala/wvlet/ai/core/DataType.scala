@@ -1,6 +1,14 @@
 package wvlet.ai.core
 
-trait DataType
+import wvlet.ai.core.DataType.OptionalType
+
+trait DataType:
+  def isRequired: Boolean =
+    this match
+      case o: OptionalType =>
+        false
+      case _ =>
+        true
 
 object DataType:
   case object BooleanType                                                 extends DataType
