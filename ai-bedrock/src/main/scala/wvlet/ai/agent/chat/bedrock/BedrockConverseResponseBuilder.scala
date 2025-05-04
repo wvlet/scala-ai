@@ -24,7 +24,7 @@ import wvlet.ai.core.ops.*
 /**
   * Accumulate the response from a Bedrock chat stream, and build ConverseResponse from it.
   */
-class BedrockChatStreamHandler(observer: ChatObserver):
+class BedrockConverseResponseBuilder(observer: ChatObserver):
   private val converseResponseBuilder                           = ConverseResponse.builder()
   private var toolUseBlockBuilder: Option[ToolUseBlock.Builder] = None
   private val toolUseBlocks                                     = List.newBuilder[ToolUseBlock]
@@ -33,6 +33,8 @@ class BedrockChatStreamHandler(observer: ChatObserver):
   private var messageBuilder: Message.Builder = Message.builder()
   private val reasoningText                   = StringBuilder()
   private val chatText                        = StringBuilder()
+
+  def buildConverseResponse(): ConverseResponse = converseResponseBuilder.build()
 
   def onEvent(event: ContentBlockStartEvent): Unit =
     val startEvent = event.start()
@@ -53,9 +55,18 @@ class BedrockChatStreamHandler(observer: ChatObserver):
       case ContentBlockDelta.Type.REASONING_CONTENT =>
         reasoningText.append(delta.reasoningContent().text())
 
-  def onEvent(event: ContentBlockStopEvent): Unit = {}
+  def onEvent(event: ContentBlockStopEvent): Unit = toolUseBlockBuilder.foreach { builder =>
+    if toolUseInput.nonEmpty then
+      builder.input(DocumentUtil.fromJson(toolUseInput.result()))
+      toolUseInput.clear()
+      toolUseBlockBuilder = None
+  }
 
-  def onEvent(event: ConverseStreamMetadataEvent): Unit = {}
+  def onEvent(event: ConverseStreamMetadataEvent): Unit =
+    converseResponseBuilder.usage(event.usage())
+    converseResponseBuilder.metrics(builder =>
+      builder.latencyMs(event.metrics().latencyMs()).build()
+    )
 
   def onEvent(event: MessageStartEvent): Unit =
     messageBuilder = Message.builder().role(event.role())
@@ -79,4 +90,4 @@ class BedrockChatStreamHandler(observer: ChatObserver):
     )
     messageBuilder = Message.builder()
 
-end BedrockChatStreamHandler
+end BedrockConverseResponseBuilder

@@ -23,7 +23,6 @@ object ops:
 
     /**
       * Apply a function only when it matches the given pattern
-      * @param f
       */
     def when(f: PartialFunction[A, Unit]): Unit = f.applyOrElse(self, (_: A) => ())
 

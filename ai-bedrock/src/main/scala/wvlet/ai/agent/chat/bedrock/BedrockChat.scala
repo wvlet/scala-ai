@@ -54,18 +54,18 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
     val converseRequest = newConverseRequest(request)
     // val finalResponse = AtomicReference[]()
 
-    val chatStreamHandler = BedrockChatStreamHandler(observer)
+    val converseResponseBuilder = BedrockConverseResponseBuilder(observer)
     val chatStreamResponseHandler = ConverseStreamResponseHandler
       .builder()
       .subscriber(
         ConverseStreamResponseHandler
           .Visitor
           .builder()
-          .onContentBlockStart(chatStreamHandler.onEvent)
-          .onContentBlockDelta(chatStreamHandler.onEvent)
-          .onContentBlockStop(chatStreamHandler.onEvent)
-          .onMetadata(chatStreamHandler.onEvent)
-          .onMessageStart(chatStreamHandler.onEvent)
+          .onContentBlockStart(converseResponseBuilder.onEvent)
+          .onContentBlockDelta(converseResponseBuilder.onEvent)
+          .onContentBlockStop(converseResponseBuilder.onEvent)
+          .onMetadata(converseResponseBuilder.onEvent)
+          .onMessageStart(converseResponseBuilder.onEvent)
           .build()
       )
       .build()
