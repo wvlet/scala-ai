@@ -75,6 +75,8 @@ object DocumentUtil:
           builder.putNumber(key, d)
         case f: Float =>
           builder.putNumber(key, f)
+        case b: Boolean =>
+          builder.putBoolean(key, b)
         case s: String =>
           builder.putString(key, s)
         case v =>
