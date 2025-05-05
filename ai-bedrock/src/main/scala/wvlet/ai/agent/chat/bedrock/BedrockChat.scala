@@ -58,7 +58,7 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
   import wvlet.ai.core.ops.*
 
   override def chat(request: ChatRequest): Unit = ???
-  override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
+  override def chatStream(request: ChatRequest, observer: ChatObserver): ChatResponse =
     val converseRequest = newConverseRequest(request)
 
     val converseResponseBuilder = BedrockConverseResponseBuilder(observer)
@@ -81,9 +81,13 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
 
     val future = bedrockClient.converseStream(converseRequest, chatStreamResponseHandler)
     future.get()
+    converseResponseBuilder
+      .getResponse
+      .getOrElse {
+        throw StatusCode.INCOMPLETE_CHAT.newException("Chat response is not available")
+      }
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
-
     val builder = ConverseStreamRequest.builder().modelId(agent.model.id)
 
     // Reasoning config

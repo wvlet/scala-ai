@@ -1,8 +1,9 @@
 package wvlet.ai.agent.runner
 
 import wvlet.ai.agent.LLMAgent
-import wvlet.ai.agent.chat.{ChatRequest, ChatResponse, ChatObserver}
+import wvlet.ai.agent.chat.{ChatObserver, ChatRequest, ChatResponse, ChatSession}
 
 trait AgentRunner(val agent: LLMAgent):
-  def chat(request: ChatRequest): ChatResponse
-  def chatStream(request: ChatRequest, observer: ChatObserver): Unit
+  def newChatSession: ChatSession
+  def chat(message: String, observer: ChatObserver = ChatObserver.defaultObserver): ChatResponse =
+    newChatSession.chat(message, observer)
