@@ -58,7 +58,6 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
   override def chat(request: ChatRequest): Unit = ???
   override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
     val converseRequest = newConverseRequest(request)
-    // val finalResponse = AtomicReference[]()
 
     val converseResponseBuilder = BedrockConverseResponseBuilder(observer)
     val chatStreamResponseHandler = ConverseStreamResponseHandler
@@ -75,6 +74,7 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
           .onMessageStop(converseResponseBuilder.onEvent)
           .build()
       )
+      .onError(e => observer.onError(e))
       .build()
 
     val future = bedrockClient.converseStream(converseRequest, chatStreamResponseHandler)
@@ -138,7 +138,8 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
             .build()
         )
       }
-    builder.toolConfig(ToolConfiguration.builder().tools(tools.asJava).build())
+    if tools.nonEmpty then
+      builder.toolConfig(ToolConfiguration.builder().tools(tools.asJava).build())
 
     // Set messages
     val messages: Seq[Message] = extractBedrockChatMessages(request.messages)

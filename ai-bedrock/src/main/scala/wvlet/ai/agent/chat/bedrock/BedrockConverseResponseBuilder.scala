@@ -16,6 +16,11 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   ToolUseBlock
 }
 import software.amazon.eventstream.MessageBuilder
+import wvlet.ai.agent.chat.ChatEvent.{
+  PartialReasoningResponse,
+  PartialResponse,
+  PartialToolRequestResponse
+}
 import wvlet.ai.agent.chat.ChatObserver
 
 import scala.jdk.CollectionConverters.*
@@ -34,8 +39,6 @@ class BedrockConverseResponseBuilder(observer: ChatObserver):
   private val reasoningText                   = StringBuilder()
   private val chatText                        = StringBuilder()
 
-  def buildConverseResponse(): ConverseResponse = converseResponseBuilder.build()
-
   def onEvent(event: ContentBlockStartEvent): Unit =
     val startEvent = event.start()
     if startEvent.`type`() == ContentBlockStart.Type.TOOL_USE then
@@ -49,11 +52,17 @@ class BedrockConverseResponseBuilder(observer: ChatObserver):
     val delta = event.delta()
     delta.`type`() when:
       case ContentBlockDelta.Type.TOOL_USE =>
-        toolUseInput.append(delta.toolUse().input())
+        val text = delta.toolUse().input()
+        toolUseInput.append(text)
+        observer.onPartialResponse(PartialToolRequestResponse(text))
       case ContentBlockDelta.Type.TEXT =>
-        chatText.append(delta.text())
+        val text = delta.text()
+        chatText.append(text)
+        observer.onPartialResponse(PartialResponse(text))
       case ContentBlockDelta.Type.REASONING_CONTENT =>
-        reasoningText.append(delta.reasoningContent().text())
+        val text = delta.reasoningContent().text()
+        reasoningText.append(text)
+        observer.onPartialResponse(PartialReasoningResponse(text))
 
   def onEvent(event: ContentBlockStopEvent): Unit = toolUseBlockBuilder.foreach { builder =>
     if toolUseInput.nonEmpty then
@@ -67,6 +76,9 @@ class BedrockConverseResponseBuilder(observer: ChatObserver):
     converseResponseBuilder.metrics(builder =>
       builder.latencyMs(event.metrics().latencyMs()).build()
     )
+    // Finalize the response as the metadata is reported at the end of the chat
+    val chatResponse = BedrockChat.buildChatResponseFrom(converseResponseBuilder.build())
+    observer.onComplete(chatResponse)
 
   def onEvent(event: MessageStartEvent): Unit =
     messageBuilder = Message.builder().role(event.role())
@@ -88,6 +100,7 @@ class BedrockConverseResponseBuilder(observer: ChatObserver):
         .message(messageBuilder.content(contents.result().asJava).build())
         .build()
     )
+    // Reset the builder
     messageBuilder = Message.builder()
 
 end BedrockConverseResponseBuilder

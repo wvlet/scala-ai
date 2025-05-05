@@ -12,6 +12,6 @@ object ChatEvent:
   case class PartialToolRequestResponse(text: String) extends ChatEvent
 
 trait ChatObserver:
-  def onPartialResponse(text: String): Unit
+  def onPartialResponse(event: ChatEvent): Unit
   def onComplete(response: ChatResponse): Unit
   def onError(e: Throwable): Unit
