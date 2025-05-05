@@ -26,10 +26,16 @@ object ChatMessage:
       extends ChatMessage(ChatRole.AI):
     def hasToolCalls: Boolean = toolCalls.nonEmpty
 
-  case class ToolCallRequest(id: String, name: String, args: List[String])
+  /**
+    * AI message during the reasoning process
+    * @param text
+    */
+  case class AIReasoningMessage(text: String) extends ChatMessage(ChatRole.AI)
 
   /**
     * Result of a tool call
     */
-  case class ToolMessage(id: String, toolName: String, text: String)
+  case class ToolResultMessage(id: String, toolName: String, text: String)
       extends ChatMessage(ChatRole.TOOL)
+
+  case class ToolCallRequest(id: String, name: String, args: Map[String, Any])

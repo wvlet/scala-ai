@@ -5,10 +5,13 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.model.{
   ContentBlock,
   ConversationRole,
+  ConverseOutput,
+  ConverseResponse,
   ConverseStreamRequest,
   ConverseStreamResponseHandler,
   InferenceConfiguration,
   Message,
+  StopReason,
   SystemContentBlock,
   Tool,
   ToolConfiguration,
@@ -22,8 +25,25 @@ import software.amazon.awssdk.services.bedrockruntime.{
   BedrockRuntimeAsyncClientBuilder
 }
 import wvlet.ai.agent.LLMAgent
-import wvlet.ai.agent.chat.ChatMessage.{AIMessage, SystemMessage, ToolMessage, UserMessage}
-import wvlet.ai.agent.chat.{ChatMessage, ChatModel, ChatObserver, ChatRequest, ToolSpec}
+import wvlet.ai.agent.chat.ChatMessage.{
+  AIMessage,
+  AIReasoningMessage,
+  SystemMessage,
+  ToolCallRequest,
+  ToolResultMessage,
+  UserMessage
+}
+import wvlet.ai.agent.chat.{
+  ChatFinishReason,
+  ChatMessage,
+  ChatModel,
+  ChatObserver,
+  ChatRequest,
+  ChatResponse,
+  ChatRole,
+  ChatStats,
+  ToolSpec
+}
 import wvlet.ai.core.StatusCode
 import wvlet.log.LogSupport
 
@@ -130,7 +150,83 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
 
 end BedrockChat
 
-object BedrockChat:
+object BedrockChat extends LogSupport:
+  private[bedrock] def buildChatResponseFrom(converseResponse: ConverseResponse): ChatResponse =
+    val finishReason: ChatFinishReason = fromBedrockStopReason(converseResponse.stopReason())
+    val chatStats: ChatStats = ChatStats(
+      latencyMs = converseResponse.metrics().latencyMs(),
+      inputTokens = converseResponse.usage().inputTokens(),
+      outputTokens = converseResponse.usage().outputTokens(),
+      totalTokens = converseResponse.usage().totalTokens()
+    )
+
+    val messages = fromBedrockOutput(converseResponse.output())
+
+    ChatResponse(messages = messages, stats = chatStats, finishReason = finishReason)
+
+  private[bedrock] def fromBedrockStopReason(stopReason: StopReason): ChatFinishReason =
+    stopReason match
+      case StopReason.TOOL_USE =>
+        ChatFinishReason.TOOL_CALL
+      case StopReason.END_TURN =>
+        ChatFinishReason.END_TURN
+      case StopReason.STOP_SEQUENCE =>
+        ChatFinishReason.STOP_SEQUENCE
+      case StopReason.CONTENT_FILTERED =>
+        ChatFinishReason.CONTENT_FILTERED
+      case StopReason.MAX_TOKENS =>
+        ChatFinishReason.MAX_TOKENS
+      case StopReason.UNKNOWN_TO_SDK_VERSION =>
+        ChatFinishReason.UNKNOWN
+      case other =>
+        warn(s"Unknown stop reason: ${other}")
+        ChatFinishReason.UNKNOWN
+
+  private[bedrock] def fromBedrockOutput(output: ConverseOutput): Seq[ChatMessage] =
+    val messages         = Seq.newBuilder[ChatMessage]
+    val role             = output.message().role()
+    val toolCallRequests = Seq.newBuilder[ToolCallRequest]
+    val textContent      = StringBuilder()
+    val contents         = output.message().content().asScala
+    contents.foreach { block =>
+      block.`type`() match
+        case ContentBlock.Type.TEXT =>
+          textContent.append(block.text())
+        case ContentBlock.Type.REASONING_CONTENT =>
+          messages += AIReasoningMessage(block.reasoningContent().reasoningText().text())
+        case ContentBlock.Type.TOOL_USE =>
+          toolCallRequests +=
+            ToolCallRequest(
+              id = block.toolUse().toolUseId(),
+              name = block.toolUse().name(),
+              args = DocumentUtil.toMap(block.toolUse().input())
+            )
+        case _ =>
+          throw StatusCode
+            .INVALID_MESSAGE_TYPE
+            .newException(s"Unsupported message type: ${block.`type`()}")
+    }
+
+    import wvlet.ai.core.ops.*
+    toolCallRequests
+      .result()
+      .pipe { toolCallRequests =>
+        if toolCallRequests.nonEmpty then
+          messages += AIMessage(textContent.result(), toolCallRequests)
+        else
+          role match
+            case ConversationRole.USER =>
+              messages += UserMessage(textContent.result())
+            case ConversationRole.ASSISTANT =>
+              messages += AIMessage(textContent.result())
+            case _ =>
+              warn(s"Unknown role: ${role}. Use USER role")
+              messages += UserMessage(textContent.result())
+      }
+    messages.result()
+
+  end fromBedrockOutput
+
   private[bedrock] def extractBedrockChatMessages(messages: Seq[ChatMessage]): Seq[Message] =
     val bedrockMessages = Seq.newBuilder[Message]
     val contentBlocks   = Seq.newBuilder[ContentBlock]
@@ -154,7 +250,7 @@ object BedrockChat:
                 .role(ConversationRole.ASSISTANT)
                 .content(ContentBlock.fromText(m.text))
                 .build()
-          case t: ToolMessage =>
+          case t: ToolResultMessage =>
             val contentBlock = ContentBlock
               .builder()
               .toolResult(
@@ -170,7 +266,7 @@ object BedrockChat:
             val isLastOrNextIsNotToolMessage =
               index + 1 >= messages.size || {
                 messages(index + 1) match
-                  case _: ToolMessage =>
+                  case _: ToolResultMessage =>
                     false
                   case _ =>
                     true

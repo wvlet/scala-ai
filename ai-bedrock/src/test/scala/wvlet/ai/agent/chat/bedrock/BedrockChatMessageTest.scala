@@ -1,7 +1,7 @@
 package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole
-import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolMessage, UserMessage}
+import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolResultMessage, UserMessage}
 import wvlet.ai.agent.chat.{ChatMessage, ChatRole}
 import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.ai.core.{AIException, StatusCode}
@@ -45,9 +45,11 @@ class BedrockChatMessageTest extends AirSpec:
       UserMessage("What's the weather in Tokyo?"),
       AIMessage(
         "Okay, calling the tool",
-        toolCalls = Seq(ChatMessage.ToolCallRequest("tool1", "get_weather", List("Tokyo")))
+        toolCalls = Seq(
+          ChatMessage.ToolCallRequest("tool1", "get_weather", Map("location" -> "Tokyo"))
+        )
       ),
-      ToolMessage("tool1", "get_weather", "It's sunny.")
+      ToolResultMessage("tool1", "get_weather", "It's sunny.")
     )
     val result = BedrockChat.extractBedrockChatMessages(messages)
 
@@ -72,12 +74,12 @@ class BedrockChatMessageTest extends AirSpec:
       AIMessage(
         "Okay, calling tools",
         toolCalls = Seq(
-          ChatMessage.ToolCallRequest("tool_apple", "search", List("apples")),
-          ChatMessage.ToolCallRequest("tool_orange", "search", List("oranges"))
+          ChatMessage.ToolCallRequest("tool_apple", "search", Map("name" -> "apples")),
+          ChatMessage.ToolCallRequest("tool_orange", "search", Map("name" -> "oranges"))
         )
       ),
-      ToolMessage("tool_apple", "search", "Apples are red."),
-      ToolMessage("tool_orange", "search", "Oranges are orange.")
+      ToolResultMessage("tool_apple", "search", "Apples are red."),
+      ToolResultMessage("tool_orange", "search", "Oranges are orange.")
     )
     val result = BedrockChat.extractBedrockChatMessages(messages)
 
@@ -137,7 +139,7 @@ class BedrockChatMessageTest extends AirSpec:
   }
 
   test("handle starting with Tool message") {
-    val messages = Seq(ToolMessage("tool_start", "init", "Tool started"))
+    val messages = Seq(ToolResultMessage("tool_start", "init", "Tool started"))
     val result   = BedrockChat.extractBedrockChatMessages(messages)
 
     result.size shouldBe 1
