@@ -10,7 +10,16 @@ case class LLM(
     id: String,
     // Name of the model product name
     name: String
-)
+):
+  /**
+    * Returns a new LLM instance with the given prefix added to the model ID. For the list of
+    * prefixes, see:
+    * https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html
+    *
+    * @param prefix
+    *   us, eu, apac, etc.
+    */
+  def withAWSCrossRegionInference(prefix: String): LLM = this.copy(id = s"${prefix}.${id}")
 
 object LLM:
   object Bedrock:
