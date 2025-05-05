@@ -17,7 +17,7 @@ class BedrockChatMessageTest extends AirSpec:
     model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0
   )
 
-  private val bedrockChat = new BedrockChat(dummyAgent, BedrockConfig())
+  private val bedrockChat = BedrockChat(dummyAgent, BedrockClient())
 
   test("extract single user message") {
     val messages = Seq(UserMessage("Hello"))

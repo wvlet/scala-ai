@@ -38,16 +38,9 @@ case class BedrockConfig(
       identity
 )
 
-class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with LogSupport:
+class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatModel with LogSupport:
   import BedrockChat.*
   import wvlet.ai.core.ops.*
-
-  private val client = BedrockRuntimeAsyncClient
-    .builder()
-    .region(config.region)
-    .credentialsProvider(config.credentialProvider)
-    .pipe(config.asyncClientConfig(_))
-    .build()
 
   override def chat(request: ChatRequest): Unit = ???
   override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
@@ -70,7 +63,7 @@ class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with
       )
       .build()
 
-    val future = client.converseStream(converseRequest, chatStreamResponseHandler)
+    val future = bedrockClient.converseStream(converseRequest, chatStreamResponseHandler)
     future.get()
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =

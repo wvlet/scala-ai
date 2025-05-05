@@ -1,4 +1,5 @@
 - Use AirSpec testing framework and `shouldBe`, `shouldMatch` assertion syntax. Test names should be concise and descriptive, written in plain English.
-- Avoid using mock as much as possible as it increases the maintenance cost and complexity of the test.
+- Avoid using mock as it increases the maintenance cost.
 - case classes for configuration should have withXXX(...) methods for all fields and noXXX(...) methods for all optional fields.
+- Omit `new` for object instantiation as it is unnecessary in Scala 3.
 - For commit messages, add prefix from one of feature, fix, internal, doc to classify change types. Focus on `why` and `what` of the change, not `how`. 

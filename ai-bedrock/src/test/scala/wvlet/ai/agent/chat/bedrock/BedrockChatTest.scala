@@ -16,8 +16,10 @@ class BedrockChatTest extends AirSpec:
     modelConfig = modelConfig
   )
 
-  private def createChat(agent: LLMAgent): BedrockChat =
-    new BedrockChat(agent, BedrockConfig()) // Use default config for testing request building
+  private def createChat(agent: LLMAgent): BedrockChat = BedrockChat(
+    agent,
+    BedrockClient()
+  ) // Use default config for testing request building
 
   private val dummyRequest = ChatRequest(List(ChatMessage.user("Hello")))
 
