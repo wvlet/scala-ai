@@ -16,7 +16,7 @@ class BedrockIntegrationTest extends AirSpec:
           name = "test-agent",
           description = "Test Agent",
           model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
-        )
+        ).withReasoning(1024)
       )
       .bind[BedrockClient]
       .toInstance(BedrockClient())
@@ -27,18 +27,27 @@ class BedrockIntegrationTest extends AirSpec:
     chat.chatStream(
       req,
       new ChatObserver:
+        private var hasReasoning = false
         override def onPartialResponse(event: ChatEvent): Unit =
           event match
             case ChatEvent.PartialResponse(text) =>
-              debug(s"Partial response: ${text}")
+              if hasReasoning then
+                println("\n[answer]: ")
+                hasReasoning = false
+              print(text)
             case ChatEvent.PartialReasoningResponse(text) =>
-              debug(s"Partial reasoning response: ${text}")
+              if !hasReasoning then
+                println("[thinking]: ")
+                hasReasoning = true
+
+              print(text)
             case ChatEvent.PartialToolRequestResponse(text) =>
               debug(s"Partial tool request response: ${text}")
 
-        override def onComplete(response: ChatResponse): Unit = debug(
-          s"Final response: ${response}"
-        )
+        override def onComplete(response: ChatResponse): Unit =
+          // Flush the buffer
+          println()
+          debug(s"Final response: ${response}")
         override def onError(e: Throwable): Unit = trace(s"Error: ${e.getMessage}", e)
     )
   }

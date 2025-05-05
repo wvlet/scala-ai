@@ -25,11 +25,12 @@ import wvlet.ai.agent.chat.ChatObserver
 
 import scala.jdk.CollectionConverters.*
 import wvlet.ai.core.ops.*
+import wvlet.log.LogSupport
 
 /**
   * Accumulate the response from a Bedrock chat stream, and build ConverseResponse from it.
   */
-class BedrockConverseResponseBuilder(observer: ChatObserver):
+class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
   private val converseResponseBuilder                           = ConverseResponse.builder()
   private var toolUseBlockBuilder: Option[ToolUseBlock.Builder] = None
   private val toolUseBlocks                                     = List.newBuilder[ToolUseBlock]
@@ -52,17 +53,20 @@ class BedrockConverseResponseBuilder(observer: ChatObserver):
     val delta = event.delta()
     delta.`type`() when:
       case ContentBlockDelta.Type.TOOL_USE =>
-        val text = delta.toolUse().input()
-        toolUseInput.append(text)
-        observer.onPartialResponse(PartialToolRequestResponse(text))
+        Option(delta.toolUse().input()).foreach { text =>
+          toolUseInput.append(text)
+          observer.onPartialResponse(PartialToolRequestResponse(text))
+        }
       case ContentBlockDelta.Type.TEXT =>
-        val text = delta.text()
-        chatText.append(text)
-        observer.onPartialResponse(PartialResponse(text))
+        Option(delta.text()).foreach { text =>
+          chatText.append(text)
+          observer.onPartialResponse(PartialResponse(text))
+        }
       case ContentBlockDelta.Type.REASONING_CONTENT =>
-        val text = delta.reasoningContent().text()
-        reasoningText.append(text)
-        observer.onPartialResponse(PartialReasoningResponse(text))
+        Option(delta.reasoningContent().text()).foreach { text =>
+          reasoningText.append(text)
+          observer.onPartialResponse(PartialReasoningResponse(text))
+        }
 
   def onEvent(event: ContentBlockStopEvent): Unit = toolUseBlockBuilder.foreach { builder =>
     if toolUseInput.nonEmpty then
