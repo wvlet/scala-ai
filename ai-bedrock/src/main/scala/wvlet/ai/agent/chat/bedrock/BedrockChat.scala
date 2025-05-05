@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   ContentBlock,
   ConversationRole,
   ConverseStreamRequest,
+  ConverseStreamResponseHandler,
   InferenceConfiguration,
   Message,
   SystemContentBlock,
@@ -37,23 +38,33 @@ case class BedrockConfig(
       identity
 )
 
-class BedrockChat(agent: LLMAgent, config: BedrockConfig) extends ChatModel with LogSupport:
+class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatModel with LogSupport:
   import BedrockChat.*
-  import wvlet.ai.core.ChainingUtil.*
-
-  private val client = BedrockRuntimeAsyncClient
-    .builder()
-    .region(config.region)
-    .credentialsProvider(config.credentialProvider)
-    .pipe(config.asyncClientConfig(_))
-    .build()
+  import wvlet.ai.core.ops.*
 
   override def chat(request: ChatRequest): Unit = ???
   override def chatStream(request: ChatRequest, observer: ChatObserver): Unit =
     val converseRequest = newConverseRequest(request)
-    val reasoning       = StringBuilder()
-    val chatText        = StringBuilder()
     // val finalResponse = AtomicReference[]()
+
+    val converseResponseBuilder = BedrockConverseResponseBuilder(observer)
+    val chatStreamResponseHandler = ConverseStreamResponseHandler
+      .builder()
+      .subscriber(
+        ConverseStreamResponseHandler
+          .Visitor
+          .builder()
+          .onContentBlockStart(converseResponseBuilder.onEvent)
+          .onContentBlockDelta(converseResponseBuilder.onEvent)
+          .onContentBlockStop(converseResponseBuilder.onEvent)
+          .onMetadata(converseResponseBuilder.onEvent)
+          .onMessageStart(converseResponseBuilder.onEvent)
+          .build()
+      )
+      .build()
+
+    val future = bedrockClient.converseStream(converseRequest, chatStreamResponseHandler)
+    future.get()
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
 

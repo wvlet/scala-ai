@@ -2,11 +2,15 @@ package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
+import wvlet.airframe.codec.MessageCodec
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
 
 object DocumentUtil:
-  def fromString(s: String): Document = Document.fromString(s)
+  def fromJson(json: String): Document =
+    val jsonMap = MessageCodec.of[Map[String, Any]].fromJson(json)
+    fromMap(jsonMap)
 
   def fromArray[A](arr: Seq[A]): Document =
     val builder = Document.listBuilder()
@@ -48,6 +52,7 @@ object DocumentUtil:
   def fromMap(m: Map[String, Any]): Document =
     val builder = Document.mapBuilder()
 
+    @tailrec
     def putAny(key: String, v: Any): Unit =
       v match
         case null =>
@@ -72,6 +77,8 @@ object DocumentUtil:
           builder.putNumber(key, d)
         case f: Float =>
           builder.putNumber(key, f)
+        case b: Boolean =>
+          builder.putBoolean(key, b)
         case s: String =>
           builder.putString(key, s)
         case v =>

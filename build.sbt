@@ -29,7 +29,11 @@ lazy val core = project
     buildSettings,
     name        := "ai-core",
     description := "Core interface for AI (LLM) applications",
-    libraryDependencies ++= Seq("org.wvlet.airframe" %% "airframe" % AIRFRAME_VERSION)
+    libraryDependencies ++=
+      Seq(
+        "org.wvlet.airframe" %% "airframe"       % AIRFRAME_VERSION,
+        "org.wvlet.airframe" %% "airframe-codec" % AIRFRAME_VERSION
+      )
   )
 
 lazy val bedrock = project
@@ -41,6 +45,8 @@ lazy val bedrock = project
     libraryDependencies ++=
       Seq(
         "software.amazon.awssdk" % "bedrockruntime" % AWS_SDK_VERSION,
+        // Redirect slf4j to airframe-log
+        "org.slf4j" % "slf4j-jdk14" % "2.0.17",
         // Add langchain4j as a reference implementation
         "dev.langchain4j" % "langchain4j"         % "1.0.0-rc1"   % Test,
         "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta4" % Test
