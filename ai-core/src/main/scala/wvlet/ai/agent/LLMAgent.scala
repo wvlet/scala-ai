@@ -27,3 +27,7 @@ case class LLMAgent(
   def withModelConfig(updater: ModelConfig => ModelConfig): LLMAgent = this.copy(modelConfig =
     updater(modelConfig)
   )
+
+  def withReasoning(budget: Int): LLMAgent = this.withModelConfig(
+    _.withReasoning(ReasoningConfig(reasoningBudget = Some(budget)))
+  )
