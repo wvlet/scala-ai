@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   Message,
   MessageStartEvent,
   MessageStopEvent,
+  ReasoningContentBlock,
+  ReasoningTextBlock,
   ToolUseBlock
 }
 import software.amazon.eventstream.MessageBuilder
@@ -91,6 +93,20 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
     converseResponseBuilder.stopReason(event.stopReason())
     converseResponseBuilder.additionalModelResponseFields(event.additionalModelResponseFields())
     val contents = List.newBuilder[ContentBlock]
+
+    // Add reasoning message
+    contents +=
+      ContentBlock
+        .builder()
+        .reasoningContent(
+          ReasoningContentBlock
+            .builder
+            .reasoningText(ReasoningTextBlock.builder().text(reasoningText.result()).build())
+            .build()
+        )
+        .build()
+
+    // Add regular chat response
     contents += ContentBlock.builder().text(chatText.result()).build()
     contents ++=
       toolUseBlocks
@@ -106,5 +122,7 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
     )
     // Reset the builder
     messageBuilder = Message.builder()
+
+  end onEvent
 
 end BedrockConverseResponseBuilder

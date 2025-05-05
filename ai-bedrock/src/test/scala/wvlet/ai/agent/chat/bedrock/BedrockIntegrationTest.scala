@@ -10,16 +10,14 @@ class BedrockIntegrationTest extends AirSpec:
     skip("AWS environment variables are not set. Skip this test")
 
   initDesign {
-    _.bind[LLMAgent]
-      .toInstance(
+    _.bindInstance(
         LLMAgent(
           name = "test-agent",
           description = "Test Agent",
           model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
         ).withReasoning(1024)
       )
-      .bind[BedrockClient]
-      .toInstance(BedrockClient())
+      .bindInstance(BedrockClient())
   }
 
   test("bedrock agent") { (chat: BedrockChat) =>
