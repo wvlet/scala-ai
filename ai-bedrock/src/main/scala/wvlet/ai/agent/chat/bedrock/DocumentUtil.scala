@@ -7,6 +7,9 @@ import wvlet.airframe.codec.MessageCodec
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
 
+/**
+  * Utility methods for converting between JSON, Map, and AWS-SDK's Document types.
+  */
 object DocumentUtil:
   def fromJson(json: String): Document =
     val jsonMap = MessageCodec.of[Map[String, Any]].fromJson(json)
