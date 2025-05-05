@@ -4,6 +4,7 @@ import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
 import wvlet.airframe.codec.MessageCodec
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
 
 object DocumentUtil:
@@ -51,6 +52,7 @@ object DocumentUtil:
   def fromMap(m: Map[String, Any]): Document =
     val builder = Document.mapBuilder()
 
+    @tailrec
     def putAny(key: String, v: Any): Unit =
       v match
         case null =>
