@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   ConverseStreamResponseHandler,
   InferenceConfiguration,
   Message,
+  ReasoningContentBlock,
+  ReasoningTextBlock,
   StopReason,
   SystemContentBlock,
   Tool,
@@ -250,6 +252,19 @@ object BedrockChat extends LogSupport:
                 .builder()
                 .role(ConversationRole.ASSISTANT)
                 .content(ContentBlock.fromText(m.text))
+                .build()
+          case m: AIReasoningMessage =>
+            bedrockMessages +=
+              Message
+                .builder()
+                .role(ConversationRole.ASSISTANT)
+                .content(
+                  ContentBlock.fromReasoningContent(
+                    ReasoningContentBlock.fromReasoningText(
+                      ReasoningTextBlock.builder().text(m.text).build()
+                    )
+                  )
+                )
                 .build()
           case t: ToolResultMessage =>
             val contentBlock = ContentBlock
