@@ -31,13 +31,6 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.*
 
-case class BedrockConfig(
-    region: Region = Region.US_EAST_1,
-    credentialProvider: AwsCredentialsProvider = DefaultCredentialsProvider.create(),
-    asyncClientConfig: BedrockRuntimeAsyncClientBuilder => BedrockRuntimeAsyncClientBuilder =
-      identity
-)
-
 class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatModel with LogSupport:
   import BedrockChat.*
   import wvlet.ai.core.ops.*
@@ -59,6 +52,7 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
           .onContentBlockStop(converseResponseBuilder.onEvent)
           .onMetadata(converseResponseBuilder.onEvent)
           .onMessageStart(converseResponseBuilder.onEvent)
+          .onMessageStop(converseResponseBuilder.onEvent)
           .build()
       )
       .build()
