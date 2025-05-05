@@ -23,7 +23,7 @@ import wvlet.ai.agent.chat.ChatEvent.{
   PartialResponse,
   PartialToolRequestResponse
 }
-import wvlet.ai.agent.chat.ChatObserver
+import wvlet.ai.agent.chat.{ChatObserver, ChatResponse}
 
 import scala.jdk.CollectionConverters.*
 import wvlet.ai.core.ops.*
@@ -41,6 +41,10 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
   private var messageBuilder: Message.Builder = Message.builder()
   private val reasoningText                   = StringBuilder()
   private val chatText                        = StringBuilder()
+
+  private var chatResponse: Option[ChatResponse] = None
+
+  def getResponse: Option[ChatResponse] = chatResponse
 
   def onEvent(event: ContentBlockStartEvent): Unit =
     val startEvent = event.start()
@@ -83,8 +87,9 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
       builder.latencyMs(event.metrics().latencyMs()).build()
     )
     // Finalize the response as the metadata is reported at the end of the chat
-    val chatResponse = BedrockChat.buildChatResponseFrom(converseResponseBuilder.build())
-    observer.onComplete(chatResponse)
+    val resp = BedrockChat.buildChatResponseFrom(converseResponseBuilder.build())
+    chatResponse = Some(resp)
+    observer.onComplete(resp)
 
   def onEvent(event: MessageStartEvent): Unit =
     messageBuilder = Message.builder().role(event.role())
@@ -94,17 +99,18 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
     converseResponseBuilder.additionalModelResponseFields(event.additionalModelResponseFields())
     val contents = List.newBuilder[ContentBlock]
 
-    // Add reasoning message
-    contents +=
-      ContentBlock
-        .builder()
-        .reasoningContent(
-          ReasoningContentBlock
-            .builder
-            .reasoningText(ReasoningTextBlock.builder().text(reasoningText.result()).build())
-            .build()
-        )
-        .build()
+    // Add the reasoning message
+    if reasoningText.nonEmpty then
+      contents +=
+        ContentBlock
+          .builder()
+          .reasoningContent(
+            ReasoningContentBlock
+              .builder
+              .reasoningText(ReasoningTextBlock.builder().text(reasoningText.result()).build())
+              .build()
+          )
+          .build()
 
     // Add regular chat response
     contents += ContentBlock.builder().text(chatText.result()).build()

@@ -21,7 +21,8 @@ enum StatusCode(val statusType: StatusType):
   case INVALID_MESSAGE_TYPE extends StatusCode(StatusType.UserError)
 
   // Internal errors
-  case INTERNAL_ERROR extends StatusCode(StatusType.InternalError)
+  case INTERNAL_ERROR  extends StatusCode(StatusType.InternalError)
+  case INCOMPLETE_CHAT extends StatusCode(StatusType.InternalError)
 
   // Resource errors
   case RESOURCE_EXHAUSTED extends StatusCode(StatusType.ResourceExhausted)

@@ -11,19 +11,17 @@ class BedrockIntegrationTest extends AirSpec:
 
   initDesign {
     _.bindInstance(
-        LLMAgent(
-          name = "test-agent",
-          description = "Test Agent",
-          model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
-        ).withReasoning(1024)
-      )
-      .bindInstance(BedrockClient())
+      LLMAgent(
+        name = "test-agent",
+        description = "Test Agent",
+        model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
+      ) // .withReasoning(1024)
+    )
   }
 
-  test("bedrock agent") { (chat: BedrockChat) =>
-    val req = ChatRequest(messages = Seq(ChatMessage.user("Hello")))
-    chat.chatStream(
-      req,
+  test("bedrock agent") { (runner: BedrockRunner) =>
+    val resp = runner.chat(
+      "Hello agent",
       new ChatObserver:
         private var hasReasoning = false
         override def onPartialResponse(event: ChatEvent): Unit =
@@ -45,9 +43,10 @@ class BedrockIntegrationTest extends AirSpec:
         override def onComplete(response: ChatResponse): Unit =
           // Flush the buffer
           println()
-          debug(s"Final response: ${response}")
+          trace(s"Final response: ${response}")
         override def onError(e: Throwable): Unit = trace(s"Error: ${e.getMessage}", e)
     )
+    debug(resp)
   }
 
 end BedrockIntegrationTest
