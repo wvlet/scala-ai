@@ -42,21 +42,25 @@ case class ModelConfig(
     reasoningConfig: Option[ReasoningConfig] = None
 ):
 
-  def withTemperature(t: Double): ModelConfig    = this.copy(temperature = Some(t))
-  def withTopP(p: Double): ModelConfig           = this.copy(topP = Some(p))
-  def withTopK(k: Int): ModelConfig              = this.copy(topK = Some(k))
+  /** Set the temperature parameter for randomness control. */
+  def withTemperature(t: Double): ModelConfig = this.copy(temperature = Some(t))
+  /** Set the top-p (nucleus sampling) parameter. */
+  def withTopP(p: Double): ModelConfig = this.copy(topP = Some(p))
+  /** Set the top-k sampling parameter. */
+  def withTopK(k: Int): ModelConfig = this.copy(topK = Some(k))
+  /** Set the maximum number of output tokens. */
   def withMaxOutputTokens(max: Int): ModelConfig = this.copy(maxOutputTokens = Some(max))
-  def withStopSequences(sequences: List[String]): ModelConfig = this.copy(stopSequences =
-    Some(sequences)
-  )
+  /** Set the stop sequences for generation. */
+  def withStopSequences(sequences: List[String]): ModelConfig = this.copy(stopSequences = Some(sequences))
 
-  def noStopSequences: ModelConfig                = this.copy(stopSequences = Some(Nil))
+  /** Disable stop sequences (no stop). */
+  def noStopSequences: ModelConfig = this.copy(stopSequences = Some(Nil))
+  /** Set the number of response candidates to generate. */
   def withCandidateCount(count: Int): ModelConfig = this.copy(candidateCount = Some(count))
 
-  def withReasoning(config: ReasoningConfig): ModelConfig = this.copy(reasoningConfig =
-    Some(config)
-  )
-
+  /** Set the reasoning configuration. */
+  def withReasoning(config: ReasoningConfig): ModelConfig = this.copy(reasoningConfig = Some(config))
+  /** Remove the reasoning configuration. */
   def noReasoning: ModelConfig = this.copy(reasoningConfig = None)
 
   /**

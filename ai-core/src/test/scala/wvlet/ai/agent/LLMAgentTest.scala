@@ -62,4 +62,52 @@ class LLMAgentTest extends AirSpec:
     updatedAgent.name shouldBe baseAgent.name
   }
 
+  test("withTemperature should update temperature in modelConfig") {
+    val updatedAgent = baseAgent.withTemperature(0.7)
+    updatedAgent.modelConfig.temperature shouldBe Some(0.7)
+  }
+
+  test("withTopP should update topP in modelConfig") {
+    val updatedAgent = baseAgent.withTopP(0.9)
+    updatedAgent.modelConfig.topP shouldBe Some(0.9)
+  }
+
+  test("withTopK should update topK in modelConfig") {
+    val updatedAgent = baseAgent.withTopK(42)
+    updatedAgent.modelConfig.topK shouldBe Some(42)
+  }
+
+  test("withMaxOutputTokens should update maxOutputTokens in modelConfig") {
+    val updatedAgent = baseAgent.withMaxOutputTokens(128)
+    updatedAgent.modelConfig.maxOutputTokens shouldBe Some(128)
+  }
+
+  test("withStopSequences should update stopSequences in modelConfig") {
+    val stopSeqs = List("END", "STOP")
+    val updatedAgent = baseAgent.withStopSequences(stopSeqs)
+    updatedAgent.modelConfig.stopSequences shouldBe Some(stopSeqs)
+  }
+
+  test("withCandidateCount should update candidateCount in modelConfig") {
+    val updatedAgent = baseAgent.withCandidateCount(3)
+    updatedAgent.modelConfig.candidateCount shouldBe Some(3)
+  }
+
+  test("withReasoning(config) should update reasoningConfig in modelConfig") {
+    val config = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(50))
+    val updatedAgent = baseAgent.withReasoning(config)
+    updatedAgent.modelConfig.reasoningConfig shouldBe Some(config)
+  }
+
+  test("withReasoning(budget) should update reasoningBudget in modelConfig") {
+    val updatedAgent = baseAgent.withReasoning(99)
+    updatedAgent.modelConfig.reasoningConfig.flatMap(_.reasoningBudget) shouldBe Some(99)
+  }
+
+  test("noReasoning should remove reasoningConfig from modelConfig") {
+    val agentWithReasoning = baseAgent.withReasoning(10)
+    val clearedAgent = agentWithReasoning.noReasoning
+    clearedAgent.modelConfig.reasoningConfig shouldBe None
+  }
+
 end LLMAgentTest

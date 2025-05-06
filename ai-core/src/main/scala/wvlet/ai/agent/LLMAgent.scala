@@ -2,6 +2,10 @@ package wvlet.ai.agent
 
 import wvlet.ai.agent.chat.{ChatRequest, ToolSpec}
 
+/**
+  * LLMAgent defines an LLM-powered agent with identity, description, model, prompt, tools, and
+  * config. Supports customization for building interactive AI agents with tool-calling.
+  */
 case class LLMAgent(
     // Name of this agent
     name: String,
@@ -16,18 +20,59 @@ case class LLMAgent(
     // Additional model configuration parameters (e.g., temperature, top-p, max output tokens)
     modelConfig: ModelConfig = ModelConfig()
 ):
-  def withName(newName: String): LLMAgent               = this.copy(name = newName)
+  /** Set the agent's name. */
+  def withName(newName: String): LLMAgent = this.copy(name = newName)
+
+  /** Set the agent's description. */
   def withDescription(newDescription: String): LLMAgent = this.copy(description = newDescription)
-  def withModel(newModel: LLM): LLMAgent                = this.copy(model = newModel)
+
+  /** Set the LLM model for this agent. */
+  def withModel(newModel: LLM): LLMAgent = this.copy(model = newModel)
+
+  /** Set the system prompt for the agent. */
   def withSystemPrompt(newSystemPrompt: String): LLMAgent = this.copy(systemPrompt =
     Some(newSystemPrompt)
   )
 
+  /** Set the list of tools available to the agent. */
   def withTools(newTools: List[ToolSpec]): LLMAgent = this.copy(tools = newTools)
+
+  /** Update the model configuration using a custom updater function. */
   def withModelConfig(updater: ModelConfig => ModelConfig): LLMAgent = this.copy(modelConfig =
     updater(modelConfig)
   )
 
+  /** Set the temperature parameter for generation. */
+  def withTemperature(t: Double): LLMAgent = this.withModelConfig(_.withTemperature(t))
+
+  /** Set the top-p (nucleus sampling) parameter. */
+  def withTopP(p: Double): LLMAgent = this.withModelConfig(_.withTopP(p))
+
+  /** Set the top-k sampling parameter. */
+  def withTopK(k: Int): LLMAgent = this.withModelConfig(_.withTopK(k))
+
+  /** Set the maximum number of output tokens. */
+  def withMaxOutputTokens(max: Int): LLMAgent = this.withModelConfig(_.withMaxOutputTokens(max))
+
+  /** Set the stop sequences for generation. */
+  def withStopSequences(sequences: List[String]): LLMAgent = this.withModelConfig(
+    _.withStopSequences(sequences)
+  )
+
+  /** Set the number of response candidates to generate. */
+  def withCandidateCount(count: Int): LLMAgent = this.withModelConfig(_.withCandidateCount(count))
+
+  /** Set the reasoning configuration. */
+  def withReasoning(config: ReasoningConfig): LLMAgent = this.withModelConfig(
+    _.withReasoning(config)
+  )
+
+  /** Set the reasoning budget (max tokens for reasoning). */
   def withReasoning(budget: Int): LLMAgent = this.withModelConfig(
     _.withReasoning(ReasoningConfig(reasoningBudget = Some(budget)))
   )
+
+  /** Remove the reasoning configuration. */
+  def noReasoning: LLMAgent = this.withModelConfig(_.noReasoning)
+
+end LLMAgent

@@ -10,6 +10,11 @@ enum StatusType:
   // Not enough resources to complete the task. Users can retry after the resource is available
   case ResourceExhausted
 
+/**
+ * StatusCode defines standardized status and error codes for agent operations.
+ * Each code is associated with a StatusType (success, user error, internal error, or resource error)
+ * and provides utility methods for error handling and classification.
+ */
 enum StatusCode(val statusType: StatusType):
   case OK extends StatusCode(StatusType.Success)
   // Used for successful exit by throwing an Exception
