@@ -83,7 +83,7 @@ class LLMAgentTest extends AirSpec:
   }
 
   test("withStopSequences should update stopSequences in modelConfig") {
-    val stopSeqs = List("END", "STOP")
+    val stopSeqs     = List("END", "STOP")
     val updatedAgent = baseAgent.withStopSequences(stopSeqs)
     updatedAgent.modelConfig.stopSequences shouldBe Some(stopSeqs)
   }
@@ -94,7 +94,7 @@ class LLMAgentTest extends AirSpec:
   }
 
   test("withReasoning(config) should update reasoningConfig in modelConfig") {
-    val config = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(50))
+    val config       = ReasoningConfig(outputThoughts = Some(true), reasoningBudget = Some(50))
     val updatedAgent = baseAgent.withReasoning(config)
     updatedAgent.modelConfig.reasoningConfig shouldBe Some(config)
   }
@@ -106,7 +106,7 @@ class LLMAgentTest extends AirSpec:
 
   test("noReasoning should remove reasoningConfig from modelConfig") {
     val agentWithReasoning = baseAgent.withReasoning(10)
-    val clearedAgent = agentWithReasoning.noReasoning
+    val clearedAgent       = agentWithReasoning.noReasoning
     clearedAgent.modelConfig.reasoningConfig shouldBe None
   }
 
