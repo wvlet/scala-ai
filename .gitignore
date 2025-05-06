@@ -6,3 +6,7 @@ hs_err_pid*
 target
 .bsp
 .idea
+.bloop
+.metals
+.vscode
+metals.sbt
