@@ -11,3 +11,12 @@ trait ChatSession:
       request: ChatRequest,
       observer: ChatObserver = ChatObserver.defaultObserver
   ): ChatResponse
+
+  def continueChat(
+      previousResponse: ChatResponse,
+      newMessage: String,
+      observer: ChatObserver = ChatObserver.defaultObserver
+  ): ChatResponse =
+    val updatedMessages = previousResponse.messages :+ ChatMessage.user(newMessage)
+    val updatedRequest  = ChatRequest(messages = updatedMessages)
+    chatStream(updatedRequest, observer)

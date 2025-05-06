@@ -14,7 +14,8 @@ trait ChatMessage(val role: ChatRole):
   def text: String
 
 object ChatMessage:
-  def user(text: String): UserMessage = UserMessage(text)
+  def user(text: String): UserMessage    = UserMessage(text)
+  def assistant(text: String): AIMessage = AIMessage(text)
 
   case class SystemMessage(text: String) extends ChatMessage(ChatRole.SYSTEM)
   case class UserMessage(text: String)   extends ChatMessage(ChatRole.USER)
