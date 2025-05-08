@@ -21,13 +21,13 @@ val buildSettings = Seq[Setting[?]](
 lazy val root = project
   .in(file("."))
   .settings(buildSettings, name := "ai", publish / skip := true)
-  .aggregate(core, bedrock)
+  .aggregate(agent, bedrock)
 
-lazy val core = project
-  .in(file("ai-core"))
+lazy val agent = project
+  .in(file("ai-agent"))
   .settings(
     buildSettings,
-    name        := "ai-core",
+    name        := "ai-agent",
     description := "Core interface for AI (LLM) applications",
     libraryDependencies ++=
       Seq(
@@ -37,7 +37,7 @@ lazy val core = project
   )
 
 lazy val bedrock = project
-  .in(file("ai-bedrock"))
+  .in(file("ai-agent-bedrock"))
   .settings(
     buildSettings,
     name        := "ai-bedrock",
@@ -52,4 +52,4 @@ lazy val bedrock = project
         "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta4" % Test
       )
   )
-  .dependsOn(core)
+  .dependsOn(agent)
