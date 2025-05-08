@@ -1,6 +1,6 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val SCALA_3_VERSION  = "3.3.6"
+val SCALA_3_VERSION  = "3.7.0"
 val AIRFRAME_VERSION = "2025.1.10"
 val AWS_SDK_VERSION  = "2.31.38"
 
