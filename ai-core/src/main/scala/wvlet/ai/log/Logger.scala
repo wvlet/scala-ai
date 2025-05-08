@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.{Properties, logging as jl}
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.experimental.macros
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex
