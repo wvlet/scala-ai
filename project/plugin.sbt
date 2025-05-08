@@ -19,6 +19,10 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 val SCALAJS_VERSION = sys.env.getOrElse("SCALAJS_VERSION", "1.19.0")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % SCALAJS_VERSION)
 
+// For Scala native
+addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % "1.3.2")
+addSbtPlugin("org.scala-native"   % "sbt-scala-native"              % "0.5.7")
+
 addDependencyTreePlugin
 
 // For setting explicit versions for each commit
