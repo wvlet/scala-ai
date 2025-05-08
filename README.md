@@ -33,7 +33,7 @@ Add the necessary dependencies to your `build.sbt`:
 val scalaAIVersion = "(version)" // Use the latest vesrion
 
 libraryDependencies ++= Seq(
-  "org.wvlet.ai" %% "ai-core" % scalaAIVersion,
+  "org.wvlet.ai" %% "ai-agent" % scalaAIVersion,
   // Choose integrations:
   "org.wvlet.ai" %% "ai-bedrock" % scalaAIVersion,
   // "org.wvlet.ai" %% "ai-vertexai" % scalaAIVersion,
@@ -60,3 +60,5 @@ val agent =
 val chat = BedrockRunner(agent).chat("Hello AI Assistant!")
 // ChatResponse(List(AIMessage(Hello! How can I assist you today? I'm here to help with any questions or tasks you might have.,List())),ChatStats(1056,9,26,35,None),END_TURN)
 ```
+
+
