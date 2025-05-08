@@ -1,9 +1,19 @@
 package wvlet.ai.log
 
 import wvlet.airspec.AirSpec
-import java.util.logging.{ConsoleHandler, Handler, Level}
+
+import java.util.logging
+import java.util.logging.{Handler, Level}
 
 class LoggerTest extends AirSpec:
+  private val myHandler =
+    new Handler():
+      override def publish(record: logging.LogRecord): Unit = ???
+
+      override def flush(): Unit = ???
+
+      override def close(): Unit = ???
+
   test("should create a logger and retrieve its name") {
     val logger = Logger("testLogger")
     logger.getName shouldBe "testLogger"
@@ -19,11 +29,9 @@ class LoggerTest extends AirSpec:
   }
 
   test("should add and clear handlers") {
-    val logger  = Logger("testLogger")
-    val handler = new ConsoleHandler()
-
-    logger.addHandler(handler)
-    logger.getHandlers shouldContain handler
+    val logger = Logger("testLogger")
+    logger.addHandler(myHandler)
+    logger.getHandlers shouldContain myHandler
 
     logger.clearHandlers
     logger.getHandlers shouldBe empty
@@ -67,10 +75,9 @@ class LoggerTest extends AirSpec:
   }
 
   test("should clear all handlers including parent handlers") {
-    val logger  = Logger("testLogger")
-    val handler = new ConsoleHandler()
+    val logger = Logger("testLogger")
 
-    logger.addHandler(handler)
+    logger.addHandler(myHandler)
     logger.clearAllHandlers
     logger.getHandlers shouldBe empty
   }
