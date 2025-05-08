@@ -10,7 +10,7 @@ Build Production-Ready LLM Applications in Scala 3.
 
 ## Key Features
 
-* **Unified LLM APIs:** `LLMAgent` abstracts away AWS Bedrock & Google Vertex AI details.
+* **Unified LLM APIs:** `LLMAgent` abstracts away AWS Bedrock, Google GenAI & Google Vertex AI details.
 * **Simplified SDK Interaction:** Converts SDK's native request/responses into Scala-idiomatic ChatRequest and ChatResponse objects.
 * **Easy Configuration:** For common LLM parameters (temperature, top-P, max tokens, reasoning). 
 * **Integrated RAG:** Enhancing LLM models with your own data.
@@ -36,6 +36,7 @@ libraryDependencies ++= Seq(
   "org.wvlet.ai" %% "ai-core" % scalaAIVersion,
   // Choose integrations:
   "org.wvlet.ai" %% "ai-bedrock" % scalaAIVersion,
+  "org.wvlet.ai" %% "ai-genai" % scalaAIVersion,
   // "org.wvlet.ai" %% "ai-vertexai" % scalaAIVersion,
 )
 ```
@@ -59,4 +60,26 @@ val agent =
 
 val chat = BedrockRunner(agent).chat("Hello AI Assistant!")
 // ChatResponse(List(AIMessage(Hello! How can I assist you today? I'm here to help with any questions or tasks you might have.,List())),ChatStats(1056,9,26,35,None),END_TURN)
+```
+
+Example usage with Google GenAI:
+
+```scala
+import wvlet.ai.agent.LLMAgent
+import wvlet.ai.agent.chat.genai.{GenAIConfig, GenAIModels, GenAIRunner}
+
+val agent = 
+  LLMAgent(
+    name = "My Gemini Assistant",
+    description = "A helpful assistant powered by Google Gemini",
+    model = GenAIModels.Gemini.Gemini1_5Flash
+  )
+  .withSystemPrompt("""You are a helpful, accurate, and friendly AI assistant.""")
+  .withTemperature(0.7)
+
+// Load configuration from environment variables or config file
+val config = GenAIConfig.fromEnv().withConfigFile()
+
+val chat = GenAIRunner(agent, config).chat("Hello Gemini!")
+// ChatResponse(List(AIMessage(Hello! How can I assist you today? I'm here to help with any questions you might have.,List())),ChatStats(245,8,21,29,None),END_TURN)
 ```

@@ -21,7 +21,7 @@ val buildSettings = Seq[Setting[?]](
 lazy val root = project
   .in(file("."))
   .settings(buildSettings, name := "ai", publish / skip := true)
-  .aggregate(core, bedrock)
+  .aggregate(core, bedrock, genai)
 
 lazy val core = project
   .in(file("ai-core"))
@@ -51,5 +51,15 @@ lazy val bedrock = project
         "dev.langchain4j" % "langchain4j"         % "1.0.0-rc1"   % Test,
         "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta4" % Test
       )
+  )
+  .dependsOn(core)
+
+lazy val genai = project
+  .in(file("ai-genai"))
+  .settings(
+    buildSettings,
+    name := "ai-genai",
+    libraryDependencies ++=
+      Seq("com.google.cloud" % "google-cloud-ai" % "2.1.0", "com.typesafe" % "config" % "1.4.1")
   )
   .dependsOn(core)
