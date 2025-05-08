@@ -113,7 +113,7 @@ class LogRotationHandler(
 
   end fileAppender
 
-  override def flush(): Unit = {}
+  override def flush(): Unit = fileAppender.getOutputStream.flush()
 
   private def toException(t: Throwable) = new Exception(t.getMessage, t)
 
