@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.log
+package wvlet.ai.log
 
 import java.util.logging as jl
 
@@ -38,7 +38,7 @@ object LogRecord:
 
   private[log] val leafLoggerNameCache = collection.mutable.Map[String, String]()
 
-import wvlet.ai.util.log.LogRecord.*
+import LogRecord.*
 
 case class LogRecord(
     level: LogLevel,

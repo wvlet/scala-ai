@@ -1,7 +1,6 @@
-package wvlet.ai.util.log
+package wvlet.ai.log
 
-
-import wvlet.ai.util.control.Guard
+import wvlet.ai.util.control.{Guard, ThreadUtil}
 
 import java.io.Flushable
 import java.util
@@ -12,15 +11,15 @@ import java.util.logging as jl
 /**
   * Logging using a background thread
   */
-class AsyncHandler(parent: jl.Handler) extends jl.Handler with Guard with AutoCloseable with Flushable:
-  private val executor =
-    Executors.newSingleThreadExecutor(
-      new ThreadFactory:
-        override def newThread(r: Runnable): Thread =
-          val t = new Thread(r, "AirframeLogAsyncHandler")
-          t.setDaemon(true)
-          t
-    )
+class AsyncHandler(parent: jl.Handler)
+    extends jl.Handler
+    with Guard
+    with AutoCloseable
+    with Flushable:
+
+  private val executor = Executors.newSingleThreadExecutor(
+    ThreadUtil.newDaemonThreadFactory("ai-log-async")
+  )
 
   private val queue      = new util.ArrayDeque[jl.LogRecord]
   private val isNotEmpty = newCondition
@@ -32,10 +31,12 @@ class AsyncHandler(parent: jl.Handler) extends jl.Handler with Guard with AutoCl
       override def run(): Unit =
         while !closed.get() do
           val record: jl.LogRecord = guard {
-            if queue.isEmpty then isNotEmpty.await()
+            if queue.isEmpty then
+              isNotEmpty.await()
             queue.pollFirst()
           }
-          if record != null then parent.publish(record)
+          if record != null then
+            parent.publish(record)
   )
 
   override def flush(): Unit =
@@ -43,17 +44,17 @@ class AsyncHandler(parent: jl.Handler) extends jl.Handler with Guard with AutoCl
     guard {
       while !queue.isEmpty do
         val record = queue.pollFirst()
-        if record != null then records += record
+        if record != null then
+          records += record
     }
 
-    records.result().map(parent.publish _)
+    records.result().map(parent.publish(_))
     parent.flush()
 
-  override def publish(record: jl.LogRecord): Unit =
-    guard {
-      queue.addLast(record)
-      isNotEmpty.signal()
-    }
+  override def publish(record: jl.LogRecord): Unit = guard {
+    queue.addLast(record)
+    isNotEmpty.signal()
+  }
 
   override def close(): Unit =
     flush()
@@ -65,6 +66,12 @@ class AsyncHandler(parent: jl.Handler) extends jl.Handler with Guard with AutoCl
       }
       executor.shutdownNow()
 
-  def closeAndAwaitTermination(timeout: Int = 10, timeUnit: TimeUnit = TimeUnit.MILLISECONDS): Unit =
+  def closeAndAwaitTermination(
+      timeout: Int = 10,
+      timeUnit: TimeUnit = TimeUnit.MILLISECONDS
+  ): Unit =
     close()
-    while !executor.awaitTermination(timeout, timeUnit) do Thread.sleep(timeUnit.toMillis(timeout))
+    while !executor.awaitTermination(timeout, timeUnit) do
+      Thread.sleep(timeUnit.toMillis(timeout))
+
+end AsyncHandler

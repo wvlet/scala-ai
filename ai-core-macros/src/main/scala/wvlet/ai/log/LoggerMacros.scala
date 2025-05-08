@@ -1,4 +1,4 @@
-package wvlet.ai.util.log
+package wvlet.ai.log
 
 object LoggerMacros:
   import scala.quoted.*
@@ -8,7 +8,7 @@ object LoggerMacros:
       sourcePos
     }
 
-  private def sourcePos(using q: Quotes): Expr[wvlet.ai.util.log.LogSource] =
+  private def sourcePos(using q: Quotes): Expr[LogSource] =
     import q.reflect.*
     val pos                         = Position.ofMacroExpansion
     val line                        = Expr(pos.startLine)

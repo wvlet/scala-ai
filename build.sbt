@@ -1,3 +1,5 @@
+import sbtide.Keys.ideSkipProject
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3                 = "3.7.0"
@@ -33,11 +35,46 @@ val nativeBuildSettings = Seq[Setting[?]](
   // Scala Native specific settings
 )
 
+val noPublish = Seq(
+  publishArtifact := false,
+  publish         := {},
+  publishLocal    := {},
+  publish / skip  := true,
+  // This must be Nil to use crossScalaVersions of individual modules in `+ projectJVM/xxxx` tasks
+  crossScalaVersions := Nil,
+  // Explicitly skip the doc task because protobuf related Java files causes no type found error
+  Compile / doc / sources                := Seq.empty,
+  Compile / packageDoc / publishArtifact := false,
+  // Do not check binary compatibility for unpublished projects
+  // mimaPreviousArtifacts := Set.empty
+  // Skip importing aggregated projects in IntelliJ IDEA
+  ideSkipProject := true
+)
+
+// Remove warning as ideSkipProject is used only for IntelliJ IDEA
+Global / excludeLintKeys ++= Set(ideSkipProject)
+
 // Root project aggregating others
 lazy val root = project
   .in(file("."))
   .settings(buildSettings, name := "ai", publish / skip := true)
-  .aggregate(core.jvm, core.js, core.native, agent, bedrock)
+  .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
+
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, agent, bedrock)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native)
+
+lazy val projectJVM = project
+  .settings(noPublish)
+  .settings(
+    // Use a stable coverage directory name without containing scala version
+    // coverageDataDir := target.value
+  )
+  .aggregate(jvmProjects: _*)
+
+lazy val projectJS = project.settings(noPublish).aggregate(jsProjects: _*)
+
+lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _*)
 
 lazy val coreMacros = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)

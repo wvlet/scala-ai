@@ -11,15 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.log
-
-import wvlet.ai.util.log.AnsiColorPalette
+package wvlet.ai.log
 
 import java.io.{PrintWriter, StringWriter}
 import java.util.logging.Formatter
 import java.util.regex.Pattern
 import java.util.logging as jl
-import wvlet.ai.util.log.LogLevel.{DEBUG, ERROR, INFO, TRACE, WARN}
+import LogLevel.{DEBUG, ERROR, INFO, TRACE, WARN}
 
 /**
   * To implement your own log formatter, implement this formatLog(r: LogRecord) method
@@ -129,7 +127,7 @@ object LogFormatter extends AnsiColorPalette:
       appendStackTrace(log, r)
 
   /**
-    * log format for command-line user client (without source code location)
+    * log format for command-line user clients (without source code location)
     */
   object AppLogFormatter extends LogFormatter:
     override def formatLog(r: LogRecord): String =

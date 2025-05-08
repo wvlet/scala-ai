@@ -8,11 +8,12 @@ ThisBuild / libraryDependencySchemes ++=
 
 val AIRFRAME_VERSION = "2025.1.10"
 
-addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.5.4")
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2")
-addSbtPlugin("com.eed3si9n"       % "sbt-buildinfo"            % "0.13.1")
-addSbtPlugin("org.wvlet.airframe" % "sbt-airframe"             % AIRFRAME_VERSION)
+addSbtPlugin("org.scalameta"       % "sbt-scalafmt"             % "2.5.4")
+addSbtPlugin("org.portable-scala"  % "sbt-scalajs-crossproject" % "1.3.2")
+addSbtPlugin("com.eed3si9n"        % "sbt-buildinfo"            % "0.13.1")
+addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings"         % "1.1.2")
 
+// For developing server applications
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
 // For Scala.js

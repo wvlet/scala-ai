@@ -18,12 +18,10 @@ import java.util.concurrent.locks.ReentrantLock
 /**
   */
 trait Guard:
-  private[this] val lock     = new ReentrantLock()
+  private val lock           = new ReentrantLock()
   protected def newCondition = lock.newCondition()
 
   def guard[U](body: => U): U =
     lock.lockInterruptibly()
-    try
-      body
-    finally
-      lock.unlock()
+    try body
+    finally lock.unlock()

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.log
+package wvlet.ai.log
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Properties, logging as jl}
@@ -105,21 +105,21 @@ class Logger(
 
   def isEnabled(level: LogLevel): Boolean = _log.isLoggable(level.jlLevel)
 
-  def log(record: wvlet.ai.util.log.LogRecord): Unit =
+  def log(record: LogRecord): Unit =
     record.setLoggerName(name)
     _log.log(record)
 
   def log(level: LogLevel, source: LogSource, message: Any): Unit = log(
-    wvlet.ai.util.log.LogRecord(level, source, formatLog(message))
+    wvlet.ai.log.LogRecord(level, source, formatLog(message))
   )
 
   def logWithCause(level: LogLevel, source: LogSource, message: Any, cause: Throwable): Unit = log(
-    wvlet.ai.util.log.LogRecord(level, source, formatLog(message), cause)
+    wvlet.ai.log.LogRecord(level, source, formatLog(message), cause)
   )
 
-  protected def isMultiLine(str: String) = str.contains("\n")
-
   protected def formatLog(message: Any): String =
+    def isMultiLine(str: String) = str.contains("\n")
+
     val formatted =
       message match
         case null =>
