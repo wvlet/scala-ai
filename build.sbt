@@ -2,7 +2,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3_VERSION  = "3.3.5"
 val AIRFRAME_VERSION = "2025.1.10"
-val AWS_SDK_VERSION  = "2.31.37"
+val AWS_SDK_VERSION  = "2.31.38"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
