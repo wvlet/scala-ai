@@ -25,5 +25,5 @@ class AliasSurfaceTest extends AirSpec:
 
   test("inject an alias to parameterized types into constructors") {
     val s = Surface.of[Component]
-    info(s)
+    debug(s)
   }

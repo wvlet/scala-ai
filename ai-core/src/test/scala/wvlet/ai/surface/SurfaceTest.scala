@@ -71,12 +71,6 @@ class SurfaceTest extends SurfaceSpec:
     Primitive(classOf[Int]) shouldBe Primitive.Int
   }
 
-  test("resolve surface from class") {
-    pendingUntil("Scala.js doesn't support reflection")
-    val a = Surface.of[A]
-    // check(Surface.get(classOf[A]).get, a.toString)
-  }
-
   test("be equal") {
     val a1 = Surface.of[A]
     val a2 = Surface.of[A]

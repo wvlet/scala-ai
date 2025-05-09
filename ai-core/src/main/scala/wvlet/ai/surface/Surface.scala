@@ -14,7 +14,8 @@
 
 package wvlet.ai.surface
 
-import scala.collection.mutable
+import java.util.concurrent.ConcurrentHashMap
+import scala.jdk.CollectionConverters.*
 
 /**
   * Note: This interface is the same with scala-2 Surface interface, but Scala compiler requires
@@ -62,7 +63,7 @@ object Surface:
       CompileTimeSurfaceFactory.methodsOf[A]
     }
 
-  val surfaceCache       = mutable.HashMap[String, Surface]()
-  val methodSurfaceCache = mutable.HashMap[String, Seq[MethodSurface]]()
+  val surfaceCache       = ConcurrentHashMap[String, Surface]().asScala
+  val methodSurfaceCache = ConcurrentHashMap[String, Seq[MethodSurface]].asScala
 
   def getCached(fullName: String): Surface = surfaceCache(fullName)
