@@ -17,7 +17,14 @@ import scala.language.existentials
 
 /**
   */
+import scala.language.existentials
+
+/**
+  * ObjectFactory is a trait for creating new instances of objects.
+  * It provides a generic way to instantiate objects with given arguments.
+  */
 trait ObjectFactory extends Serializable:
+  def newInstance(args: Seq[Any]): Any
   def newInstance(args: Seq[Any]): Any
 
 object ObjectFactory:
