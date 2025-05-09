@@ -11,7 +11,7 @@ This is achieved through two primary modules:
     * **Object Design**: Type-safe object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
     * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats (JSON, MessagePack, etc.)
     * **RPC Framework**: For distributed components and service interfaces.
-    * ** Testing Framework**: A lightweight testing framework for Scala 3, inspired by `airspec`.
+    * **Testing Framework**: A lightweight testing framework for Scala 3, inspired by `airspec`.
     * These components also guide AI in generating well-structured, type-safe Scala code by providing runtime type information and clear data contracts.
 
 * **`ai-agent`**: Tools for building AI agents, offering:
