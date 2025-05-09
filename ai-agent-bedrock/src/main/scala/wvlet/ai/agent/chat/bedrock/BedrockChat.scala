@@ -47,7 +47,7 @@ import wvlet.ai.agent.chat.{
   ToolSpec
 }
 import wvlet.ai.agent.core.StatusCode
-import wvlet.log.LogSupport
+import wvlet.ai.log.LogSupport
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.immutable.ListMap
