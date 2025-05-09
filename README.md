@@ -1,64 +1,43 @@
-# wvlet/scala-ai
+# wvlet/scala-ai: Scala 3 for AI Development & Agentic Systems
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Build Production-Ready LLM Applications in Scala 3.
+**`wvlet/scala-ai` empowers Scala 3 for modern AI coding and building AI agent applications.** It provides robust core utilities and tools for seamless LLM integration and agent orchestration.
 
-`wvlet/scala-ai` offers high-level, idiomatic Scala 3 abstractions for interacting with Large Language Models (LLMs), streamlining common AI application patterns such as chat, RAG, and Agents coordination. It significantly reduces the boilerplate and complexity required when using raw Java SDKs (such as AWS Bedrock and Vertex AI), allowing you to focus on building unique AI features faster.
+This is achieved through two primary modules:
 
-**(Note: This library is currently under active development. APIs may change.)**
+* **`ai-core`**: Foundational utilities adapted from `wvlet/airframe` for Scala 3, providing:
+    * **Logging**: Performant, structured logging.
+    * **Object Design**: Type-safe object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
+    * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats (JSON, MessagePack, etc.)
+    * **RPC Framework**: For distributed components and service interfaces.
+    * ** Testing Framework**: A lightweight testing framework for Scala 3, inspired by `airspec`.
+    * These components also guide AI in generating well-structured, type-safe Scala code by providing runtime type information and clear data contracts.
 
-## Key Features
+* **`ai-agent`**: Tools for building AI agents, offering:
+    * **Unified LLM APIs**: A consistent `LLMAgent` interface for AWS Bedrock, Google Vertex AI, and future LLMs.
+    * **Agent Orchestration**: Components for advanced agent control flows.
+    * **Dynamic Tool Usage**: Enabling agents to use external tools.
+    * **Common Patterns**: Support for RAG (Retrieval Augmented Generation).
 
-* **Unified LLM APIs:** `LLMAgent` abstracts away AWS Bedrock & Google Vertex AI details.
-* **Simplified SDK Interaction:** Converts SDK's native request/responses into Scala-idiomatic ChatRequest and ChatResponse objects.
-* **Easy Configuration:** For common LLM parameters (temperature, top-P, max tokens, reasoning). 
-* **Integrated RAG:** Enhancing LLM models with your own data.
-* **DuckDB VSS Support:** Out-of-the-box Vector Store implementation using DuckDB's vector search extension (VSS).
-* MCP integration 
+Leveraging Scala 3's powerful type system and `airframe`'s battle-tested components, `scala-ai` enables the development of efficient, type-safe, and reliable AI applications.
 
-## Common Use Cases
-
-* Intelligent Chatbots (with memory & streaming)
-* Q&A over Private Data (RAG)
-* Task Automation via AI Agents (Tool Use)
-* Content Generation & Summarization
+**Note:** This library is under active development. APIs may change.
 
 ## Getting Started
 
-Add the necessary dependencies to your `build.sbt`:
+Add the dependencies to your `build.sbt`:
 
-**build.sbt**
 ```scala
-val scalaAIVersion = "(version)" // Use the latest vesrion
+// build.sbt
+val scalaAIVersion = "LATEST_VERSION" // TODO: Replace with the actual latest version
 
 libraryDependencies ++= Seq(
+  // Core utilities for Scala 3 development
+  "org.wvlet.ai" %% "ai-core" % scalaAIVersion,
+  // High-level AI-agent interfaces (includes ai-core)
   "org.wvlet.ai" %% "ai-agent" % scalaAIVersion,
-  // Choose integrations:
-  "org.wvlet.ai" %% "ai-bedrock" % scalaAIVersion,
-  // "org.wvlet.ai" %% "ai-vertexai" % scalaAIVersion,
+  // Optional: Choose AI service integrations
+  "org.wvlet.ai" %% "ai-agent-bedrock" % scalaAIVersion,
+  // "org.wvlet.ai" %% "ai-agent-vertexai" % scalaAIVersion,
 )
-```
-
-Example usage with AWS Bedrock:
-
-```scala
-import wvlet.ai.agent.{LLM, LLMAgent}
-import wvlet.ai.agent.chat.bedrock.BedrockRunner
-
-val agent = 
-  LLMAgent(
-    name = "My AI Assistant",
-    description = "A helpful assistant",
-    model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0
-      // Use a cross-region inference model
-      .withAWSCrossRegionInference("us")
-  )
-  .withSystemPrompt("""Help users with their questions""")
-  .withTemperature(0.7)
-
-val chat = BedrockRunner(agent).chat("Hello AI Assistant!")
-// ChatResponse(List(AIMessage(Hello! How can I assist you today? I'm here to help with any questions or tasks you might have.,List())),ChatStats(1056,9,26,35,None),END_TURN)
-```
-
-
