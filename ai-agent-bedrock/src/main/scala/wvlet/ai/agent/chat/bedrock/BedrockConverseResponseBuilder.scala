@@ -27,7 +27,7 @@ import wvlet.ai.agent.chat.{ChatObserver, ChatResponse}
 
 import scala.jdk.CollectionConverters.*
 import wvlet.ai.agent.core.ops.*
-import wvlet.ai.log.LogSupport
+import wvlet.log.LogSupport
 
 /**
   * Accumulate the response from a Bedrock chat stream, and build ConverseResponse from it.
