@@ -1,4 +1,4 @@
-# wvlet/scala-ai: Scala 3 for AI Development & Agentic Systems
+# wvlet/scala-ai: Scala 3 for AI-Driven Coding & Agentic Systems
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -6,21 +6,21 @@
 
 This is achieved through two primary modules:
 
-* **`ai-core`**: Foundational utilities adapted from `wvlet/airframe` for Scala 3, providing:
+* **`ai-core`**: Foundational utilities adapted from [`wvlet/airframe`](https://wvlet.io/airframe) for Scala 3, providing:
     * **Logging**: Performant, structured logging.
-    * **Object Design**: Type-safe object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
-    * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats (JSON, MessagePack, etc.)
-    * **RPC Framework**: For distributed components and service interfaces.
+    * **Object Design**: Well-managed object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
+    * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats, JSON, MessagePack, etc.
+    * **RPC/HTTP Framework**: For quickly building RPC/HTTP server and clients without boilerplate.
     * **Testing Framework**: A lightweight testing framework for Scala 3, inspired by `airspec`.
-    * These components also guide AI in generating well-structured, type-safe Scala code by providing runtime type information and clear data contracts.
+    * We also have a collection of prompts so that LLM can produce quality code. 
 
 * **`ai-agent`**: Tools for building AI agents, offering:
-    * **Unified LLM APIs**: A consistent `LLMAgent` interface for AWS Bedrock, Google Vertex AI, and future LLMs.
+    * **Unified LLM APIs**: A consistent `LLMAgent` interface for AWS Bedrock, Google Vertex AI, and future LLM services.
     * **Agent Orchestration**: Components for advanced agent control flows.
-    * **Dynamic Tool Usage**: Enabling agents to use external tools.
-    * **Common Patterns**: Support for RAG (Retrieval Augmented Generation).
+    * **Dynamic Tool Usage**: Enabling agents to use external tools, including MCP (Model Context Protcotol) or other RCP servers built with `ai-core`.
+    * **Common Agent Patterns**: Support for RAG (Retrieval Augmented Generation), vector search, and other common agent patterns.
 
-Leveraging Scala 3's powerful type system and `airframe`'s battle-tested components, `scala-ai` enables the development of efficient, type-safe, and reliable AI applications.
+Leveraging Scala 3's powerful type system and `airframe`'s battle-tested components, `scala-ai` enables the development of efficient, type-safe, and reliable applications.
 
 **Note:** This library is under active development. APIs may change.
 
