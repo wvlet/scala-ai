@@ -44,7 +44,12 @@ private[surface] object CompileTimeSurfaceFactory:
 
 end CompileTimeSurfaceFactory
 
+end CompileTimeSurfaceFactory
+
+// TODO: Refactor CompileTimeSurfaceFactory into smaller, more focused classes or modules
 private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
+  import quotes.*
+  import quotes.reflect.*
   import quotes.*
   import quotes.reflect.*
 
