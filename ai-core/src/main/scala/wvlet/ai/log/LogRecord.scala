@@ -13,6 +13,8 @@
  */
 package wvlet.ai.log
 
+import wvlet.ai.util.SourceCode
+
 import java.util.logging as jl
 
 object LogRecord:
@@ -26,14 +28,14 @@ object LogRecord:
     l.setLoggerName(record.getLoggerName())
     l
 
-  def apply(level: LogLevel, source: LogSource, message: String): LogRecord = LogRecord(
+  def apply(level: LogLevel, source: SourceCode, message: String): LogRecord = LogRecord(
     level,
     Some(source),
     message,
     None
   )
 
-  def apply(level: LogLevel, source: LogSource, message: String, cause: Throwable): LogRecord =
+  def apply(level: LogLevel, source: SourceCode, message: String, cause: Throwable): LogRecord =
     LogRecord(level, Some(source), message, Some(cause))
 
   private[log] val leafLoggerNameCache = collection.mutable.Map[String, String]()
@@ -42,7 +44,7 @@ import LogRecord.*
 
 case class LogRecord(
     level: LogLevel,
-    source: Option[LogSource],
+    source: Option[SourceCode],
     message: String,
     cause: Option[Throwable]
 ) extends jl.LogRecord(level.jlLevel, message):
