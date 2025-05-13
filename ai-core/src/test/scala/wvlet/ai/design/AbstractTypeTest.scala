@@ -1,21 +1,19 @@
-package wvlet.ai.design.di
+package wvlet.ai.design
 
-import wvlet.airspec.AirSpec
 import wvlet.ai.design.Design
 import wvlet.ai.surface.Surface
+import wvlet.airspec.AirSpec
 
-object AbstractTypeTest extends AirSpec {
+object AbstractTypeTest extends AirSpec:
 
-  trait Abst {
+  trait Abst:
     def hello = "hello abst"
-  }
-  class AbstImpl extends Abst {
+
+  class AbstImpl extends Abst:
     override def hello: String = "hello impl"
-  }
 
   test("bind to abstract type") {
-    val d = Design.newSilentDesign
-      .bind[Abst].to[AbstImpl]
+    val d = Design.newSilentDesign.bind[Abst].to[AbstImpl]
 
     val s = Surface.of[AbstImpl]
     s.objectFactory shouldBe defined
@@ -24,5 +22,3 @@ object AbstractTypeTest extends AirSpec {
       a.hello shouldBe "hello impl"
     }
   }
-
-}

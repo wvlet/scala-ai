@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
 
 import wvlet.ai.design.*
 import wvlet.airspec.AirSpec
 
-object NewDISyntaxTest extends AirSpec {
+object NewDISyntaxTest extends AirSpec:
   trait A
   case class AImpl() extends A
   case class B(s: String)
@@ -26,17 +26,30 @@ object NewDISyntaxTest extends AirSpec {
   case class D5(i: Int, l: Long, d: String, b: B, c: D3)
 
   test("new bind syntax") {
-    val d = newDesign
-      .bindInstance[String]("hello")
-      .bindSingleton[B]
-      .bindImpl[A, AImpl]
-      .bindProvider[String, Int] { (s: String) => s.length }
-      .bindProvider { (a: A) => D1(a.toString) }
-      .bindProvider { (i: Int, s: String) => (i + s.length).toLong }
-      .bindProvider { (a: Int, b: Long, c: String) => D3(a, b, c) }
-      .bindProvider { (a: Int, b: Long, c: String, d: B) => D4(a, b, c, d) }
-      .bindProvider { (a: Int, b: Long, c: String, d: B, cc: D3) => D5(a, b, c, d, cc) }
-      .noLifeCycleLogging
+    val d =
+      newDesign
+        .bindInstance[String]("hello")
+        .bindSingleton[B]
+        .bindImpl[A, AImpl]
+        .bindProvider[String, Int] { (s: String) =>
+          s.length
+        }
+        .bindProvider { (a: A) =>
+          D1(a.toString)
+        }
+        .bindProvider { (i: Int, s: String) =>
+          (i + s.length).toLong
+        }
+        .bindProvider { (a: Int, b: Long, c: String) =>
+          D3(a, b, c)
+        }
+        .bindProvider { (a: Int, b: Long, c: String, d: B) =>
+          D4(a, b, c, d)
+        }
+        .bindProvider { (a: Int, b: Long, c: String, d: B, cc: D3) =>
+          D5(a, b, c, d, cc)
+        }
+        .noLifeCycleLogging
 
     d.withSession { session =>
       session.build[String] shouldBe "hello"
@@ -73,4 +86,5 @@ object NewDISyntaxTest extends AirSpec {
     started shouldBe true
     closed shouldBe true
   }
-}
+
+end NewDISyntaxTest

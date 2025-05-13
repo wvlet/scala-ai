@@ -11,21 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
 
 import wvlet.ai.design.Design
-import wvlet.log.LogSupport
 import wvlet.airspec.AirSpec
+import wvlet.log.LogSupport
 
 /**
   */
-class MapBindingTest extends AirSpec {
+class MapBindingTest extends AirSpec:
   import MapBindingTest.*
 
   test("support map binding") {
-    val d = Design.newSilentDesign
-      .bind[Mapper].toSingleton
-      .bind[InfoMessage].toInstance("info")
+    val d = Design.newSilentDesign.bind[Mapper].toSingleton.bind[InfoMessage].toInstance("info")
 
     d.build[Mapper] { m =>
       m.handle("info")
@@ -33,37 +31,33 @@ class MapBindingTest extends AirSpec {
       m.handle("other")
     }
   }
-}
 
-object MapBindingTest {
-  trait Handler {
+object MapBindingTest:
+  trait Handler:
     def handle: String
-  }
 
   type InfoMessage = String
 
-  class InfoHandler(message: InfoMessage) extends Handler {
+  class InfoHandler(message: InfoMessage) extends Handler:
     def handle: String = message
-  }
 
-  class GetHandler extends Handler {
+  class GetHandler extends Handler:
     def handle: String = "get"
-  }
 
-  class RescueHandler extends Handler {
+  class RescueHandler extends Handler:
     def handle: String = "other"
-  }
 
-  class Mapper(infoHandler: InfoHandler, getHandler: GetHandler, rescueHandler: RescueHandler) extends LogSupport {
+  class Mapper(infoHandler: InfoHandler, getHandler: GetHandler, rescueHandler: RescueHandler)
+      extends LogSupport:
     private val dispatcher: String => Handler = {
-      case "info" => infoHandler
-      case "get"  => getHandler
-      case _      => rescueHandler
+      case "info" =>
+        infoHandler
+      case "get" =>
+        getHandler
+      case _ =>
+        rescueHandler
     }
 
-    def handle(name: String) = {
+    def handle(name: String) =
       val message = dispatcher.apply(name).handle
       debug(message)
-    }
-  }
-}

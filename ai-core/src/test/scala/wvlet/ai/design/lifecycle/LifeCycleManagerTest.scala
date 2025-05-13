@@ -11,32 +11,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di.lifecycle
+package wvlet.ai.design.lifecycle
 
-import java.util.concurrent.atomic.AtomicInteger
 import wvlet.ai.design.AirframeException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 import wvlet.log.{LogLevel, LogSupport, Logger}
 
-class Counter extends LogSupport {
+import java.util.concurrent.atomic.AtomicInteger
+
+class Counter extends LogSupport:
   val initialized = new AtomicInteger(0)
   val injected    = new AtomicInteger(0)
   val shutdowned  = new AtomicInteger(0)
   val started     = new AtomicInteger(0)
-}
 
-class CounterUser(
-    val counter1: CounterService,
-    val counter2: CounterService
-)
+class CounterUser(val counter1: CounterService, val counter2: CounterService)
 
-class CounterService(val counter: Counter) extends LogSupport {
+class CounterService(val counter: Counter) extends LogSupport:
   def initCount     = counter.initialized.get()
   def injectCount   = counter.injected.get()
   def startCount    = counter.started.get()
   def shutdownCount = counter.shutdowned.get()
-}
 
 class User1(c: Counter) extends CounterService(c)
 class User2(c: Counter) extends CounterService(c)
@@ -45,27 +41,29 @@ class LifeCycleOrder(v: Int) {}
 
 /**
   */
-object LifeCycleManagerTest extends AirSpec {
-  private val counterDesign =
-    Design.newSilentDesign
-      .bind[CounterService].toSingleton
-      .bind[Counter].toSingleton
-      .onInit { c =>
-        debug(s"init: ${c.initialized.get()}")
-        c.initialized.incrementAndGet()
-      }
-      .onInject { c =>
-        debug(s"injected: ${c.injected.get()}")
-        c.injected.incrementAndGet()
-      }
-      .onStart { c =>
-        debug(s"start: ${c.started.get()}")
-        c.started.incrementAndGet()
-      }
-      .onShutdown { c =>
-        debug(s"shutdown: ${c.shutdowned.get()}")
-        c.shutdowned.incrementAndGet()
-      }
+object LifeCycleManagerTest extends AirSpec:
+  private val counterDesign = Design
+    .newSilentDesign
+    .bind[CounterService]
+    .toSingleton
+    .bind[Counter]
+    .toSingleton
+    .onInit { c =>
+      debug(s"init: ${c.initialized.get()}")
+      c.initialized.incrementAndGet()
+    }
+    .onInject { c =>
+      debug(s"injected: ${c.injected.get()}")
+      c.injected.incrementAndGet()
+    }
+    .onStart { c =>
+      debug(s"start: ${c.started.get()}")
+      c.started.incrementAndGet()
+    }
+    .onShutdown { c =>
+      debug(s"shutdown: ${c.shutdowned.get()}")
+      c.shutdowned.incrementAndGet()
+    }
 
   test("call lifecycle hooks properly for singleton") {
     val session      = counterDesign.newSession
@@ -167,13 +165,24 @@ object LifeCycleManagerTest extends AirSpec {
     var preShutdown = 0
     var shutdown    = 0
 
-    val session = Design.newSilentDesign
-      .bind[Int].toInstance(0)
-      .onInit { x => init = t.incrementAndGet() }
-      .onStart { x => start = t.incrementAndGet() }
-      .beforeShutdown { x => preShutdown = t.incrementAndGet() }
-      .onShutdown { x => shutdown = t.incrementAndGet() }
-      .newSession
+    val session =
+      Design
+        .newSilentDesign
+        .bind[Int]
+        .toInstance(0)
+        .onInit { x =>
+          init = t.incrementAndGet()
+        }
+        .onStart { x =>
+          start = t.incrementAndGet()
+        }
+        .beforeShutdown { x =>
+          preShutdown = t.incrementAndGet()
+        }
+        .onShutdown { x =>
+          shutdown = t.incrementAndGet()
+        }
+        .newSession
 
     val l = session.build[LifeCycleOrder]
     session.start {}
@@ -184,49 +193,53 @@ object LifeCycleManagerTest extends AirSpec {
   }
 
   test("show life cycle log") {
-    Design.newDesign.withSession { session =>
-      // Just show debug logs
-    }
+    Design
+      .newDesign
+      .withSession { session =>
+        // Just show debug logs
+      }
 
     val l       = Logger("wvlet.airframe")
     val current = l.getLogLevel
-    try {
+    try
       l.setLogLevel(LogLevel.DEBUG)
-      Design.newSilentDesign.withSession { session =>
-        // Show debug level session life cycle log
-      }
-    } finally {
+      Design
+        .newSilentDesign
+        .withSession { session =>
+          // Show debug level session life cycle log
+        }
+    finally
       l.setLogLevel(current)
-    }
   }
 
-  class CloseExceptionTest extends AutoCloseable {
-    override def close(): Unit = {
-      throw new IllegalStateException("failure test")
-    }
-  }
+  class CloseExceptionTest extends AutoCloseable:
+    override def close(): Unit = throw new IllegalStateException("failure test")
 
   test("handle exceptions in shutdown hooks") {
     val e = intercept[SHUTDOWN_FAILURE] {
-      Design.newSilentDesign.build[CloseExceptionTest] { x => }
+      Design
+        .newSilentDesign
+        .build[CloseExceptionTest] { x =>
+        }
     }
     e.getMessage.contains("failure test") shouldBe true
   }
 
-  class MultipleShutdownExceptionTest(t: CloseExceptionTest) extends AutoCloseable {
-    override def close(): Unit = {
-      throw new IllegalStateException("failure 2")
-    }
-  }
+  class MultipleShutdownExceptionTest(t: CloseExceptionTest) extends AutoCloseable:
+    override def close(): Unit = throw new IllegalStateException("failure 2")
 
   test("handle multiple exceptions") {
     val e = intercept[MULTIPLE_SHUTDOWN_FAILURES] {
-      Design.newSilentDesign
-        .bind[CloseExceptionTest].toSingleton // Inner class needs to be defined where the outer context can be found
-        .build[MultipleShutdownExceptionTest] { x => }
+      Design
+        .newSilentDesign
+        .bind[CloseExceptionTest]
+        .toSingleton // Inner class needs to be defined where the outer context can be found
+        .build[MultipleShutdownExceptionTest] { x =>
+        }
     }
     debug(e)
     e.causes.find(_.getMessage.contains("failure test")) shouldBe defined
     e.causes.find(_.getMessage.contains("failure 2")) shouldBe defined
   }
-}
+
+end LifeCycleManagerTest

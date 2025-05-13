@@ -11,7 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
+
 import wvlet.ai.design.Design
 import wvlet.ai.surface.Surface
 import wvlet.ai.surface.tag.*
@@ -19,7 +20,7 @@ import wvlet.airspec.AirSpec
 
 /**
   */
-object TaggedBindingTest extends AirSpec {
+object TaggedBindingTest extends AirSpec:
   case class Fruit(name: String)
 
   trait Apple
@@ -36,10 +37,14 @@ object TaggedBindingTest extends AirSpec {
     val apple = Surface.of[Fruit @@ Apple]
     debug(s"apple: ${apple}, alias:${apple.isAlias}")
 
-    val d = Design.newDesign
-      .bind[Fruit @@ Apple].toInstance(Fruit("apple"))
-      .bind[Fruit @@ Banana].toInstance(Fruit("banana"))
-      .bind[Fruit @@ Lemon].toProvider { (apple: Fruit @@ Apple) =>
+    val d = Design
+      .newDesign
+      .bind[Fruit @@ Apple]
+      .toInstance(Fruit("apple"))
+      .bind[Fruit @@ Banana]
+      .toInstance(Fruit("banana"))
+      .bind[Fruit @@ Lemon]
+      .toProvider { (apple: Fruit @@ Apple) =>
         Fruit(s"lemon+${apple.name}").asInstanceOf[Fruit @@ Lemon]
       }
 
@@ -50,4 +55,5 @@ object TaggedBindingTest extends AirSpec {
 //      tagged.lemon.name shouldBe "lemon+apple"
 //    }
   }
-}
+
+end TaggedBindingTest

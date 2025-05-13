@@ -11,16 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di.lifecycle
-
-import java.util.concurrent.atomic.AtomicInteger
+package wvlet.ai.design.lifecycle
 
 import wvlet.ai.design.newSilentDesign
 import wvlet.airspec.AirSpec
 
+import java.util.concurrent.atomic.AtomicInteger
+
 /**
   */
-class DesignTimeLifeCycleHookTest extends AirSpec {
+class DesignTimeLifeCycleHookTest extends AirSpec:
   test("support design time bindings") {
     val order              = new AtomicInteger(1)
     val initializedTime    = new AtomicInteger(0)
@@ -31,7 +31,8 @@ class DesignTimeLifeCycleHookTest extends AirSpec {
     val shutdownTime       = new AtomicInteger(0)
 
     val d = newSilentDesign
-      .bind[String].toInstance("hello")
+      .bind[String]
+      .toInstance("hello")
       .onInit(x => initializedTime.set(order.getAndIncrement()))
       .onInject(x => injectTime.set(order.getAndIncrement()))
       .onStart(x => startTime.set(order.getAndIncrement()))
@@ -53,21 +54,33 @@ class DesignTimeLifeCycleHookTest extends AirSpec {
 
   test("add lifecycle only") {
     val v = new AtomicInteger(0)
-    val d = newSilentDesign
-      .bind[AtomicInteger].toInstance(v)
+    val d = newSilentDesign.bind[AtomicInteger].toInstance(v)
 
     val d2 = d
       .bind[AtomicInteger]
-      .onStart { x => x.addAndGet(1) }
-      .afterStart { x => x.addAndGet(1 << 1) }
-      .onShutdown { x => x.addAndGet(1 << 2) }
-      .beforeShutdown { x => x.addAndGet(1 << 3) }
-      .onInit { x => x.addAndGet(1 << 4) }
-      .onInject { x => x.addAndGet(1 << 5) }
+      .onStart { x =>
+        x.addAndGet(1)
+      }
+      .afterStart { x =>
+        x.addAndGet(1 << 1)
+      }
+      .onShutdown { x =>
+        x.addAndGet(1 << 2)
+      }
+      .beforeShutdown { x =>
+        x.addAndGet(1 << 3)
+      }
+      .onInit { x =>
+        x.addAndGet(1 << 4)
+      }
+      .onInject { x =>
+        x.addAndGet(1 << 5)
+      }
 
-    d2.withSession { s => }
+    d2.withSession { s =>
+    }
 
     v.get() shouldBe 0x3f
   }
 
-}
+end DesignTimeLifeCycleHookTest

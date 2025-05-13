@@ -7,22 +7,19 @@ import wvlet.airspec.AirSpec
 
 /**
   */
-object DesignTest extends AirSpec {
+object DesignTest extends AirSpec:
 
   trait Message
   case class Hello(message: String) extends Message
 
-  object Alias {
-    trait Hello[A] {
+  object Alias:
+    trait Hello[A]:
       def hello: A
-    }
 
-    class StringHello extends Hello[String] {
+    class StringHello extends Hello[String]:
       def hello = "hello world"
-    }
 
     type HelloRef = Hello[String]
-  }
 
   type ProductionMessage  = Message
   type DevelopmentMessage = Message
@@ -31,14 +28,22 @@ object DesignTest extends AirSpec {
   val d0 = Design.empty
 
   val d1 =
-    d0.bind[Message].to[Hello]
-      .bind[Hello].toInstance(Hello("world"))
-      .bind[Message].toSingleton
-      .bind[Message].toEagerSingleton
-      .bind[Message].toEagerSingletonOf[Hello]
-      .bind[Message].to[Hello]
-      .bind[ProductionMessage].toInstance(Hello("production"))
-      .bind[DevelopmentMessage].toInstance(Hello("development"))
+    d0.bind[Message]
+      .to[Hello]
+      .bind[Hello]
+      .toInstance(Hello("world"))
+      .bind[Message]
+      .toSingleton
+      .bind[Message]
+      .toEagerSingleton
+      .bind[Message]
+      .toEagerSingletonOf[Hello]
+      .bind[Message]
+      .to[Hello]
+      .bind[ProductionMessage]
+      .toInstance(Hello("production"))
+      .bind[DevelopmentMessage]
+      .toInstance(Hello("development"))
       .noLifeCycleLogging
 
   val o = Hello("override")
@@ -56,8 +61,12 @@ object DesignTest extends AirSpec {
     val d3 = d1 + d2
     val d4 = d1.add(d2)
 
-    d3.build[Hello] { h => h shouldBeTheSameInstanceAs o }
-    d4.build[Hello] { h => h shouldBeTheSameInstanceAs o }
+    d3.build[Hello] { h =>
+      h shouldBeTheSameInstanceAs o
+    }
+    d4.build[Hello] { h =>
+      h shouldBeTheSameInstanceAs o
+    }
   }
 
   test("display design") {
@@ -70,10 +79,10 @@ object DesignTest extends AirSpec {
   test("remove binding") {
     val dd = d1.remove[Message]
 
-    def hasMessage(d: Design): Boolean =
-      d.binding.exists(_.from == Surface.of[Message])
-    def hasProductionMessage(d: Design): Boolean =
-      d.binding.exists(_.from == Surface.of[ProductionMessage])
+    def hasMessage(d: Design): Boolean = d.binding.exists(_.from == Surface.of[Message])
+    def hasProductionMessage(d: Design): Boolean = d
+      .binding
+      .exists(_.from == Surface.of[ProductionMessage])
 
     hasMessage(d1) shouldBe true
     hasMessage(dd) shouldBe false
@@ -85,22 +94,31 @@ object DesignTest extends AirSpec {
   test("bind providers") {
     // TODO: Remove type argument when https://github.com/wvlet/airframe/issues/2200 fixed
     val d = newSilentDesign
-      .bind[Hello].toProvider[ProductionString] { m => Hello(m) }
-      .bind[ProductionString].toInstance("hello production")
+      .bind[Hello]
+      .toProvider[ProductionString] { m =>
+        Hello(m)
+      }
+      .bind[ProductionString]
+      .toInstance("hello production")
 
-    d.build[Hello] { h => h.message shouldBe "hello production" }
+    d.build[Hello] { h =>
+      h.message shouldBe "hello production"
+    }
   }
 
   test("bind type aliases") {
-    val d = newSilentDesign
-      .bind[HelloRef].toInstance(new StringHello)
+    val d = newSilentDesign.bind[HelloRef].toInstance(new StringHello)
 
-    d.build[HelloRef] { h => h.hello shouldBe "hello world" }
+    d.build[HelloRef] { h =>
+      h.hello shouldBe "hello world"
+    }
   }
 
   test("start and stop session") {
     // Sanity test
-    Design.newDesign.noLifeCycleLogging
+    Design
+      .newDesign
+      .noLifeCycleLogging
       .withSession { session =>
         // Do nothing
       }
@@ -139,8 +157,7 @@ object DesignTest extends AirSpec {
   }
 
   test("support run") {
-    val d = Design.newSilentDesign
-      .bind[String].toInstance("hello")
+    val d = Design.newSilentDesign.bind[String].toInstance("hello")
     val ret = d.run { (s: String) =>
       s shouldBe "hello"
       100
@@ -150,10 +167,11 @@ object DesignTest extends AirSpec {
 
   test("find outer variables in code block") {
     val helloDesign = "hello"
-    val d = newSilentDesign
-      .bind[String].toInstance(helloDesign)
+    val d           = newSilentDesign.bind[String].toInstance(helloDesign)
 
-    d.build[String] { x => helloDesign }
+    d.build[String] { x =>
+      helloDesign
+    }
   }
 
-}
+end DesignTest

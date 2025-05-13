@@ -11,27 +11,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di.lifecycle
+package wvlet.ai.design.lifecycle
 
 import wvlet.ai.design.Design
-import java.util.concurrent.atomic.AtomicBoolean
 import wvlet.airspec.AirSpec
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
   */
-object CloseableShutdownHookTest extends AirSpec {
-  class A extends AutoCloseable {
+object CloseableShutdownHookTest extends AirSpec:
+  class A extends AutoCloseable:
     val closeIsCalled = new AtomicBoolean(false)
 
-    override def close(): Unit = {
-      closeIsCalled.set(true)
-    }
-  }
+    override def close(): Unit = closeIsCalled.set(true)
 
   test("support closeable") {
     val a = new A
     val d = Design.newSilentDesign.bind[A].toInstance(a)
-    d.build[A] { a => }
+    d.build[A] { a =>
+    }
 
     a.closeIsCalled.get() shouldBe true
   }
@@ -41,12 +40,18 @@ object CloseableShutdownHookTest extends AirSpec {
   test("favor onShutdownHook") {
     val onShutdownIsCalled = new AtomicBoolean(false)
 
-    val x: A1 = Design.newSilentDesign
+    val x: A1 = Design
+      .newSilentDesign
       .bind[A]
-      .onShutdown { x => onShutdownIsCalled.set(true) }
-      .run { (a1: A1) => a1 }
+      .onShutdown { x =>
+        onShutdownIsCalled.set(true)
+      }
+      .run { (a1: A1) =>
+        a1
+      }
 
     onShutdownIsCalled.get shouldBe true
     x.a.closeIsCalled.get shouldBe false
   }
-}
+
+end CloseableShutdownHookTest

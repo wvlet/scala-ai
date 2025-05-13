@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
 
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 
 import scala.util.Random
 
-object ConstructorInjectionTest {
+object ConstructorInjectionTest:
 
   case class Dep1(x: Int = Random.nextInt(1000))
 
@@ -26,23 +26,24 @@ object ConstructorInjectionTest {
 
   case class Config(port: Int = 8080, timeoutMillis: Int = 100000)
 
-}
-
 /**
   */
-class ConstructorInjectionTest extends AirSpec {
+class ConstructorInjectionTest extends AirSpec:
 
   import ConstructorInjectionTest.*
 
   test("constructor injection should bind singleton to the same type") {
-    Design.newSilentDesign.build[Rep] { r =>
-      r.d1 shouldBeTheSameInstanceAs r.d2
-    }
+    Design
+      .newSilentDesign
+      .build[Rep] { r =>
+        r.d1 shouldBeTheSameInstanceAs r.d2
+      }
   }
 
   test("properly populate default values") {
-    Design.newSilentDesign.build[Config] { config =>
-      config shouldBe Config()
-    }
+    Design
+      .newSilentDesign
+      .build[Config] { config =>
+        config shouldBe Config()
+      }
   }
-}

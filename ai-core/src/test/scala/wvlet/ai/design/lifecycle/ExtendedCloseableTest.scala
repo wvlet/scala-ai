@@ -11,30 +11,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di.lifecycle
+package wvlet.ai.design.lifecycle
 
 import wvlet.ai.design.Design
+import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import wvlet.airspec.AirSpec
 
 /**
   */
-object ExtendedCloseableTest extends AirSpec {
+object ExtendedCloseableTest extends AirSpec:
 
   private val closeCount = new AtomicInteger(0)
 
-  trait A extends AutoCloseable {
-    override def close(): Unit = {
-      closeCount.incrementAndGet()
-    }
-  }
+  trait A extends AutoCloseable:
+    override def close(): Unit = closeCount.incrementAndGet()
 
   class B extends A
 
   test("close only once") {
-    val d = Design.newSilentDesign
-      .bind[A].to[B]
+    val d = Design.newSilentDesign.bind[A].to[B]
 
     closeCount.get() shouldBe 0
     d.build[A] { a =>
@@ -42,4 +38,3 @@ object ExtendedCloseableTest extends AirSpec {
     }
     closeCount.get() shouldBe 1
   }
-}

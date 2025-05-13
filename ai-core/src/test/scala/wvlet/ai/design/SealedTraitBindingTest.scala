@@ -11,24 +11,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
+
 import example.SealedTrait.Adt
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 
 /**
   */
-object SealedTraitBindingTest extends AirSpec {
+object SealedTraitBindingTest extends AirSpec:
   // This code compilation may fail when using Mill.
   case class Service(adt: Adt) {}
 
   test("compile test") {
     // Just need to check the compilation failure
-    val design = Design.newSilentDesign
-      .bind[Adt].toInstance(Adt.Foo)
+    val design = Design.newSilentDesign.bind[Adt].toInstance(Adt.Foo)
 
     design.build[Service] { s =>
       s.adt shouldBeTheSameInstanceAs Adt.Foo
     }
   }
-}

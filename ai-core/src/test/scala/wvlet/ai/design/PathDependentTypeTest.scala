@@ -11,41 +11,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
+
 import wvlet.ai.design.Design
 import wvlet.ai.surface.Surface
 import wvlet.airspec.AirSpec
 
 /**
   */
-class PathDependentTypeTest extends AirSpec {
+class PathDependentTypeTest extends AirSpec:
   test("pass dependent types") {
     import PathDependentType.*
     val s = Surface.of[JdbcProfile#Backend#Database]
 
-    val d = Design.newSilentDesign
-      .bind[JdbcProfile#Backend#Database].toInstance(
-        new PathDependentType.DatabaseDef().asInstanceOf[JdbcProfile#Backend#Database]
-      )
+    val d = Design
+      .newSilentDesign
+      .bind[JdbcProfile#Backend#Database]
+      .toInstance(new PathDependentType.DatabaseDef().asInstanceOf[JdbcProfile#Backend#Database])
 
-    d.build[JdbcService] { s => s.p.hello shouldBe "hello jdbc" }
+    d.build[JdbcService] { s =>
+      s.p.hello shouldBe "hello jdbc"
+    }
   }
-}
 
-object PathDependentType {
+object PathDependentType:
   object MyBackend extends JdbcBackend
 
   class JdbcService(val p: JdbcProfile#Backend#Database)
 
-  trait JdbcProfile {
+  trait JdbcProfile:
     type Backend = JdbcBackend
-  }
 
-  trait JdbcBackend {
+  trait JdbcBackend:
     type Database = DatabaseDef
-  }
 
-  class DatabaseDef {
+  class DatabaseDef:
     def hello = "hello jdbc"
-  }
-}

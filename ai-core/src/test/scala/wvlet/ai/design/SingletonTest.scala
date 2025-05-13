@@ -11,22 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.di
+package wvlet.ai.design
 
 import wvlet.ai.design.Design
 import wvlet.ai.surface.Surface
-
-import java.util.concurrent.atomic.AtomicInteger
 import wvlet.airspec.AirSpec
 import wvlet.log.{LogLevel, LogSupport, Logger}
 
-object SingletonTest {
+import java.util.concurrent.atomic.AtomicInteger
+
+object SingletonTest:
   type TraitCounter = AtomicInteger
 
   // This doesn't tell about Singleton
-  class X(val counter: TraitCounter) extends LogSupport {
+  class X(val counter: TraitCounter) extends LogSupport:
     debug("new X is instantiated")
-  }
 
   class A(val t: X)
   class B(val t: X)
@@ -35,29 +34,27 @@ object SingletonTest {
   class U1(service: X) extends SingletonService(service)
   class U2(service: X) extends SingletonService(service)
 
-  trait NonAbstract extends LogSupport {
+  trait NonAbstract extends LogSupport:
     def hello: String = "hello"
-  }
 
-  class C() extends NonAbstract {
+  class C() extends NonAbstract:
     override def hello = "nice"
-  }
 
   class E(val m: NonAbstract) extends LogSupport
-}
 
 /**
   */
-class SingletonTest extends AirSpec {
-  import wvlet.ai.design.di.SingletonTest.*
+class SingletonTest extends AirSpec:
+  import SingletonTest.*
 
-  val d =
-    Design.newDesign
-      .bind[TraitCounter].toInstance(new AtomicInteger(0))
-      .onInit { c =>
-        val v = c.incrementAndGet()
-        debug(s"Counter is initialized: ${v}")
-      }
+  val d = Design
+    .newDesign
+    .bind[TraitCounter]
+    .toInstance(new AtomicInteger(0))
+    .onInit { c =>
+      val v = c.incrementAndGet()
+      debug(s"Counter is initialized: ${v}")
+    }
 
   test("bind singleton with bind[X]") {
     val session = d.newSession
@@ -80,13 +77,12 @@ class SingletonTest extends AirSpec {
   }
 
   test("support overriding non-abstract singleton trait") {
-    val d = Design.newDesign
-      .bind[E].toSingleton
-      .bind[NonAbstract].to[C]
+    val d = Design.newDesign.bind[E].toSingleton.bind[NonAbstract].to[C]
 
     info(Surface.of[C].getClass)
     val session = d.newSession
     val e       = session.build[E]
     e.m.hello shouldBe "nice"
   }
-}
+
+end SingletonTest
