@@ -17,7 +17,12 @@ val buildSettings = Seq[Setting[?]](
   publishMavenStyle        := true,
   Test / parallelExecution := false,
   // Use AirSpec for testing
-  libraryDependencies ++= Seq("org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test),
+  libraryDependencies ++=
+    Seq(
+      "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test,
+      // For PreDestroy, PostConstruct annotations
+      "javax.annotation" % "javax.annotation-api" % "1.3.2" % Test
+    ),
   testFrameworks += new TestFramework("wvlet.airspec.Framework")
 )
 
