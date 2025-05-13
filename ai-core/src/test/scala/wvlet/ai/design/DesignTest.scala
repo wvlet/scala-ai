@@ -1,8 +1,8 @@
-package wvlet.ai.design
+package wvlet.airframe
 
-import wvlet.ai.design.DesignTest.Alias.{HelloRef, StringHello}
-import wvlet.ai.design.tracing.DefaultTracer
-import wvlet.ai.surface.Surface
+import wvlet.airframe.DesignTest.Alias.{HelloRef, StringHello}
+import wvlet.airframe.tracing.DefaultTracer
+import wvlet.airframe.surface.Surface
 import wvlet.airspec.AirSpec
 
 /**
