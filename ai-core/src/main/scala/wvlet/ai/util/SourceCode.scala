@@ -38,3 +38,5 @@ object SourceCode:
     val srcPath: java.nio.file.Path = java.nio.file.Paths.get(src.path)
     val fileName                    = Expr(srcPath.getFileName().toString)
     '{ SourceCode(${ fileName }, ${ line } + 1, ${ column }) }
+
+end SourceCode
