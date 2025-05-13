@@ -44,8 +44,8 @@ object tag:
     type Tag <: U
   }
 
-  type @@[T, +U]     = T with Tag[U]
-  type Tagged[T, +U] = T with Tag[U]
+  type @@[T, +U]     = T & Tag[U]
+  type Tagged[T, +U] = T & Tag[U]
   implicit class Tagger[T](t: T):
     def taggedWith[U]: T @@ U = t.asInstanceOf[T @@ U]
 
