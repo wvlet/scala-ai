@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design.lifecycle
 
-import wvlet.ai.design.newSilentDesign
+import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,7 +30,8 @@ class DesignTimeLifeCycleHookTest extends AirSpec:
     val beforeShutdownTime = new AtomicInteger(0)
     val shutdownTime       = new AtomicInteger(0)
 
-    val d = newSilentDesign
+    val d = Design
+      .newSilentDesign
       .bind[String]
       .toInstance("hello")
       .onInit(x => initializedTime.set(order.getAndIncrement()))
@@ -54,7 +55,7 @@ class DesignTimeLifeCycleHookTest extends AirSpec:
 
   test("add lifecycle only") {
     val v = new AtomicInteger(0)
-    val d = newSilentDesign.bind[AtomicInteger].toInstance(v)
+    val d = Design.newSilentDesign.bind[AtomicInteger].toInstance(v)
 
     val d2 = d
       .bind[AtomicInteger]

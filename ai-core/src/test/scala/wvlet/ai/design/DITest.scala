@@ -1,7 +1,7 @@
 package wvlet.ai.design
 
 import wvlet.ai.design.AirframeException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
-import wvlet.ai.design.{Design, *}
+import wvlet.ai.design.Design
 import wvlet.ai.design.lifecycle.{LifeCycleEventHandler, LifeCycleManager}
 import wvlet.ai.surface.{Primitive, Surface}
 import wvlet.airspec.AirSpec
@@ -103,8 +103,10 @@ object DITest extends AirSpec:
   test("found cyclic dependencies") {
     warn("Running cyclic dependency test: A->B->A")
     val caught = intercept[CYCLIC_DEPENDENCY] {
-      newSilentDesign.build[CycleA] { c =>
-      }
+      Design
+        .newSilentDesign
+        .build[CycleA] { c =>
+        }
     }
     warn(s"${caught}")
     caught.deps.contains(Surface.of[CycleA]) shouldBe true
@@ -143,8 +145,10 @@ object DITest extends AirSpec:
   test("detect missing dependencies") {
     warn("Running missing dependency check")
     val caught = intercept[MISSING_DEPENDENCY] {
-      newSilentDesign.build[MissingDep] { m =>
-      }
+      Design
+        .newSilentDesign
+        .build[MissingDep] { m =>
+        }
     }
     warn(s"${caught}")
     caught.stack.contains(Primitive.String) shouldBe true
@@ -153,16 +157,19 @@ object DITest extends AirSpec:
   class SessionParam(val session: Session)
 
   test("Bind the current Session as a parameter") {
-    newSilentDesign.withSession { session =>
-      val p = session.build[SessionParam]
-      p.session shouldBeTheSameInstanceAs session
-    }
+    Design
+      .newSilentDesign
+      .withSession { session =>
+        val p = session.build[SessionParam]
+        p.session shouldBeTheSameInstanceAs session
+      }
   }
 
   test("custom LiveCycleEventHandler") {
     val counter = new AtomicInteger(0)
 
-    val design = newSilentDesign
+    val design = Design
+      .newSilentDesign
       .bind[EagerSingleton]
       .toEagerSingleton
       .bind[ConsoleConfig]
@@ -194,7 +201,8 @@ object DITest extends AirSpec:
     val apple = Surface.of[Apple]
     debug(s"apple: ${apple}, alias:${apple.isAlias}")
 
-    val d = newSilentDesign
+    val d = Design
+      .newSilentDesign
       .bind[Apple]
       .toInstance(LocalFruit("apple"))
       .bind[Banana]
@@ -215,7 +223,8 @@ object DITest extends AirSpec:
 
   test("support nested constructor injection") {
     val n2 = new Nested2()
-    newSilentDesign
+    Design
+      .newSilentDesign
       .bind[Nested2]
       .toInstance(n2)
       .build[Nested] { n =>
@@ -230,7 +239,7 @@ object DITest extends AirSpec:
     override def hello: String = "hello"
 
   test("build abstract type that has concrete binding") {
-    val d = newSilentDesign.bind[AbstractModule].to[ConcreteModule]
+    val d = Design.newSilentDesign.bind[AbstractModule].to[ConcreteModule]
     d.build[AbstractModule] { m =>
       m.hello shouldBe "hello"
     }
@@ -239,7 +248,7 @@ object DITest extends AirSpec:
   class NestedAbstractModule(val a: AbstractModule)
 
   test("build nested abstract type that has concrete binding") {
-    val d = newSilentDesign.bind[AbstractModule].to[ConcreteModule]
+    val d = Design.newSilentDesign.bind[AbstractModule].to[ConcreteModule]
 
     d.build[NestedAbstractModule] { n =>
       n.a.hello shouldBe "hello"
@@ -247,7 +256,7 @@ object DITest extends AirSpec:
   }
 
   test("build a trait bound to an instance") {
-    val d = newSilentDesign.bind[AbstractModule].toInstance(new ConcreteModule())
+    val d = Design.newSilentDesign.bind[AbstractModule].toInstance(new ConcreteModule())
 
     d.build[AbstractModule] { n =>
       n.hello shouldBe "hello"
@@ -260,7 +269,7 @@ object DITest extends AirSpec:
     debug("Hello singleton")
 
   test("build a trait to singleton") {
-    val d = newSilentDesign.bind[NonAbstractTrait].toInstance(SingletonOfNonAbstractTrait)
+    val d = Design.newSilentDesign.bind[NonAbstractTrait].toInstance(SingletonOfNonAbstractTrait)
 
     d.build[NonAbstractTrait] { m =>
       m shouldBeTheSameInstanceAs SingletonOfNonAbstractTrait
@@ -273,7 +282,7 @@ object DITest extends AirSpec:
 
   test("create single with inject eagerly") {
     val start   = System.nanoTime()
-    val d       = newSilentDesign.bind[EagerSingletonWithInject].toEagerSingleton
+    val d       = Design.newSilentDesign.bind[EagerSingletonWithInject].toEagerSingleton
     val s       = d.newSession.build[EagerSingletonWithInject]
     val current = System.nanoTime()
     s.initializedTime >= start shouldBe true
@@ -302,7 +311,7 @@ object DITest extends AirSpec:
   class BindLifeCycleExample2(val module: MyModule) {}
 
   test("support onInit and onShutdown") {
-    val d = newSilentDesign.bind[MyModule].onInit(_.init).onShutdown(_.close)
+    val d = Design.newSilentDesign.bind[MyModule].onInit(_.init).onShutdown(_.close)
 
     val session = d.newSession
     val e       = session.build[LifeCycleExample]
@@ -314,7 +323,13 @@ object DITest extends AirSpec:
 
   test("bind lifecycle") {
     val session =
-      newSilentDesign.bind[MyModule].onInit(_.init).onStart(_.start).onShutdown(_.close).newSession
+      Design
+        .newSilentDesign
+        .bind[MyModule]
+        .onInit(_.init)
+        .onStart(_.start)
+        .onShutdown(_.close)
+        .newSession
 
     val e = session.build[BindLifeCycleExample2]
     e.module.initCount.get() shouldBe 1

@@ -27,7 +27,8 @@ object NewDISyntaxTest extends AirSpec:
 
   test("new bind syntax") {
     val d =
-      newDesign
+      Design
+        .newDesign
         .bindInstance[String]("hello")
         .bindSingleton[B]
         .bindImpl[A, AImpl]
@@ -69,7 +70,8 @@ object NewDISyntaxTest extends AirSpec:
     var started = false
     var closed  = false
 
-    val d = newDesign
+    val d = Design
+      .newDesign
       .bindInstance[String]("hello")
       .onStart { (s: String) =>
         started = true

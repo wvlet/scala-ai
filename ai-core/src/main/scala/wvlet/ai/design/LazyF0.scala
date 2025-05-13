@@ -31,21 +31,6 @@ class LazyF0[+R](f: => R) extends Serializable with Cloneable:
   def copy: LazyF0[R] = clone().asInstanceOf[this.type]
 
   /**
-    * Obtain the function class
-    *
-    * @return
-    */
-  def functionClass: Class[?] =
-    val field = this.getClass.getDeclaredField("f")
-    field.get(this).getClass
-
-  def functionInstance: Function0[R] = this
-    .getClass
-    .getDeclaredField("f")
-    .get(this)
-    .asInstanceOf[Function0[R]]
-
-  /**
     * This definition is necessary to let compiler generate the private field 'f' that holds a
     * reference to the call-by-name function.
     *

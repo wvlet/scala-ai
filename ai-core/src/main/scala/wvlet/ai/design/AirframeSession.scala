@@ -426,23 +426,17 @@ private[design] class AirframeSession(
       contextSession: AirframeSession,
       seen: List[Surface],
       defaultValue: Option[() => Any]
-  ): Any = traitFactoryCache
-    .get(tpe)
-    .map { f =>
-      trace(s"[${name}] Using a pre-registered trait factory for ${tpe}")
-      f(this)
-    }
-    .orElse {
-      // Use the provided object factory if exists
-      defaultValue.map { f =>
+  ): Any =
+    // Use the provided object factory if exists
+    defaultValue
+      .map { f =>
         trace(s"[${name}] Using the default value for ${tpe}")
         f()
       }
-    }
-    .getOrElse {
-      trace(s"[${name}] No binding is found for ${tpe}")
-      buildInstance(tpe, sourceCode, contextSession, tpe :: seen)
-    }
+      .getOrElse {
+        trace(s"[${name}] No binding is found for ${tpe}")
+        buildInstance(tpe, sourceCode, contextSession, tpe :: seen)
+      }
 
   /**
     * Create a new instance of the surface
@@ -479,22 +473,13 @@ private[design] class AirframeSession(
           val obj = factory.newInstance(args)
           obj
         case None =>
-          val obj =
-            traitFactoryCache.get(surface) match
-              case Some(factory) =>
-                trace(s"[${name}] Using pre-compiled factory for ${surface} at ${sourceCode}")
-                factory.asInstanceOf[Session => Any](this)
-              case None =>
-                // buildWithReflection(t)
-                warn(
-                  s"[${name}] No binding nor the default constructor for ${surface} at ${sourceCode} is found. " +
-                    s"Add bind[${surface}].toXXX to your design or make sure ${surface} is not an abstract class. The dependency order: ${seen
-                        .reverse
-                        .mkString(" -> ")}"
-                )
-                throw MISSING_DEPENDENCY(seen, sourceCode)
-          obj
-
+          warn(
+            s"[${name}] No binding nor the default constructor for ${surface} at ${sourceCode} is found. " +
+              s"Add bind[${surface}].toXXX to your design or make sure ${surface} is not an abstract class. The dependency order: ${seen
+                  .reverse
+                  .mkString(" -> ")}"
+          )
+          throw MISSING_DEPENDENCY(seen, sourceCode)
     end if
 
   end buildInstance

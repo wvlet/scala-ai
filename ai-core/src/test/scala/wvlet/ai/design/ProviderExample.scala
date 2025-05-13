@@ -42,7 +42,8 @@ object ProviderSerializationExample extends Serializable:
   val d4 = D4(4)
   val d5 = D5(5)
 
-  val providerDesign = newDesign
+  val providerDesign = Design
+    .newDesign
     .bind[D1]
     .toInstance(d1)
     .bind[D2]
