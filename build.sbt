@@ -81,15 +81,6 @@ lazy val projectJS = project.settings(noPublish).aggregate(jsProjects: _*)
 
 lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _*)
 
-lazy val coreMacros = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .crossType(CrossType.Pure)
-  .in(file("ai-core-macros"))
-  .settings(
-    buildSettings,
-    name        := "ai-core-base",
-    description := "Scal core macros project for wvlet.ai"
-  )
-
 // core library for Scala JVM, Scala.js and Scala Native
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
@@ -112,7 +103,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
   )
   .nativeSettings(nativeBuildSettings)
-  .dependsOn(coreMacros)
 
 lazy val agent = project
   .in(file("ai-agent"))
