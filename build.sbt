@@ -129,7 +129,7 @@ lazy val bedrock = project
         // Redirect slf4j to airframe-log
         "org.slf4j" % "slf4j-jdk14" % "2.0.17",
         // Add langchain4j as a reference implementation
-        "dev.langchain4j" % "langchain4j"         % "1.0.0-rc1"   % Test,
+        "dev.langchain4j" % "langchain4j"         % "1.0.0"       % Test,
         "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta4" % Test
       )
   )
