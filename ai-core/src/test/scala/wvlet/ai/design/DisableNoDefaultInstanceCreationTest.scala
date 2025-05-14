@@ -25,7 +25,7 @@ class DisableNoDefaultInstanceCreationTest extends AirSpec:
   import DisableNoDefaultInstanceCreationTest.*
 
   test("disable implicit instance creation") {
-    val d = Design.newSilentDesign.bind[Component].toSingleton.noDefaultInstanceInjection
+    val d = Design.newSilentDesign.bindSingleton[Component].noDefaultInstanceInjection
     intercept[MISSING_DEPENDENCY] {
       d.build[Component] { _ =>
       }
@@ -34,12 +34,7 @@ class DisableNoDefaultInstanceCreationTest extends AirSpec:
 
   test("disable implicit instance creation with production mode") {
     val d =
-      Design
-        .newSilentDesign
-        .bind[Component]
-        .toSingleton
-        .noDefaultInstanceInjection
-        .withProductionMode
+      Design.newSilentDesign.bindSingleton[Component].noDefaultInstanceInjection.withProductionMode
     intercept[MISSING_DEPENDENCY] {
       d.withSession { _ =>
       }
@@ -47,7 +42,7 @@ class DisableNoDefaultInstanceCreationTest extends AirSpec:
   }
 
   test("enable implicit instance creation") {
-    val d = Design.newSilentDesign.bind[Component].toSingleton
+    val d = Design.newSilentDesign.bindSingleton[Component]
     d.build[Component] { c =>
       assert(c.config.value == "test")
     }

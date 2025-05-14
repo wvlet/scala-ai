@@ -29,14 +29,10 @@ class ImplicitArgTest extends AirSpec:
     val d =
       Design
         .newDesign
-        .bind[String]
-        .toInstance("hello")
-        .bind[Int]
-        .toInstance(10)
-        .bind[ImplB]
-        .toSingleton
-        .bind[ImplA]
-        .toProvider((a: String, b: Int) => ImplA(a)(using b))
+        .bindInstance[String]("hello")
+        .bindInstance[Int](10)
+        .bindSingleton[ImplB]
+        .bindProvider((a: String, b: Int) => ImplA(a)(using b))
         .noLifeCycleLogging
 
     d.build[ImplA] { a =>

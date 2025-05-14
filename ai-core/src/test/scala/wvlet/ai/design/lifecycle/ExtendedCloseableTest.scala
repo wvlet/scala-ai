@@ -30,7 +30,7 @@ object ExtendedCloseableTest extends AirSpec:
   class B extends A
 
   test("close only once") {
-    val d = Design.newSilentDesign.bind[A].to[B]
+    val d = Design.newSilentDesign.bindImpl[A, B]
 
     closeCount.get() shouldBe 0
     d.build[A] { a =>

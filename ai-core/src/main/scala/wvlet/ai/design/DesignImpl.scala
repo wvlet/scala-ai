@@ -11,16 +11,18 @@ import wvlet.ai.util.SourceCode
   */
 private[design] trait DesignImpl extends LogSupport:
   self: Design =>
-  inline def bind[A]
-      : Binder[A] = new Binder(self, Surface.of[A], SourceCode()).asInstanceOf[Binder[A]]
+  private inline def bind[A]: Binder[A] = new Binder(self, Surface.of[A], SourceCode())
+    .asInstanceOf[Binder[A]]
 
   inline def remove[A]: Design =
     val target = Surface.of[A]
     new Design(self.designOptions, self.binding.filterNot(_.from == target), self.hooks)
 
-  inline def bindInstance[A](obj: A): DesignWithContext[A]         = bind[A].toInstance(obj)
-  inline def bindSingleton[A]: DesignWithContext[A]                = bind[A].toSingleton
-  inline def bindImpl[A, B <: A]: DesignWithContext[B]             = bind[A].to[B]
+  inline def bindInstance[A](obj: A): DesignWithContext[A] = bind[A].toInstance(obj)
+  inline def bindSingleton[A]: DesignWithContext[A]        = bind[A].toSingleton
+  inline def bindEagerSingleton[A]: DesignWithContext[A]   = bind[A].toEagerSingleton
+  inline def bindImpl[A, B <: A]: DesignWithContext[B]     = bind[A].to[B]
+
   inline def bindProvider[D1, A](f: D1 => A): DesignWithContext[A] = bind[A].toProvider[D1](f)
   inline def bindProvider[D1, D2, A](f: (D1, D2) => A): DesignWithContext[A] = bind[A].toProvider[
     D1,

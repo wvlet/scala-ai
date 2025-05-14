@@ -13,7 +13,7 @@ object AbstractTypeTest extends AirSpec:
     override def hello: String = "hello impl"
 
   test("bind to abstract type") {
-    val d = Design.newSilentDesign.bind[Abst].to[AbstImpl]
+    val d = Design.newSilentDesign.bindImpl[Abst, AbstImpl]
 
     val s = Surface.of[AbstImpl]
     s.objectFactory shouldBe defined

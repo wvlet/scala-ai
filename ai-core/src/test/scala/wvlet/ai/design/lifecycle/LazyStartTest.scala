@@ -37,20 +37,16 @@ class LazyStartTest extends AirSpec:
 
   val d = Design
     .newSilentDesign
-    .bind[MyApp]
-    .toSingleton
-    .bind[MyApp2]
-    .toSingleton
-    .bind[F1]
-    .toLazyInstance(f1)
+    .bindSingleton[MyApp]
+    .bindSingleton[MyApp2]
+    .bindInstance[F1](f1)
     .onStart { (x: F1) =>
       x.set(true)
     }
     .onShutdown { (x: F1) =>
       x.set(false)
     }
-    .bind[F2]
-    .toLazyInstance(f2)
+    .bindInstance[F2](f2)
     .onStart { (x: F2) =>
       x.set(true)
     }

@@ -23,7 +23,7 @@ class MapBindingTest extends AirSpec:
   import MapBindingTest.*
 
   test("support map binding") {
-    val d = Design.newSilentDesign.bind[Mapper].toSingleton.bind[InfoMessage].toInstance("info")
+    val d = Design.newSilentDesign.bindSingleton[Mapper].bindInstance[InfoMessage]("info")
 
     d.build[Mapper] { m =>
       m.handle("info")

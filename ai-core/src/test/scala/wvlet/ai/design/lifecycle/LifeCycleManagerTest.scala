@@ -44,10 +44,8 @@ class LifeCycleOrder(v: Int) {}
 object LifeCycleManagerTest extends AirSpec:
   private val counterDesign = Design
     .newSilentDesign
-    .bind[CounterService]
-    .toSingleton
-    .bind[Counter]
-    .toSingleton
+    .bindSingleton[CounterService]
+    .bindSingleton[Counter]
     .onInit { c =>
       debug(s"init: ${c.initialized.get()}")
       c.initialized.incrementAndGet()
@@ -168,8 +166,7 @@ object LifeCycleManagerTest extends AirSpec:
     val session =
       Design
         .newSilentDesign
-        .bind[Int]
-        .toInstance(0)
+        .bindInstance[Int](0)
         .onInit { x =>
           init = t.incrementAndGet()
         }
@@ -232,8 +229,9 @@ object LifeCycleManagerTest extends AirSpec:
     val e = intercept[MULTIPLE_SHUTDOWN_FAILURES] {
       Design
         .newSilentDesign
-        .bind[CloseExceptionTest]
-        .toSingleton // Inner class needs to be defined where the outer context can be found
+        .bindSingleton[
+          CloseExceptionTest
+        ] // Inner class needs to be defined where the outer context can be found
         .build[MultipleShutdownExceptionTest] { x =>
         }
     }

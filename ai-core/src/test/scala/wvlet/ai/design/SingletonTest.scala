@@ -49,8 +49,7 @@ class SingletonTest extends AirSpec:
 
   val d = Design
     .newDesign
-    .bind[TraitCounter]
-    .toInstance(new AtomicInteger(0))
+    .bindInstance[TraitCounter](new AtomicInteger(0))
     .onInit { c =>
       val v = c.incrementAndGet()
       debug(s"Counter is initialized: ${v}")
@@ -77,7 +76,7 @@ class SingletonTest extends AirSpec:
   }
 
   test("support overriding non-abstract singleton trait") {
-    val d = Design.newDesign.bind[E].toSingleton.bind[NonAbstract].to[C]
+    val d = Design.newDesign.bindSingleton[E].bindImpl[NonAbstract, C]
 
     info(Surface.of[C].getClass)
     val session = d.newSession

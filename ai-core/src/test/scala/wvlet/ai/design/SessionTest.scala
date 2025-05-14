@@ -25,7 +25,7 @@ class DesignBindExample(val a: HelloBind, val design: Design)
 /**
   */
 class SessionTest extends AirSpec:
-  val d1 = Design.newDesign.bind[HelloBind].toSingleton.noLifeCycleLogging
+  val d1 = Design.newDesign.bindSingleton[HelloBind].noLifeCycleLogging
 
   test("pre-compile session injection template") {
     val session = Design.newDesign.newSession
@@ -35,14 +35,14 @@ class SessionTest extends AirSpec:
 
   test("pre-compile singleton binding") {
     // HelloBind should be instantiated without using runtime-eval
-    val session = Design.newDesign.bind[HelloBind].toEagerSingleton.newSession
+    val session = Design.newDesign.bindEagerSingleton[HelloBind].newSession
 
     val b = session.build[BindExample]
     classOf[BindExample].isAssignableFrom(b.getClass) shouldBe true
   }
 
   test("find self session from binding") {
-    val session = Design.newDesign.bind[HelloBind].toSingleton.newSession
+    val session = Design.newDesign.bindSingleton[HelloBind].newSession
 
     val e = session.build[SessionBindExample]
     e.s shouldBeTheSameInstanceAs (session)
