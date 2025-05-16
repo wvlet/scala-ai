@@ -47,7 +47,7 @@ object SingletonTest:
 class SingletonTest extends AirSpec:
   import SingletonTest.*
 
-  val d = Design
+  def d = Design
     .newDesign
     .bindInstance[TraitCounter](new AtomicInteger(0))
     .onInit { c =>

@@ -19,7 +19,7 @@ import wvlet.log.LogSupport
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-object LazyStartTest:
+object EagerStartTest:
   type F1 = AtomicBoolean
   type F2 = AtomicBoolean
 
@@ -28,9 +28,9 @@ object LazyStartTest:
 
 /**
   */
-class LazyStartTest extends AirSpec:
+class EagerStartTest extends AirSpec:
 
-  import LazyStartTest.*
+  import EagerStartTest.*
 
   val f1 = new AtomicBoolean(false)
   val f2 = new AtomicBoolean(false)
@@ -53,33 +53,6 @@ class LazyStartTest extends AirSpec:
     .onShutdown { (x: F2) =>
       x.set(false)
     }
-
-  test("support lazy start") {
-    (f1.get, f2.get) shouldBe (false, false)
-    d.build[MyApp] { app =>
-      (f1.get, f2.get) shouldBe (true, false)
-    }
-    (f1.get, f2.get) shouldBe (false, false)
-
-    d.withLazyMode
-      .build[MyApp] { app =>
-        (f1.get, f2.get) shouldBe (true, false)
-      }
-    (f1.get, f2.get) shouldBe (false, false)
-
-    // Override config
-    d.withProductionMode
-      .withLazyMode
-      .build[MyApp] { app =>
-        (f1.get, f2.get) shouldBe (true, false)
-      }
-    (f1.get, f2.get) shouldBe (false, false)
-
-    d.build[MyApp2] { app =>
-      (f1.get, f2.get) shouldBe (false, true)
-    }
-    (f1.get, f2.get) shouldBe (false, false)
-  }
 
   test("support eager start") {
     (f1.get, f2.get) shouldBe (false, false)
@@ -105,4 +78,4 @@ class LazyStartTest extends AirSpec:
     (f1.get, f2.get) shouldBe (false, false)
   }
 
-end LazyStartTest
+end EagerStartTest

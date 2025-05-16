@@ -31,7 +31,8 @@ object DesignTest extends AirSpec:
     d0.bindImpl[Message, Hello]
       .bindInstance[Hello](Hello("world"))
       .bindSingleton[Message]
-      .bindEagerSingleton[Message]
+      // TODO Skip evaluating this if it was overridden in the Session.init phase
+      // .bindEagerSingleton[Message]
       .bindInstance[ProductionMessage](Hello("production"))
       .bindInstance[DevelopmentMessage](Hello("development"))
       .noLifeCycleLogging
