@@ -18,7 +18,7 @@ package wvlet.ai.util
   * configuration location, etc.
   */
 case class SourceCode(fileName: String, line: Int, col: Int):
-  override def toString = s"${fileName} (${line}:${col})"
+  override def toString = fileLocation
   def fileLocation      = s"${fileName}:${line}"
 
 object SourceCode:

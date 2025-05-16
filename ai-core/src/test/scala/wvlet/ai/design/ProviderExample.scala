@@ -44,16 +44,11 @@ object ProviderSerializationExample extends Serializable:
 
   val providerDesign = Design
     .newDesign
-    .bind[D1]
-    .toInstance(d1)
-    .bind[D2]
-    .toInstance(d2)
-    .bind[D3]
-    .toInstance(d3)
-    .bind[D4]
-    .toInstance(d4)
-    .bind[D5]
-    .toInstance(d5)
+    .bindInstance[D1](d1)
+    .bindInstance[D2](d2)
+    .bindInstance[D3](d3)
+    .bindInstance[D4](d4)
+    .bindInstance[D5](d5)
 
   def provider1(d1: D1): App                                 = App(d1)
   def provider2(d1: D1, d2: D2): App                         = App(d1, d2)

@@ -11,21 +11,30 @@ import wvlet.ai.util.SourceCode
   */
 private[design] trait DesignImpl extends LogSupport:
   self: Design =>
-  inline def bind[A]
-      : Binder[A] = new Binder(self, Surface.of[A], SourceCode()).asInstanceOf[Binder[A]]
+  private inline def bind[A](using sourceCode: SourceCode): Binder[A] =
+    new Binder(self, Surface.of[A], sourceCode).asInstanceOf[Binder[A]]
 
   inline def remove[A]: Design =
     val target = Surface.of[A]
     new Design(self.designOptions, self.binding.filterNot(_.from == target), self.hooks)
 
-  inline def bindInstance[A](obj: A): DesignWithContext[A]         = bind[A].toInstance(obj)
-  inline def bindSingleton[A]: DesignWithContext[A]                = bind[A].toSingleton
-  inline def bindImpl[A, B <: A]: DesignWithContext[B]             = bind[A].to[B]
-  inline def bindProvider[D1, A](f: D1 => A): DesignWithContext[A] = bind[A].toProvider[D1](f)
-  inline def bindProvider[D1, D2, A](f: (D1, D2) => A): DesignWithContext[A] = bind[A].toProvider[
-    D1,
-    D2
-  ](f)
+  inline def bindInstance[A](obj: A)(using sourceCode: SourceCode): DesignWithContext[A] = bind[A]
+    .toInstance(obj)
+
+  inline def bindSingleton[A](using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toSingleton
+
+  inline def bindEagerSingleton[A](using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toEagerSingleton
+
+  inline def bindImpl[A, B <: A](using sourceCode: SourceCode): DesignWithContext[B] = bind[A].to[B]
+
+  inline def bindProvider[D1, A](f: D1 => A)(using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toProvider[D1](f)
+
+  inline def bindProvider[D1, D2, A](f: (D1, D2) => A)(using
+      sourceCode: SourceCode
+  ): DesignWithContext[A] = bind[A].toProvider[D1, D2](f)
 
   inline def bindProvider[D1, D2, D3, A](f: (D1, D2, D3) => A): DesignWithContext[A] = bind[A]
     .toProvider[D1, D2, D3](f)

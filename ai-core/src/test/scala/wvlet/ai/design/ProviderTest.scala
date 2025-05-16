@@ -41,16 +41,11 @@ object ProviderExample extends Serializable:
 
   val providerDesign = Design
     .newDesign
-    .bind[D1]
-    .toInstance(d1)
-    .bind[D2]
-    .toInstance(d2)
-    .bind[D3]
-    .toInstance(d3)
-    .bind[D4]
-    .toInstance(d4)
-    .bind[D5]
-    .toInstance(d5)
+    .bindInstance[D1](d1)
+    .bindInstance[D2](d2)
+    .bindInstance[D3](d3)
+    .bindInstance[D4](d4)
+    .bindInstance[D5](d5)
 
   def provider1(d1: D1): App                                 = App(d1)
   def provider2(d1: D1, d2: D2): App                         = App(d1, d2)
@@ -66,8 +61,7 @@ class SingletonProviderTest extends AirSpec:
   test("build singleton from provider bindings") {
     val s1 =
       providerDesign
-        .bind[App]
-        .toProvider { (d1: D1) =>
+        .bindProvider { (d1: D1) =>
           App(d1)
         }
         .newSession
@@ -77,8 +71,7 @@ class SingletonProviderTest extends AirSpec:
 
     val s2 =
       providerDesign
-        .bind[App]
-        .toProvider { (d1: D1, d2: D2) =>
+        .bindProvider { (d1: D1, d2: D2) =>
           App(d1, d2)
         }
         .newSession
@@ -88,8 +81,7 @@ class SingletonProviderTest extends AirSpec:
 
     val s3 =
       providerDesign
-        .bind[App]
-        .toProvider { (d1: D1, d2: D2, d3: D3) =>
+        .bindProvider { (d1: D1, d2: D2, d3: D3) =>
           App(d1, d2, d3)
         }
         .newSession
@@ -99,8 +91,7 @@ class SingletonProviderTest extends AirSpec:
 
     val s4 =
       providerDesign
-        .bind[App]
-        .toProvider { (d1: D1, d2: D2, d3: D3, d4: D4) =>
+        .bindProvider { (d1: D1, d2: D2, d3: D3, d4: D4) =>
           App(d1, d2, d3, d4)
         }
         .newSession
@@ -110,8 +101,7 @@ class SingletonProviderTest extends AirSpec:
 
     val s5 =
       providerDesign
-        .bind[App]
-        .toProvider { (d1: D1, d2: D2, d3: D3, d4: D4, d5: D5) =>
+        .bindProvider { (d1: D1, d2: D2, d3: D3, d4: D4, d5: D5) =>
           App(d1, d2, d3, d4, d5)
         }
         .newSession
@@ -121,78 +111,3 @@ class SingletonProviderTest extends AirSpec:
   }
 
 end SingletonProviderTest
-
-class EagerSingletonProviderTest extends AirSpec:
-  test("eagerly build singleton from provider") {
-    var p1Initialized = false
-    val s1 =
-      providerDesign
-        .bind[App]
-        .toEagerSingletonProvider { (d1: D1) =>
-          p1Initialized = true;
-          App(d1)
-        }
-        .newSession
-    p1Initialized shouldBe true
-    val p1 = s1.build[App]
-    p1 shouldBe App(d1, z2, z3, z4, z5)
-    p1 shouldBeTheSameInstanceAs s1.build[App]
-
-    var p2Initialized = false
-    val s2 =
-      providerDesign
-        .bind[App]
-        .toEagerSingletonProvider { (d1: D1, d2: D2) =>
-          p2Initialized = true;
-          App(d1, d2)
-        }
-        .newSession
-    p2Initialized shouldBe true
-    val p2 = s2.build[App]
-    p2 shouldBe App(d1, d2, z3, z4, z5)
-    p2 shouldBeTheSameInstanceAs s2.build[App]
-
-    var p3Initialized = false
-    val s3 =
-      providerDesign
-        .bind[App]
-        .toEagerSingletonProvider { (d1: D1, d2: D2, d3: D3) =>
-          p3Initialized = true;
-          App(d1, d2, d3)
-        }
-        .newSession
-    p3Initialized shouldBe true
-    val p3 = s3.build[App]
-    p3 shouldBe App(d1, d2, d3, z4, z5)
-    p3 shouldBeTheSameInstanceAs s3.build[App]
-
-    var p4Initialized = false
-    val s4 =
-      providerDesign
-        .bind[App]
-        .toEagerSingletonProvider { (d1: D1, d2: D2, d3: D3, d4: D4) =>
-          p4Initialized = true;
-          App(d1, d2, d3, d4)
-        }
-        .newSession
-    p4Initialized shouldBe true
-    val p4 = s4.build[App]
-    p4 shouldBe App(d1, d2, d3, d4, z5)
-    p4 shouldBeTheSameInstanceAs s4.build[App]
-
-    var p5Initialized = false
-    val s5 =
-      providerDesign
-        .bind[App]
-        .toEagerSingletonProvider { (d1: D1, d2: D2, d3: D3, d4: D4, d5: D5) =>
-          p5Initialized = true;
-          App(d1, d2, d3, d4, d5)
-        }
-        .newSession
-    p5Initialized shouldBe true
-    val p5 = s5.build[App]
-    p5 shouldBe App(d1, d2, d3, d4, d5)
-    p5 shouldBeTheSameInstanceAs s5.build[App]
-  }
-
-end EagerSingletonProviderTest

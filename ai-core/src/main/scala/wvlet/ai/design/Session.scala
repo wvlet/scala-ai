@@ -48,7 +48,7 @@ trait Session extends AutoCloseable:
     * @tparam A
     * @return
     */
-  def get[A](surface: Surface)(implicit sourceCode: SourceCode): A
+  def get[A](surface: Surface)(using sourceCode: SourceCode): A
 
   /**
     * Internal method for building an instance of type A, or if no binding is found, use the given

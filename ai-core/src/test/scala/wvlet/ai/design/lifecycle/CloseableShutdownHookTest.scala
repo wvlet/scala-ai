@@ -28,7 +28,7 @@ object CloseableShutdownHookTest extends AirSpec:
 
   test("support closeable") {
     val a = new A
-    val d = Design.newSilentDesign.bind[A].toInstance(a)
+    val d = Design.newSilentDesign.bindInstance[A](a)
     d.build[A] { a =>
     }
 
@@ -42,7 +42,7 @@ object CloseableShutdownHookTest extends AirSpec:
 
     val x: A1 = Design
       .newSilentDesign
-      .bind[A]
+      .bindSingleton[A]
       .onShutdown { x =>
         onShutdownIsCalled.set(true)
       }

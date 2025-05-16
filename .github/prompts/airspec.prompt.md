@@ -111,8 +111,8 @@ class Service(val config:ServiceConfig)
 class ServiceSpec extends AirSpec:
   initDesign { design =>
     design
-      .bind[ServiceConfig].toInstance(ServiceConfig(port=8080))
-      .bind[Service].toSingleton
+      .bindInstance[ServiceConfig](ServiceConfig(port=8080))
+      .bindSingleton[Service]
       .onStart{x => info(s"Starting a server at ${x.config.port}")}
       .onShutdown{x => info(s"Stopping the server at ${x.config.port}")}
   }

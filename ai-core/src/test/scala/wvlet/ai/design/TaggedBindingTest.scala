@@ -39,12 +39,9 @@ object TaggedBindingTest extends AirSpec:
 
     val d = Design
       .newDesign
-      .bind[Fruit @@ Apple]
-      .toInstance(Fruit("apple"))
-      .bind[Fruit @@ Banana]
-      .toInstance(Fruit("banana"))
-      .bind[Fruit @@ Lemon]
-      .toProvider { (apple: Fruit @@ Apple) =>
+      .bindInstance[Fruit @@ Apple](Fruit("apple"))
+      .bindInstance[Fruit @@ Banana](Fruit("banana"))
+      .bindProvider { (apple: Fruit @@ Apple) =>
         Fruit(s"lemon+${apple.name}").asInstanceOf[Fruit @@ Lemon]
       }
 

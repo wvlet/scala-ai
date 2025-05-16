@@ -1,8 +1,8 @@
-package wvlet.airframe
+package wvlet.ai.design
 
-import wvlet.airframe.DesignTest.Alias.{HelloRef, StringHello}
-import wvlet.airframe.tracing.DefaultTracer
-import wvlet.airframe.surface.Surface
+import wvlet.ai.design.DesignTest.Alias.{HelloRef, StringHello}
+import wvlet.ai.design.tracing.DefaultTracer
+import wvlet.ai.surface.Surface
 import wvlet.airspec.AirSpec
 
 /**
@@ -28,22 +28,13 @@ object DesignTest extends AirSpec:
   val d0 = Design.empty
 
   val d1 =
-    d0.bind[Message]
-      .to[Hello]
-      .bind[Hello]
-      .toInstance(Hello("world"))
-      .bind[Message]
-      .toSingleton
-      .bind[Message]
-      .toEagerSingleton
-      .bind[Message]
-      .toEagerSingletonOf[Hello]
-      .bind[Message]
-      .to[Hello]
-      .bind[ProductionMessage]
-      .toInstance(Hello("production"))
-      .bind[DevelopmentMessage]
-      .toInstance(Hello("development"))
+    d0.bindImpl[Message, Hello]
+      .bindInstance[Hello](Hello("world"))
+      .bindSingleton[Message]
+      // TODO Skip evaluating this if it was overridden in the Session.init phase
+      // .bindEagerSingleton[Message]
+      .bindInstance[ProductionMessage](Hello("production"))
+      .bindInstance[DevelopmentMessage](Hello("development"))
       .noLifeCycleLogging
 
   val o = Hello("override")
@@ -51,12 +42,12 @@ object DesignTest extends AirSpec:
   test("be immutable") {
     d0 shouldBe Design.empty
 
-    val d2 = d1.bind[Hello].toInstance(Hello("airframe"))
+    val d2 = d1.bindInstance[Hello](Hello("airframe"))
     d2 shouldNotBe d1
   }
 
   test("be appendable") {
-    val d2 = d1.bind[Hello].toInstance(o)
+    val d2 = d1.bindInstance[Hello](o)
 
     val d3 = d1 + d2
     val d4 = d1.add(d2)
@@ -93,13 +84,12 @@ object DesignTest extends AirSpec:
 
   test("bind providers") {
     // TODO: Remove type argument when https://github.com/wvlet/airframe/issues/2200 fixed
-    val d = newSilentDesign
-      .bind[Hello]
-      .toProvider[ProductionString] { m =>
+    val d = Design
+      .newSilentDesign
+      .bindProvider[ProductionString, Hello] { m =>
         Hello(m)
       }
-      .bind[ProductionString]
-      .toInstance("hello production")
+      .bindInstance[ProductionString]("hello production")
 
     d.build[Hello] { h =>
       h.message shouldBe "hello production"
@@ -107,7 +97,7 @@ object DesignTest extends AirSpec:
   }
 
   test("bind type aliases") {
-    val d = newSilentDesign.bind[HelloRef].toInstance(new StringHello)
+    val d = Design.newSilentDesign.bindInstance[HelloRef](new StringHello)
 
     d.build[HelloRef] { h =>
       h.hello shouldBe "hello world"
@@ -157,7 +147,7 @@ object DesignTest extends AirSpec:
   }
 
   test("support run") {
-    val d = Design.newSilentDesign.bind[String].toInstance("hello")
+    val d = Design.newSilentDesign.bindInstance[String]("hello")
     val ret = d.run { (s: String) =>
       s shouldBe "hello"
       100
@@ -167,7 +157,7 @@ object DesignTest extends AirSpec:
 
   test("find outer variables in code block") {
     val helloDesign = "hello"
-    val d           = newSilentDesign.bind[String].toInstance(helloDesign)
+    val d           = Design.newSilentDesign.bindInstance[String](helloDesign)
 
     d.build[String] { x =>
       helloDesign

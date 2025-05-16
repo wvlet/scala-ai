@@ -25,7 +25,7 @@ object SealedTraitBindingTest extends AirSpec:
 
   test("compile test") {
     // Just need to check the compilation failure
-    val design = Design.newSilentDesign.bind[Adt].toInstance(Adt.Foo)
+    val design = Design.newSilentDesign.bindInstance[Adt](Adt.Foo)
 
     design.build[Service] { s =>
       s.adt shouldBeTheSameInstanceAs Adt.Foo

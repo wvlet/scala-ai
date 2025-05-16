@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   ReasoningTextBlock,
   StopReason,
   SystemContentBlock,
+  Tag,
   Tool,
   ToolConfiguration,
   ToolInputSchema,
@@ -151,7 +152,8 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
     val messages: Seq[Message] = extractBedrockChatMessages(request.messages)
     builder.messages(messages.asJava)
 
-    builder.build()
+    val req = builder.build()
+    req
 
   end newConverseRequest
 

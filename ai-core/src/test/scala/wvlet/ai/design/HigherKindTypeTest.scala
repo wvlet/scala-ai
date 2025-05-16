@@ -43,12 +43,9 @@ import wvlet.ai.design.HigherKindTypeTest.*
 class HigherKindTypeTest extends AirSpec:
   val d = Design
     .newSilentDesign
-    .bind[HolderInterpreted]
-    .toInstance(interpreted)
-    .bind[Holder[Task]]
-    .toInstance(interpreted2)
-    .bind[Holder[MyFuture]]
-    .toInstance(interpreted3)
+    .bindInstance[HolderInterpreted](interpreted)
+    .bindInstance[Holder[Task]](interpreted2)
+    .bindInstance[Holder[MyFuture]](interpreted3)
 
   test("support higher kind types") {
     d.build[HolderInterpreted] { repo =>

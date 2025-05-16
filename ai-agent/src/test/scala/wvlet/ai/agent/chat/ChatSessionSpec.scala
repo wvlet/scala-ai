@@ -56,7 +56,7 @@ class ChatSessionSpec extends AirSpec:
   }
 
   initDesign { design =>
-    design.bind[TestChatSession].toSingleton
+    design.bindSingleton[TestChatSession]
   }
 
 end ChatSessionSpec

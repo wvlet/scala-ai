@@ -32,8 +32,7 @@ class DesignTimeLifeCycleHookTest extends AirSpec:
 
     val d = Design
       .newSilentDesign
-      .bind[String]
-      .toInstance("hello")
+      .bindInstance[String]("hello")
       .onInit(x => initializedTime.set(order.getAndIncrement()))
       .onInject(x => injectTime.set(order.getAndIncrement()))
       .onStart(x => startTime.set(order.getAndIncrement()))
@@ -55,10 +54,9 @@ class DesignTimeLifeCycleHookTest extends AirSpec:
 
   test("add lifecycle only") {
     val v = new AtomicInteger(0)
-    val d = Design.newSilentDesign.bind[AtomicInteger].toInstance(v)
+    val d = Design.newSilentDesign.bindInstance[AtomicInteger](v)
 
     val d2 = d
-      .bind[AtomicInteger]
       .onStart { x =>
         x.addAndGet(1)
       }

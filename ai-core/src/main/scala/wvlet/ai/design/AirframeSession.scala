@@ -175,7 +175,7 @@ private[design] class AirframeSession(
       .collect {
         case s @ SingletonBinding(from, to, eager, _) if production || eager =>
           getInstanceOf(from)
-        case ProviderBinding(factory, provideSingleton, eager, _) if production || eager =>
+        case p @ ProviderBinding(factory, provideSingleton, eager, _) if production || eager =>
           getInstanceOf(factory.from)
       }
     tracer.onSessionInitEnd(this)
