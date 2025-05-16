@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.AirframeException.MISSING_SESSION
+import wvlet.ai.design.DesignException.MISSING_SESSION
 import wvlet.ai.design.lifecycle.LifeCycleManager
 import wvlet.ai.surface.Surface
 import wvlet.ai.log.LogSupport

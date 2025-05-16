@@ -218,7 +218,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "/opt/homebrew/Cellar/openjdk/23.0.2/libexec/openjdk.jdk/Contents/Home",
+                "home": "/Users/leo/Library/Java/JavaVirtualMachines/corretto-21.0.6/Contents/Home",
                 "options": [
                     "-Duser.dir=/Users/leo/work/scala-ai/project/project"
                 ]
@@ -227,7 +227,7 @@
                 
             ],
             "runtimeConfig": {
-                "home": "/opt/homebrew/Cellar/openjdk/23.0.2/libexec/openjdk.jdk/Contents/Home",
+                "home": "/Users/leo/Library/Java/JavaVirtualMachines/corretto-21.0.6/Contents/Home",
                 "options": [
                     "-Duser.dir=/Users/leo/work/scala-ai/project/project"
                 ]

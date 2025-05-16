@@ -1,6 +1,6 @@
 package wvlet.ai.design
 
-import wvlet.ai.design.AirframeException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
+import wvlet.ai.design.DesignException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.Design
 import wvlet.ai.design.lifecycle.{LifeCycleEventHandler, LifeCycleManager}
 import wvlet.ai.surface.{Primitive, Surface}

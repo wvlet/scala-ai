@@ -39,7 +39,7 @@ object Stage:
   */
 class SessionBuilder(
     design: Design,
-    parent: Option[AirframeSession] = None,
+    parent: Option[SessionImpl] = None,
     name: Option[String] = None,
     addShutdownHook: Boolean = true,
     lifeCycleEventHandler: LifeCycleEventHandler = LifeCycleManager.defaultLifeCycleEventHandler
@@ -89,7 +89,7 @@ class SessionBuilder(
 
     val l       = new LifeCycleManager(lifeCycleLogger wraps eventHandler, lh)
     val stage   = d.designOptions.stage.getOrElse(Stage.DEVELOPMENT)
-    val session = new AirframeSession(parent = parent, name, d, stage, l)
+    val session = new SessionImpl(parent = parent, name, d, stage, l)
     debug(f"Creating a new session: ${session.name}")
     l.setSession(session)
     session.init
