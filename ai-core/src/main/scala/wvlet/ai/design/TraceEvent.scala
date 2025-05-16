@@ -11,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.tracing
+package wvlet.ai.design
 
-import wvlet.ai.design.lifecycle.Injectee
-import wvlet.ai.surface.Surface
 import wvlet.ai.design.Session
+import wvlet.ai.design.Injectee
+import wvlet.ai.surface.Surface
 
 /**
   * Tracing event

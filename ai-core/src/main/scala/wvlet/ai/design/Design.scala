@@ -14,12 +14,10 @@
 package wvlet.ai.design
 
 import wvlet.ai.design.Binder.Binding
-import wvlet.ai.surface.Surface
-import wvlet.ai.design.tracing.{DIStats, Tracer}
+import wvlet.ai.design.DesignOptions.*
+import wvlet.ai.design.LifeCycleHookType
 import wvlet.ai.log.LogSupport
-import Design.*
-import DesignOptions.*
-import wvlet.ai.design.lifecycle.LifeCycleHookType
+import wvlet.ai.surface.Surface
 import wvlet.ai.util.SourceCode
 
 /**
@@ -31,8 +29,7 @@ class Design(
     private[design] val designOptions: DesignOptions,
     private[design] val binding: Vector[Binding],
     private[design] val hooks: Vector[LifeCycleHookDesign]
-) extends LogSupport
-    with DesignImpl:
+) extends LogSupport:
   private[design] def getDesignConfig: DesignOptions = designOptions
 
   /**
@@ -53,6 +50,65 @@ class Design(
   override def hashCode(): Int =
     val state = Seq(designOptions, binding, hooks)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+
+  private inline def bind[A](using sourceCode: SourceCode): Binder[A] =
+    new Binder(this, Surface.of[A], sourceCode).asInstanceOf[Binder[A]]
+
+  inline def remove[A]: Design =
+    val target = Surface.of[A]
+    new Design(designOptions, binding.filterNot(_.from == target), hooks)
+
+  inline def bindInstance[A](obj: A)(using sourceCode: SourceCode): DesignWithContext[A] = bind[A]
+    .toInstance(obj)
+
+  inline def bindSingleton[A](using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toSingleton
+
+  inline def bindEagerSingleton[A](using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toEagerSingleton
+
+  inline def bindImpl[A, B <: A](using sourceCode: SourceCode): DesignWithContext[B] = bind[A].to[B]
+
+  inline def bindProvider[D1, A](f: D1 => A)(using sourceCode: SourceCode): DesignWithContext[A] =
+    bind[A].toProvider[D1](f)
+
+  inline def bindProvider[D1, D2, A](f: (D1, D2) => A)(using
+      sourceCode: SourceCode
+  ): DesignWithContext[A] = bind[A].toProvider[D1, D2](f)
+
+  inline def bindProvider[D1, D2, D3, A](f: (D1, D2, D3) => A): DesignWithContext[A] = bind[A]
+    .toProvider[D1, D2, D3](f)
+
+  inline def bindProvider[D1, D2, D3, D4, A](f: (D1, D2, D3, D4) => A): DesignWithContext[A] =
+    bind[A].toProvider[D1, D2, D3, D4](f)
+
+  inline def bindProvider[D1, D2, D3, D4, D5, A](
+      f: (D1, D2, D3, D4, D5) => A
+  ): DesignWithContext[A] = bind[A].toProvider[D1, D2, D3, D4, D5](f)
+
+  /**
+    * A helper method of creating a new session and an instance of A. This method is useful when you
+    * only need to use A as an entry point of your program. After executing the body, the sesion
+    * will be closed.
+    *
+    * @param body
+    * @tparam A
+    * @return
+    */
+  inline def build[A](body: A => Any): Any = withSession { session =>
+    val a = session.build[A]
+    body(a)
+  }
+
+  /**
+    * Execute a given code block by building A using this design, and return B
+    */
+  inline def run[A, B](body: A => B): B = {
+    withSession { session =>
+      val a = session.build[A]
+      body(a)
+    }
+  }.asInstanceOf[B]
 
   /**
     * Generates a minimized design by removing overwritten bindings
@@ -128,7 +184,7 @@ class Design(
 
   def noTracer: Design = noOption(tracerOptionKey)
 
-  def withStats(stats: DIStats): Design = withOption(statsOptionKey, stats)
+  def withStats(stats: DesignStats): Design = withOption(statsOptionKey, stats)
 
   def noStats: Design = noOption(statsOptionKey)
 
@@ -140,7 +196,9 @@ class Design(
 
   private[design] def getTracer: Option[Tracer] = designOptions.getOption[Tracer](tracerOptionKey)
 
-  private[design] def getStats: Option[DIStats] = designOptions.getOption[DIStats](statsOptionKey)
+  private[design] def getStats: Option[DesignStats] = designOptions.getOption[DesignStats](
+    statsOptionKey
+  )
 
   /**
     * Method for configuring the session in details

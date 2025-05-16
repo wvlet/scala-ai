@@ -13,13 +13,9 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.MISSING_SESSION
-import wvlet.ai.design.lifecycle.LifeCycleManager
+import wvlet.ai.design.LifeCycleManager
 import wvlet.ai.surface.Surface
-import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
-
-import scala.util.Try
 
 /**
   * Session manages injected objects (e.g., Singleton)
@@ -144,57 +140,5 @@ trait Session extends AutoCloseable:
     * session.
     */
   def register[A](instance: A): Unit
-
-end Session
-
-object Session extends LogSupport:
-
-  /**
-    * To provide an access to internal Session methods (e.g, get)
-    *
-    * @param session
-    */
-  implicit class SessionAccess(private val session: Session) extends AnyVal:
-    def get[A](surface: Surface)(using sourceCode: SourceCode): A = session.get[A](surface)
-
-    def getOrElse[A](surface: Surface, obj: => A)(using sourceCode: SourceCode): A = session
-      .getOrElse[A](surface, obj)
-
-    def createNewInstanceOf[A](surface: Surface)(using sourceCode: SourceCode): A = session
-      .createNewInstanceOf[A](surface)
-
-    def createNewInstanceOf[A](surface: Surface, traitInstanceFactory: => A)(using
-        sourceCode: SourceCode
-    ): A = session.createNewInstanceOf[A](surface, traitInstanceFactory)
-
-  def getSession(obj: Any): Option[Session] =
-    require(obj != null, "object is null")
-    findSessionAccess(obj.getClass).flatMap { access =>
-      Try(access.apply(obj.asInstanceOf[AnyRef])).toOption
-    }
-
-  def findSession[A](enclosingObj: A): Session = getSession(enclosingObj).getOrElse {
-    error(
-      s"No wvlet.airframe.Session is found in the scope: ${enclosingObj.getClass}, " +
-        s"enclosing object: ${enclosingObj}"
-    )
-    throw new MISSING_SESSION(enclosingObj.getClass)
-  }
-
-  private def isSessionType(c: Class[?]): Boolean = classOf[wvlet.ai.design.Session]
-    .isAssignableFrom(c)
-
-  private def findSessionAccess(cl: Class[?]): Option[AnyRef => Session] =
-    trace(s"Checking a session for ${cl}")
-
-    def findEmbeddedSession: Option[AnyRef => Session] =
-      if classOf[DISupport].isAssignableFrom(cl) then
-        Some({ (obj: AnyRef) =>
-          obj.asInstanceOf[DISupport].session()
-        })
-      else
-        None
-
-    findEmbeddedSession
 
 end Session

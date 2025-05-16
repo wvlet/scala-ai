@@ -14,14 +14,8 @@
 package wvlet.ai.design
 
 import wvlet.ai.design.DesignException.CYCLIC_DEPENDENCY
-import wvlet.ai.design.lifecycle.{
-  AFTER_START,
-  BEFORE_SHUTDOWN,
-  ON_INIT,
-  ON_INJECT,
-  ON_SHUTDOWN,
-  ON_START
-}
+import wvlet.ai.design.LifeCycleHookType.*
+import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
 import wvlet.ai.surface.Surface
 
@@ -104,8 +98,7 @@ import wvlet.ai.design.Binder.*
 /**
   */
 class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCode)
-    extends BinderImpl[A]:
-
+    extends LogSupport:
   /**
     * Bind the type to a given instance. The instance will be instantiated as an eager singleton
     * when creating a session. Note that as you create a new session, new instance will be
@@ -130,6 +123,145 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
 
   def toEagerSingleton: DesignWithContext[A] = design.addBinding[A](
     SingletonBinding(from, from, true, sourceCode)
+  )
+
+  /**
+    * Bind a singleton instance of B to A
+    *
+    * @tparam B
+    */
+  inline def to[B <: A]: DesignWithContext[B] =
+    val to = Surface.of[B]
+    if from == to then
+      warn("Binding to the same type is not allowed: " + to.toString)
+      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+    design.addBinding[B](SingletonBinding(from, to, false, sourceCode))
+
+  inline def toEagerSingletonOf[B <: A]: DesignWithContext[B] =
+    val to = Surface.of[B]
+    if from == to then
+      warn("Binding to the same type is not allowed: " + to.toString)
+      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+    design.addBinding[B](SingletonBinding(from, to, true, sourceCode))
+
+  inline def toProvider[D1](factory: D1 => A): DesignWithContext[A] = design.addBinding[A](
+    ProviderBinding(
+      DependencyFactory(from, Seq(Surface.of[D1]), factory),
+      true,
+      false,
+      SourceCode()
+    )
+  )
+
+  inline def toProvider[D1, D2](factory: (D1, D2) => A): DesignWithContext[A] = design.addBinding[
+    A
+  ](
+    ProviderBinding(
+      DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2]), factory),
+      true,
+      false,
+      SourceCode()
+    )
+  )
+
+  inline def toProvider[D1, D2, D3](factory: (D1, D2, D3) => A): DesignWithContext[A] = design
+    .addBinding[A](
+      ProviderBinding(
+        DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3]), factory),
+        true,
+        false,
+        SourceCode()
+      )
+    )
+
+  inline def toProvider[D1, D2, D3, D4](factory: (D1, D2, D3, D4) => A): DesignWithContext[A] =
+    design.addBinding[A](
+      ProviderBinding(
+        DependencyFactory(
+          from,
+          Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4]),
+          factory
+        ),
+        true,
+        false,
+        SourceCode()
+      )
+    )
+
+  inline def toProvider[D1, D2, D3, D4, D5](
+      factory: (D1, D2, D3, D4, D5) => A
+  ): DesignWithContext[A] = design.addBinding[A](
+    ProviderBinding(
+      DependencyFactory(
+        from,
+        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4], Surface.of[D5]),
+        factory
+      ),
+      true,
+      false,
+      SourceCode()
+    )
+  )
+
+  inline def toEagerSingletonProvider[D1](factory: D1 => A): DesignWithContext[A] = design
+    .addBinding[A](
+      ProviderBinding(
+        DependencyFactory(from, Seq(Surface.of[D1]), factory),
+        true,
+        true,
+        SourceCode()
+      )
+    )
+
+  inline def toEagerSingletonProvider[D1, D2](factory: (D1, D2) => A): DesignWithContext[A] = design
+    .addBinding[A](
+      ProviderBinding(
+        DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2]), factory),
+        true,
+        true,
+        SourceCode()
+      )
+    )
+
+  inline def toEagerSingletonProvider[D1, D2, D3](
+      factory: (D1, D2, D3) => A
+  ): DesignWithContext[A] = design.addBinding[A](
+    ProviderBinding(
+      DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3]), factory),
+      true,
+      true,
+      SourceCode()
+    )
+  )
+
+  inline def toEagerSingletonProvider[D1, D2, D3, D4](
+      factory: (D1, D2, D3, D4) => A
+  ): DesignWithContext[A] = design.addBinding[A](
+    ProviderBinding(
+      DependencyFactory(
+        from,
+        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4]),
+        factory
+      ),
+      true,
+      true,
+      SourceCode()
+    )
+  )
+
+  inline def toEagerSingletonProvider[D1, D2, D3, D4, D5](
+      factory: (D1, D2, D3, D4, D5) => A
+  ): DesignWithContext[A] = design.addBinding[A](
+    ProviderBinding(
+      DependencyFactory(
+        from,
+        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4], Surface.of[D5]),
+        factory
+      ),
+      true,
+      true,
+      SourceCode()
+    )
   )
 
   def onInit(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
