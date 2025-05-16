@@ -11,11 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.lifecycle
+package wvlet.ai.design
+
+import wvlet.ai.design.{LifeCycleEventHandler, LifeCycleManager}
 
 /**
   */
 object AddShutdownHook extends LifeCycleEventHandler:
   override def beforeStart(lifeCycleManager: LifeCycleManager): Unit = {
-    // no-op for Scala.js since there is no shutdown hook
+    // no-op for Scala Native since there is no shutdown hook
   }

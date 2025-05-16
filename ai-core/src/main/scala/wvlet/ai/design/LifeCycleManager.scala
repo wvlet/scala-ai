@@ -11,33 +11,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.lifecycle
+package wvlet.ai.design
+
+import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
+import wvlet.ai.design.LifeCycleHookType.*
+import wvlet.ai.design.LifeCycleStage.*
+import wvlet.ai.design.{Session, SessionImpl, Tracer}
+import wvlet.ai.log.{LogSupport, Logger}
+import wvlet.ai.surface.Surface
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.compiletime.uninitialized
-
-import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
-import wvlet.ai.surface.Surface
-import wvlet.ai.design.tracing.Tracer
-import wvlet.ai.design.{SessionImpl, Session}
-import wvlet.ai.log.{LogSupport, Logger}
-
 import scala.util.control.NonFatal
 
-sealed trait LifeCycleStage
-case object INIT     extends LifeCycleStage
-case object STARTING extends LifeCycleStage
-case object STARTED  extends LifeCycleStage
-case object STOPPING extends LifeCycleStage
-case object STOPPED  extends LifeCycleStage
+enum LifeCycleStage:
+  case INIT     extends LifeCycleStage
+  case STARTING extends LifeCycleStage
+  case STARTED  extends LifeCycleStage
+  case STOPPING extends LifeCycleStage
+  case STOPPED  extends LifeCycleStage
 
-sealed trait LifeCycleHookType
-case object ON_INIT         extends LifeCycleHookType
-case object ON_INJECT       extends LifeCycleHookType
-case object ON_START        extends LifeCycleHookType
-case object AFTER_START     extends LifeCycleHookType
-case object BEFORE_SHUTDOWN extends LifeCycleHookType
-case object ON_SHUTDOWN     extends LifeCycleHookType
+enum LifeCycleHookType:
+  case ON_INIT         extends LifeCycleHookType
+  case ON_INJECT       extends LifeCycleHookType
+  case ON_START        extends LifeCycleHookType
+  case AFTER_START     extends LifeCycleHookType
+  case BEFORE_SHUTDOWN extends LifeCycleHookType
+  case ON_SHUTDOWN     extends LifeCycleHookType
 
 /**
   * LifeCycleManager manages the life cycle of objects within a Session

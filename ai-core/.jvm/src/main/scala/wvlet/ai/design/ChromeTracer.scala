@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.tracing
+package wvlet.ai.design
+
+import wvlet.ai.design.ChromeTracer.*
+import wvlet.ai.design.TraceEvent.*
 
 import java.io.*
-
-import wvlet.ai.design.tracing.ChromeTracer.*
-import wvlet.ai.design.tracing.TraceEvent.*
 
 /**
   * Tracer for producing DI events in Trace Event Format (JSON):

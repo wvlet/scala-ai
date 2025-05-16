@@ -11,18 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.tracing
+package wvlet.ai.design
+
+import wvlet.ai.design.{Design, Session}
+import wvlet.ai.log.LogSupport
+import wvlet.ai.surface.Surface
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
-
-import wvlet.ai.surface.Surface
-import wvlet.ai.design.{Design, Session}
-import wvlet.ai.log.LogSupport
-
 import scala.jdk.CollectionConverters.*
 
-case class DIStatsReport(
+case class DesignStatsReport(
     coverage: Double,
     observedTypes: Seq[Surface],
     initCount: Map[Surface, Long],
@@ -49,9 +48,9 @@ case class DIStatsReport(
     report.result().mkString("\n")
 
 /**
-  * DI statistics
+  * Design usage statistics
   */
-class DIStats extends LogSupport with Serializable:
+class DesignStats extends LogSupport with Serializable:
   // This will holds the stat data while the session is active.
   // To avoid holding too many stats for applications that create many child sessions,
   // we will just store the aggregated stats.
@@ -81,7 +80,7 @@ class DIStats extends LogSupport with Serializable:
     .map(_.get())
     .getOrElse(0)
 
-  def coverageReportFor(design: Design): DIStatsReport =
+  def coverageReportFor(design: Design): DesignStatsReport =
     var bindingCount     = 0
     var usedBindingCount = 0
     val unusedBindings   = Seq.newBuilder[Surface]
@@ -99,7 +98,7 @@ class DIStats extends LogSupport with Serializable:
         1.0
       else
         usedBindingCount.toDouble / bindingCount
-    DIStatsReport(
+    DesignStatsReport(
       coverage = coverage,
       observedTypes = firstSeen.toSeq.sortBy(_._2).map(_._1).toSeq,
       initCount = initCountTable.map(x => x._1 -> x._2.get()).toMap,
@@ -107,4 +106,4 @@ class DIStats extends LogSupport with Serializable:
       unusedTypes = unusedBindings.result()
     )
 
-end DIStats
+end DesignStats

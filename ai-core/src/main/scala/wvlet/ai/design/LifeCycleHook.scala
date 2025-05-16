@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.lifecycle
+package wvlet.ai.design
 
-import wvlet.ai.surface.Surface
+import wvlet.ai.design.{EventHookHolder, Injectee, LifeCycleHook}
 import wvlet.ai.log.LogSupport
+import wvlet.ai.surface.Surface
 
 class Injectee(val surface: Surface, val injectee: Any):
   infix def canEqual(other: Any): Boolean = other.isInstanceOf[Injectee]

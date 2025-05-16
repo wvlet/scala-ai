@@ -13,27 +13,25 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.lifecycle.{
+import wvlet.ai.design.{
+  AddShutdownHook,
   LifeCycleEventHandler,
   LifeCycleManager,
   ShowDebugLifeCycleLog,
-  ShowLifeCycleLog,
-  AddShutdownHook
+  ShowLifeCycleLog
 }
 import wvlet.ai.log.LogSupport
 
-sealed trait Stage
-object Stage:
-
+enum Stage:
   /**
     * Initialize singletons lazily
     */
-  case object DEVELOPMENT extends Stage
+  case DEVELOPMENT extends Stage
 
   /**
     * Initialize singletons eagerly
     */
-  case object PRODUCTION extends Stage
+  case PRODUCTION extends Stage
 
 /**
   */

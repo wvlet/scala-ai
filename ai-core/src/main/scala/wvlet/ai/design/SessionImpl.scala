@@ -16,9 +16,8 @@ package wvlet.ai.design
 import java.util.concurrent.ConcurrentHashMap
 import wvlet.ai.design.DesignException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.Binder.*
-import wvlet.ai.design.lifecycle.{CloseHook, EventHookHolder, Injectee, LifeCycleManager}
+import wvlet.ai.design.{CloseHook, EventHookHolder, Injectee, LifeCycleManager}
 import wvlet.ai.surface.Surface
-import wvlet.ai.design.tracing.{DIStats, DefaultTracer, Tracer}
 import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
 
@@ -49,12 +48,12 @@ private[design] class SessionImpl(
         .mkString(", ")}]"
   )
 
-  protected val stats: DIStats = parent
+  protected val stats: DesignStats = parent
     .map(_.stats)
     .orElse {
       design.getStats
     }
-    .getOrElse(new DIStats())
+    .getOrElse(new DesignStats())
 
   private[design] val tracer: Tracer =
     // Find a tracer from parent

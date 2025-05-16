@@ -11,13 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.design.tracing
+package wvlet.ai.design
 
-import wvlet.ai.surface.Surface
-import wvlet.ai.design.lifecycle.Injectee
-import wvlet.ai.design.tracing.TraceEvent.*
 import wvlet.ai.design.Session
+import wvlet.ai.design.Injectee
+import wvlet.ai.design.TraceEvent.*
 import wvlet.ai.log.LogSupport
+import wvlet.ai.surface.Surface
 
 /**
   * A base Tracer implementation for tracking DI events

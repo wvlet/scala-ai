@@ -14,10 +14,7 @@
 package wvlet.ai.design
 
 import wvlet.ai.surface.Surface
-import wvlet.ai.design.tracing.{DIStats, Tracer}
 import wvlet.ai.log.LogSupport
-
-import wvlet.ai.design.lifecycle.LifeCycleHookType
 
 /**
   * Design configs
