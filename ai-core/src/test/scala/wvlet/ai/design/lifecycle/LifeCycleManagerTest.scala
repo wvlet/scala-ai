@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design.lifecycle
 
-import wvlet.ai.design.AirframeException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
+import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 import wvlet.log.{LogLevel, LogSupport, Logger}

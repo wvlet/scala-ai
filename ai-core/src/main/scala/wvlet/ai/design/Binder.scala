@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.AirframeException.CYCLIC_DEPENDENCY
+import wvlet.ai.design.DesignException.CYCLIC_DEPENDENCY
 import wvlet.ai.design.lifecycle.{
   AFTER_START,
   BEFORE_SHUTDOWN,

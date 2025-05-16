@@ -1,6 +1,6 @@
 package wvlet.ai.design
 
-import wvlet.ai.design.AirframeException.CYCLIC_DEPENDENCY
+import wvlet.ai.design.DesignException.CYCLIC_DEPENDENCY
 import wvlet.ai.surface.Surface
 import wvlet.ai.log.LogSupport
 import wvlet.ai.design.Binder.*
@@ -21,7 +21,7 @@ private[design] trait BinderImpl[A] extends LogSupport:
     val to = Surface.of[B]
     if self.from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
-      throw new AirframeException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
     self.design.addBinding[B](SingletonBinding(self.from, to, false, self.sourceCode))
 
   inline def toEagerSingletonOf[B <: A]: DesignWithContext[B] =
@@ -29,7 +29,7 @@ private[design] trait BinderImpl[A] extends LogSupport:
     val to = Surface.of[B]
     if self.from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
-      throw new AirframeException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
     self.design.addBinding[B](SingletonBinding(self.from, to, true, self.sourceCode))
 
   inline def toProvider[D1](factory: D1 => A): DesignWithContext[A] =

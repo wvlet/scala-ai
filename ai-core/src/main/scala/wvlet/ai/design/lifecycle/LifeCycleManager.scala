@@ -16,10 +16,10 @@ package wvlet.ai.design.lifecycle
 import java.util.concurrent.atomic.AtomicReference
 import scala.compiletime.uninitialized
 
-import wvlet.ai.design.AirframeException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
+import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
 import wvlet.ai.surface.Surface
 import wvlet.ai.design.tracing.Tracer
-import wvlet.ai.design.{AirframeSession, Session}
+import wvlet.ai.design.{SessionImpl, Session}
 import wvlet.ai.log.{LogSupport, Logger}
 
 import scala.util.control.NonFatal
@@ -61,10 +61,10 @@ class LifeCycleManager(
   )
 
   // Session and tracer will be available later
-  private[design] var session: AirframeSession = uninitialized
-  private[design] var tracer: Tracer           = uninitialized
+  private[design] var session: SessionImpl = uninitialized
+  private[design] var tracer: Tracer       = uninitialized
 
-  private[design] def setSession(s: AirframeSession): Unit =
+  private[design] def setSession(s: SessionImpl): Unit =
     session = s
     tracer = session.tracer
 

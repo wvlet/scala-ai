@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.AirframeException.MISSING_DEPENDENCY
+import wvlet.ai.design.DesignException.MISSING_DEPENDENCY
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 

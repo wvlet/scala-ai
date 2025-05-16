@@ -14,7 +14,7 @@
 package wvlet.ai.design
 
 import java.util.concurrent.ConcurrentHashMap
-import wvlet.ai.design.AirframeException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
+import wvlet.ai.design.DesignException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.Binder.*
 import wvlet.ai.design.lifecycle.{CloseHook, EventHookHolder, Injectee, LifeCycleManager}
 import wvlet.ai.surface.Surface
@@ -27,8 +27,8 @@ import scala.util.Try
 
 /**
   */
-private[design] class AirframeSession(
-    parent: Option[AirframeSession],
+private[design] class SessionImpl(
+    parent: Option[SessionImpl],
     sessionName: Option[String],
     val design: Design,
     stage: Stage,
@@ -130,7 +130,7 @@ private[design] class AirframeSession(
   override def newSharedChildSession(d: Design): Session =
     trace(s"[${name}] Creating a new shared child session with ${d}")
     val childSession =
-      new AirframeSession(
+      new SessionImpl(
         parent = Some(this),
         // Should we add suffixes for child sessions?
         sessionName,
@@ -270,7 +270,7 @@ private[design] class AirframeSession(
     * Find a session (including parent and ancestor parents) that owns t, that is, a session that
     * can build t or has ever built t.
     */
-  private[design] def findOwnerSessionOf(t: Surface): Option[AirframeSession] =
+  private[design] def findOwnerSessionOf(t: Surface): Option[SessionImpl] =
     if bindingTable.contains(t) || observedTypes.contains(t) then
       Some(this)
     else
@@ -280,7 +280,7 @@ private[design] class AirframeSession(
       bindTarget: Surface,
       tpe: Surface,
       sourceCode: SourceCode,
-      contextSession: AirframeSession,
+      contextSession: SessionImpl,
       create: Boolean, // true for factory binding
       seen: List[Surface],
       defaultValue: Option[() => Any] = None
@@ -423,7 +423,7 @@ private[design] class AirframeSession(
   private[design] def buildInstance(
       tpe: Surface,
       sourceCode: SourceCode,
-      contextSession: AirframeSession,
+      contextSession: SessionImpl,
       seen: List[Surface],
       defaultValue: Option[() => Any]
   ): Any =
@@ -444,7 +444,7 @@ private[design] class AirframeSession(
   private def buildInstance(
       surface: Surface,
       sourceCode: SourceCode,
-      contextSession: AirframeSession,
+      contextSession: SessionImpl,
       seen: List[Surface]
   ): Any =
     trace(s"[${name}] buildInstance ${surface}, dependencies:[${seen.mkString(" <- ")}]")
@@ -484,4 +484,4 @@ private[design] class AirframeSession(
 
   end buildInstance
 
-end AirframeSession
+end SessionImpl
