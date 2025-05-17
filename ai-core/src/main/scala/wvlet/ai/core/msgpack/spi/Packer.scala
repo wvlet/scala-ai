@@ -32,7 +32,7 @@ trait Packer extends AutoCloseable:
   def packFloat(v: Float): this.type
   def packDouble(v: Double): this.type
   def packString(v: String): this.type
-  def packTimestamp(v: Instant): this.type = packTimestamp(v.getEpochSecond, v.getNano)
+  def packTimestamp(v: Instant): this.type = packTimestamp(v.getEpochSecond(), v.getNano())
 
   /**
     * if nanoAdjustment == 0 and epochSeconds <= 2^32, it will encode the timestamp using

@@ -196,8 +196,8 @@ object OffsetPacker:
 
   def packTimestamp(cursor: WriteCursor, v: Instant): Unit = packTimestampEpochSecond(
     cursor,
-    v.getEpochSecond,
-    v.getNano
+    v.getEpochSecond(),
+    v.getNano()
   )
 
   private val NANOS_PER_SECOND = 1000000000L
