@@ -15,7 +15,7 @@ package wvlet.ai.core.design.lifecycle
 
 import wvlet.ai.core.design.Design
 import wvlet.airspec.AirSpec
-import wvlet.log.LogSupport
+import wvlet.ai.core.log.LogSupport
 
 import java.util.concurrent.atomic.AtomicBoolean
 

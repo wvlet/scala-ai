@@ -3,7 +3,7 @@ package wvlet.ai.core.design
 import wvlet.ai.core.surface.{Primitive, Surface}
 import DesignErrorCode.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.airspec.AirSpec
-import wvlet.log.LogSupport
+import wvlet.ai.core.log.LogSupport
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger

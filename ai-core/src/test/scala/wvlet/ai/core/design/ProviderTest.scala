@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.airspec.AirSpec
-import wvlet.log.LogSupport
+import wvlet.ai.core.log.LogSupport
 
 object ProviderExample extends Serializable:
   case class D1(id: Int)

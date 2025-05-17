@@ -2,7 +2,7 @@ package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
-import wvlet.airframe.codec.MessageCodec
+import wvlet.ai.core.codec.MessageCodec
 
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
