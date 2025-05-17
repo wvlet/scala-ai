@@ -13,6 +13,8 @@
  */
 package wvlet.ai.core.rx
 
+import wvlet.ai.core.control.ThreadUtil
+
 import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, TimeUnit}
@@ -41,20 +43,21 @@ object compat:
       )
       override def cancel: Unit = t.cancel()
 
+  private lazy val scheduledThreadManager = Executors.newScheduledThreadPool(
+    1,
+    ThreadUtil.newDaemonThreadFactory("rx-timer")
+  )
+
   def scheduleOnce[U](delayMills: Long)(body: => U): Cancelable =
-    val thread = Executors.newScheduledThreadPool(1)
-    val schedule = thread.schedule(
+    val schedule = scheduledThreadManager.schedule(
       new Runnable:
         override def run(): Unit = body
       ,
       delayMills,
       TimeUnit.MILLISECONDS
     )
-    // Immediately start the thread pool shutdown to avoid thread leak
-    thread.shutdown()
     Cancelable { () =>
-      try schedule.cancel(false)
-      finally thread.shutdown()
+      schedule.cancel(false)
     }
 
   def toSeq[A](rx: Rx[A]): Seq[A] =

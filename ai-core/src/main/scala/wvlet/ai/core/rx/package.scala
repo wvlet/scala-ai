@@ -19,4 +19,4 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 package object rx:
   implicit class FutureConverter[A](private val f: Future[A]) extends AnyVal:
-    def toRx(implicit ec: ExecutionContext): RxOption[A] = Rx.fromFuture(f)(ec)
+    def toRx(using ec: ExecutionContext): RxOption[A] = Rx.fromFuture(f)

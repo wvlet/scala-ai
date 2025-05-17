@@ -13,13 +13,14 @@
  */
 package wvlet.ai.core.rx
 
+import wvlet.ai.core.control.ThreadUtil
+
 import scala.util.Try
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 import java.util.concurrent.{Executors, ThreadFactory, TimeUnit}
-import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean}
-
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.scalanative.posix.timer.timer_create
 import scala.scalanative.posix.time.*
 import scala.scalanative.posix.signal.*
@@ -30,21 +31,8 @@ import scala.scalanative.unsafe.*
   */
 object compat:
 
-  private def newDaemonThreadFactory(name: String): ThreadFactory =
-    new ThreadFactory:
-      private val group: ThreadGroup =
-        new ThreadGroup(Thread.currentThread().getThreadGroup(), name)
-      private val threadNumber = new AtomicInteger(1)
-
-      override def newThread(r: Runnable): Thread =
-        val threadName = s"${name}-${threadNumber.getAndIncrement()}"
-        val thread     = new Thread(group, r, threadName)
-        thread.setName(threadName)
-        thread.setDaemon(true)
-        thread
-
   private lazy val defaultExecutor = ExecutionContext.fromExecutorService(
-    Executors.newCachedThreadPool(newDaemonThreadFactory("airframe-rx"))
+    Executors.newCachedThreadPool(ThreadUtil.newDaemonThreadFactory("airframe-rx"))
   )
 
   def defaultExecutionContext: scala.concurrent.ExecutionContext = defaultExecutor
@@ -62,20 +50,21 @@ object compat:
 //// timer_create is not yet implemented in Scala Native
 //      // timer_create(CLOCK_REALTIME, se, timerId)
 
+  private lazy val scheduledThreadManager = Executors.newScheduledThreadPool(
+    1,
+    ThreadUtil.newDaemonThreadFactory("rx-timer")
+  )
+
   def scheduleOnce[U](delayMills: Long)(body: => U): Cancelable =
-    val thread = Executors.newScheduledThreadPool(1)
-    val schedule = thread.schedule(
+    val schedule = scheduledThreadManager.schedule(
       new Runnable:
         override def run(): Unit = body
       ,
       delayMills,
       TimeUnit.MILLISECONDS
     )
-    // Immediately start the thread pool shutdown to avoid thread leak
-    thread.shutdown()
     Cancelable { () =>
-      try schedule.cancel(false)
-      finally thread.shutdown()
+      schedule.cancel(false)
     }
 
   def toSeq[A](rx: Rx[A]): Seq[A] =
