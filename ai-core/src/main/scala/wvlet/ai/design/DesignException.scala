@@ -30,7 +30,7 @@ enum DesignErrorCode:
 
 case class DesignException(code: DesignErrorCode, message: String, cause: Throwable = null)
     extends Exception(message, cause):
-  override def toString: String = s"[${code}] ${getMessage}"
+  override def getMessage: String = s"[${code}] ${message}"
 
 object DesignException:
   def cyclicDependency(deps: List[Surface], sourceCode: SourceCode): DesignException =
