@@ -106,3 +106,22 @@ jobs:
           check_name: Test Report Scala Native
           annotate_only: true
           detailed_summary: true
+  test_integration:
+    name: Integration test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '23'
+      - name: Integration test
+        run: ./sbt "integrationTest/test"
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/target/test-reports/TEST-*.xml'
+          check_name: Test Report Integration
+          annotate_only: true
+          detailed_summary: true
