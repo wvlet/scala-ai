@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.log.LogSupport
+import wvlet.ai.core.log.LogSupport
 
 /**
   */

@@ -32,12 +32,19 @@ val jsBuildSettings = Seq[Setting[?]](
       // For using java.util.UUID.randomUUID() in Scala.js
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0" % Test).cross(
         CrossVersion.for3Use2_13
-      )
+      ),
+      // For using java.time.Instant in Scala.js
+      ("org.scala-js" %%% "scalajs-java-time" % "1.0.0").cross(CrossVersion.for3Use2_13)
     )
 )
 
 val nativeBuildSettings = Seq[Setting[?]](
   // Scala Native specific settings
+  libraryDependencies ++=
+    Seq(
+      // For using java.time libraries
+      "org.ekrich" %%% "sjavatime" % "1.3.0"
+    )
 )
 
 val noPublish = Seq(
