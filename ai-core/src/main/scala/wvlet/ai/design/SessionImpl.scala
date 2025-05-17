@@ -14,7 +14,6 @@
 package wvlet.ai.design
 
 import java.util.concurrent.ConcurrentHashMap
-import wvlet.ai.design.DesignException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.Binder.*
 import wvlet.ai.design.{CloseHook, EventHookHolder, Injectee, LifeCycleManager}
 import wvlet.ai.surface.Surface
@@ -290,7 +289,7 @@ private[design] class SessionImpl(
     trace(s"[${name}] Search bindings for ${tpe}, dependencies:[${seen.mkString(" <- ")}]")
     if seen.contains(tpe) then
       error(s"Found cyclic dependencies within types [${seen.mkString(", ")}] at ${sourceCode}")
-      throw new CYCLIC_DEPENDENCY(seen, sourceCode)
+      throw DesignException.cyclicDependency(seen, sourceCode)
 
     // Find or create an instance for the binding
     // When the instance is created for the first time, it will call onInit lifecycle hook.
@@ -390,7 +389,7 @@ private[design] class SessionImpl(
     val result = obj.getOrElse {
       // strict mode
       if design.designOptions.defaultInstanceInjection.contains(false) then
-        throw new MISSING_DEPENDENCY(tpe :: seen, sourceCode)
+        throw DesignException.missingDependency(tpe :: seen, sourceCode)
 
       trace(s"[${name}] No binding is found for ${tpe}. Building the instance. create = ${create}")
       if create then
@@ -449,7 +448,7 @@ private[design] class SessionImpl(
     trace(s"[${name}] buildInstance ${surface}, dependencies:[${seen.mkString(" <- ")}]")
     if surface.isPrimitive then
       // Cannot build Primitive types
-      throw MISSING_DEPENDENCY(seen, sourceCode)
+      throw DesignException.missingDependency(seen, sourceCode)
     else
       surface.objectFactory match
         case Some(factory) =>
@@ -478,7 +477,7 @@ private[design] class SessionImpl(
                   .reverse
                   .mkString(" -> ")}"
           )
-          throw MISSING_DEPENDENCY(seen, sourceCode)
+          throw DesignException.missingDependency(seen, sourceCode)
     end if
 
   end buildInstance

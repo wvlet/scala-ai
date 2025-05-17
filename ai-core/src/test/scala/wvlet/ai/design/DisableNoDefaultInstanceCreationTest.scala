@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.MISSING_DEPENDENCY
 import wvlet.ai.design.Design
+import wvlet.ai.design.DesignErrorCode.MISSING_DEPENDENCY
 import wvlet.airspec.AirSpec
 
 object DisableNoDefaultInstanceCreationTest:
@@ -26,19 +26,21 @@ class DisableNoDefaultInstanceCreationTest extends AirSpec:
 
   test("disable implicit instance creation") {
     val d = Design.newSilentDesign.bindSingleton[Component].noDefaultInstanceInjection
-    intercept[MISSING_DEPENDENCY] {
+    val e = intercept[DesignException] {
       d.build[Component] { _ =>
       }
     }
+    e.code shouldBe MISSING_DEPENDENCY
   }
 
   test("disable implicit instance creation with production mode") {
     val d =
       Design.newSilentDesign.bindSingleton[Component].noDefaultInstanceInjection.withProductionMode
-    intercept[MISSING_DEPENDENCY] {
+    val e = intercept[DesignException] {
       d.withSession { _ =>
       }
     }
+    e.code shouldBe MISSING_DEPENDENCY
   }
 
   test("enable implicit instance creation") {

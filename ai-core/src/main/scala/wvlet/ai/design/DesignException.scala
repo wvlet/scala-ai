@@ -16,39 +16,33 @@ package wvlet.ai.design
 import wvlet.ai.surface.Surface
 import wvlet.ai.util.SourceCode
 
-import scala.language.existentials
+enum DesignErrorCode:
+  case CYCLIC_DEPENDENCY  extends DesignErrorCode
+  case MISSING_DEPENDENCY extends DesignErrorCode
+  case SHUTDOWN_FAILURE   extends DesignErrorCode
 
-trait DesignException extends Exception:
-  self =>
+  def newException(message: String): DesignException = DesignException(this, message)
+  def newException(message: String, cause: Throwable): DesignException = DesignException(
+    this,
+    message,
+    cause
+  )
 
-  /**
-    * Returns the exception type
-    */
-  def getCode: String           = this.getClass.getSimpleName
-  override def toString: String = getMessage
+case class DesignException(code: DesignErrorCode, message: String, cause: Throwable = null)
+    extends Exception(message, cause):
+  override def getMessage: String = s"[${code}] ${message}"
 
 object DesignException:
-  case class MISSING_SESSION(cl: Class[?]) extends DesignException:
-    override def getMessage: String =
-      s"[$getCode] Session is not found inside ${cl}. You may need to define ${cl} as a trait or implement DISupport to inject the current Session."
+  def cyclicDependency(deps: List[Surface], sourceCode: SourceCode): DesignException =
+    DesignException(
+      DesignErrorCode.CYCLIC_DEPENDENCY,
+      s"${deps.reverse.mkString(" -> ")} at ${sourceCode}"
+    )
 
-  case class CYCLIC_DEPENDENCY(deps: List[Surface], sourceCode: SourceCode) extends DesignException:
-    override def getMessage: String =
-      s"[$getCode] ${deps.reverse.mkString(" -> ")} at ${sourceCode}"
+  def missingDependency(stack: List[Surface], sourceCode: SourceCode): DesignException =
+    DesignException(
+      DesignErrorCode.MISSING_DEPENDENCY,
+      s"Binding for ${stack.head} at ${sourceCode} is not found: ${stack.mkString(" <- ")}"
+    )
 
-  case class MISSING_DEPENDENCY(stack: List[Surface], sourceCode: SourceCode)
-      extends DesignException:
-    override def getMessage: String =
-      s"[$getCode] Binding for ${stack.head} at ${sourceCode} is not found: ${stack.mkString(
-          " <- "
-        )}"
-
-  case class SHUTDOWN_FAILURE(cause: Throwable) extends DesignException:
-    override def getMessage: String =
-      s"[${getCode}] Failure at session shutdown: ${cause.getMessage}"
-
-  case class MULTIPLE_SHUTDOWN_FAILURES(causes: List[Throwable]) extends DesignException:
-    override def getMessage: String =
-      s"[${getCode}] Multiple failures occurred during session shutdown:\n${causes
-          .map(x => s"  - ${x.getMessage}")
-          .mkString("\n")}"
+end DesignException

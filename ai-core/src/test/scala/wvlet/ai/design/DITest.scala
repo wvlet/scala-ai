@@ -1,7 +1,7 @@
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.Design
+import wvlet.ai.design.DesignErrorCode.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.{LifeCycleEventHandler, LifeCycleManager}
 import wvlet.ai.surface.{Primitive, Surface}
 import wvlet.airspec.AirSpec
@@ -78,19 +78,11 @@ object DITest extends AirSpec:
 
   test("forbid binding to the same type") {
     warn("Running self-cycle binding test")
-    val ex = intercept[CYCLIC_DEPENDENCY] {
+    val ex = intercept[DesignException] {
       val d = Design.newDesign.bindImpl[Printer, Printer]
     }
-    ex.deps.contains(Surface.of[Printer]) shouldBe true
+    ex.code shouldBe CYCLIC_DEPENDENCY
     ex.toString.contains("CYCLIC_DEPENDENCY") shouldBe true
-
-    intercept[CYCLIC_DEPENDENCY] {
-      val d = Design.newDesign.bindImpl[Printer, Printer]
-    }.deps.contains(Surface.of[Printer]) shouldBe true
-
-//    intercept[CYCLIC_DEPENDENCY] {
-//      val d = Design.newDesign.bind[Printer].toEagerSingletonOf[Printer]
-//    }.deps.contains(Surface.of[Printer]) shouldBe true
   }
 
   class CycleB(a: CycleA)
@@ -98,15 +90,15 @@ object DITest extends AirSpec:
 
   test("found cyclic dependencies") {
     warn("Running cyclic dependency test: A->B->A")
-    val caught = intercept[CYCLIC_DEPENDENCY] {
+    val caught = intercept[DesignException] {
       Design
         .newSilentDesign
         .build[CycleA] { c =>
         }
     }
     warn(s"${caught}")
-    caught.deps.contains(Surface.of[CycleA]) shouldBe true
-    caught.deps.contains(Surface.of[CycleB]) shouldBe true
+    caught.code shouldBe CYCLIC_DEPENDENCY
+    caught.message shouldContain "CycleA -> CycleB"
   }
 
   class HeavyObject()
@@ -140,14 +132,14 @@ object DITest extends AirSpec:
 
   test("detect missing dependencies") {
     warn("Running missing dependency check")
-    val caught = intercept[MISSING_DEPENDENCY] {
+    val caught = intercept[DesignException] {
       Design
         .newSilentDesign
         .build[MissingDep] { m =>
         }
     }
     warn(s"${caught}")
-    caught.stack.contains(Primitive.String) shouldBe true
+    caught.code shouldBe MISSING_DEPENDENCY
   }
 
   class SessionParam(val session: Session)
