@@ -134,3 +134,14 @@ lazy val bedrock = project
       )
   )
   .dependsOn(agent)
+
+lazy val integrationTest = project
+  .in(file("ai-integration-test"))
+  .settings(
+    buildSettings,
+    noPublish,
+    name           := "ai-integration-test",
+    description    := "Integration test for AI (LLM) applications",
+    ideSkipProject := false
+  )
+  .dependsOn(bedrock)
