@@ -51,7 +51,7 @@ final class ULID(private val ulid: String) extends Ordered[ULID]:
   def toInstant: Instant = Instant.ofEpochMilli(epochMillis)
 
   /**
-    * Get a 128-bit (16 byte) binary representation of this ULID.
+    * Get a 128-bit (16 bytes) binary representation of this ULID.
     */
   def toBytes: Array[Byte] =
     val (hi, low) = CrockfordBase32.decode128bits(ulid)
@@ -85,15 +85,16 @@ final class ULID(private val ulid: String) extends Ordered[ULID]:
 end ULID
 
 /**
-  * ULID generator implementation based on https://github.com/petitviolet/ulid4s
+  * ULID generator implementation.
   *
-  * ULID has 128 bit value:
-  * `|-- Unix timestamp milliseconds (48-bit) ---- | ----- random value (80 bits) ------ |`
+  * ULID has an 128-bit value:
+  * `|-- Unix timestamp milliseconds (48 bits) ---- | ----- random value (80 bits) ------ |`
   *
-  * The string representation of ULID uses 26 characters in Crockford Base 32 representation, each
-  * character of which represents 5-bit value (0-31).
+  * The string representation of ULID uses 26 characters in the Crockford Base 32 representation,
+  * each character of which represents a 5-bit value (0-31).
   */
 object ULID:
+  val MinValue: ULID        = ULID("00000000000000000000000000")
   val MaxValue: ULID        = ULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")
   private[ulid] val MinTime = 0L
   private[ulid] val MaxTime = (~0L) >>> (64 - 48) // Timestamp uses 48-bit range
@@ -152,7 +153,7 @@ object ULID:
   def newULIDString: String = _generator.newULIDString
 
   /**
-    * Create a new ULID from a given unix time in milli seconds
+    * Create a new ULID from a given unix time in milliseconds
     * @param unixTimeMillis
     * @return
     */
@@ -170,7 +171,8 @@ object ULID:
     require(ulid != null, "The input ULID string was null")
     require(ulid.length == 26, s"ULID must have 26 characters: ${ulid} (length: ${ulid.length})")
     require(CrockfordBase32.isValidBase32(ulid), s"Invalid Base32 character is found in ${ulid}")
-    new ULID(ulid)
+    // Canonicalize the ULID string to upper case
+    new ULID(ulid.toUpperCase)
 
   /**
     * Create an ULID from a given timestamp (48-bit) and a random value (80-bit)
