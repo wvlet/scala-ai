@@ -28,6 +28,7 @@ class ULIDTest extends AirSpec with PropertyCheck:
       val parsed    = ULID.fromString(str)
       ulid shouldBe parsed
       ulid <= ULID.MaxValue shouldBe true
+      ulid >= ULID.MinValue shouldBe true
       debug(s"${ulid} ${timestamp} ${parsed}")
   }
 
@@ -137,12 +138,15 @@ class ULIDTest extends AirSpec with PropertyCheck:
     ulid shouldBe ulid2
   }
 
-  test("Support lowercase representation of ULID") {
+  test("Parse lowercase representation of ULID") {
     val ulid          = ULID.newULID
     val ulidLowerCase = ulid.toString.toLowerCase
     val parsed        = ULID.fromString(ulidLowerCase)
-    ulidLowerCase shouldBe parsed.toString
+
+    // lower case string should be canonicalized for ordering
+    ulid.compareTo(parsed) shouldBe 0
     ulid.epochMillis shouldBe parsed.epochMillis
+    ulidLowerCase shouldBe parsed.toString.toLowerCase
   }
 
 end ULIDTest
