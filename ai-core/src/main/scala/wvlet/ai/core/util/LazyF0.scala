@@ -11,16 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.design
+package wvlet.ai.core.util
 
 object LazyF0:
   def apply[R](f: => R): LazyF0[R] = new LazyF0(f)
 
 /**
-  * This class is used to obtain the class names of the call-by-name functions (Function0[R]).
+  * This class is used to get the class names of the call-by-name functions (Function0[R]).
   *
-  * This wrapper do not directly access the field f (Function0[R]) in order to avoid the evaluation
-  * of the function.
+  * This wrapper does not directly access the field f (Function0[R]) to avoid the evaluation of the
+  * function body.
   * @param f
   * @tparam R
   */

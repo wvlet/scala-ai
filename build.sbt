@@ -34,7 +34,9 @@ val jsBuildSettings = Seq[Setting[?]](
         CrossVersion.for3Use2_13
       ),
       // For using java.time.Instant in Scala.js
-      ("org.scala-js" %%% "scalajs-java-time" % "1.0.0").cross(CrossVersion.for3Use2_13)
+      ("org.scala-js" %%% "scalajs-java-time" % "1.0.0").cross(CrossVersion.for3Use2_13),
+      // For scheduling with timer
+      "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1"
     )
 )
 

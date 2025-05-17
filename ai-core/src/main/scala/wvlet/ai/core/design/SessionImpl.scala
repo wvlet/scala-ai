@@ -15,9 +15,10 @@ package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.surface.Surface
+
 import java.util.concurrent.ConcurrentHashMap
 import Binder.*
-import wvlet.ai.core.util.SourceCode
+import wvlet.ai.core.util.{LazyF0, SourceCode}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
