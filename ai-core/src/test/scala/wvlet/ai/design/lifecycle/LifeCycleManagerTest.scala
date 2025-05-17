@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design.lifecycle
 
-import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
-import wvlet.ai.design.Design
+import wvlet.ai.design.DesignErrorCode.{MISSING_DEPENDENCY, SHUTDOWN_FAILURE}
+import wvlet.ai.design.{Design, DesignException}
 import wvlet.airspec.AirSpec
 import wvlet.log.{LogLevel, LogSupport, Logger}
 
@@ -213,12 +213,13 @@ object LifeCycleManagerTest extends AirSpec:
     override def close(): Unit = throw new IllegalStateException("failure test")
 
   test("handle exceptions in shutdown hooks") {
-    val e = intercept[SHUTDOWN_FAILURE] {
+    val e = intercept[DesignException] {
       Design
         .newSilentDesign
         .build[CloseExceptionTest] { x =>
         }
     }
+    e.code shouldBe SHUTDOWN_FAILURE
     e.getMessage.contains("failure test") shouldBe true
   }
 
@@ -226,7 +227,7 @@ object LifeCycleManagerTest extends AirSpec:
     override def close(): Unit = throw new IllegalStateException("failure 2")
 
   test("handle multiple exceptions") {
-    val e = intercept[MULTIPLE_SHUTDOWN_FAILURES] {
+    val e = intercept[DesignException] {
       Design
         .newSilentDesign
         .bindSingleton[
@@ -236,8 +237,9 @@ object LifeCycleManagerTest extends AirSpec:
         }
     }
     debug(e)
-    e.causes.find(_.getMessage.contains("failure test")) shouldBe defined
-    e.causes.find(_.getMessage.contains("failure 2")) shouldBe defined
+    e.code shouldBe SHUTDOWN_FAILURE
+    e.getMessage shouldContain "failure test"
+    e.getCause.getSuppressed.toSeq.find(_.getMessage.contains("failure 2")) shouldBe defined
   }
 
 end LifeCycleManagerTest

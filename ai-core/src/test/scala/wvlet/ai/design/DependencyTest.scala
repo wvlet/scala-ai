@@ -1,6 +1,5 @@
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.MISSING_DEPENDENCY
 import wvlet.ai.design.Design
 import wvlet.airspec.AirSpec
 
@@ -19,9 +18,10 @@ class DependencyTest extends AirSpec:
   test("show missing dependencies") {
     val d = Design.newSilentDesign
     d.withSession { session =>
-      val m = intercept[MISSING_DEPENDENCY] {
+      val m = intercept[DesignException] {
         val a = session.build[DependencyTest1.A]
       }
+      m.code shouldBe DesignErrorCode.MISSING_DEPENDENCY
       val msg = m.getMessage
       msg.contains("D <- C") shouldBe true
     }

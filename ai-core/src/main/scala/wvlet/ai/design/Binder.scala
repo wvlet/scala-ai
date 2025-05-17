@@ -13,7 +13,6 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.CYCLIC_DEPENDENCY
 import wvlet.ai.design.LifeCycleHookType.*
 import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
@@ -27,7 +26,7 @@ object Binder:
 
   case class ClassBinding(from: Surface, to: Surface, sourceCode: SourceCode) extends Binding:
     if from == to then
-      throw new CYCLIC_DEPENDENCY(List(to), sourceCode)
+      throw DesignException.cyclicDependency(List(to), sourceCode)
 
   case class SingletonBinding(from: Surface, to: Surface, isEager: Boolean, sourceCode: SourceCode)
       extends Binding:
@@ -134,14 +133,14 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     val to = Surface.of[B]
     if from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
-      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+      throw DesignException.cyclicDependency(List(to), SourceCode())
     design.addBinding[B](SingletonBinding(from, to, false, sourceCode))
 
   inline def toEagerSingletonOf[B <: A]: DesignWithContext[B] =
     val to = Surface.of[B]
     if from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
-      throw new DesignException.CYCLIC_DEPENDENCY(List(to), SourceCode())
+      throw DesignException.cyclicDependency(List(to), SourceCode())
     design.addBinding[B](SingletonBinding(from, to, true, sourceCode))
 
   inline def toProvider[D1](factory: D1 => A): DesignWithContext[A] = design.addBinding[A](

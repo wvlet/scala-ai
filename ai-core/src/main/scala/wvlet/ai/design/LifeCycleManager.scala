@@ -13,7 +13,6 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.design.DesignException.{MULTIPLE_SHUTDOWN_FAILURES, SHUTDOWN_FAILURE}
 import wvlet.ai.design.LifeCycleHookType.*
 import wvlet.ai.design.LifeCycleStage.*
 import wvlet.ai.design.{Session, SessionImpl, Tracer}
@@ -349,11 +348,13 @@ object FILOLifeCycleHookExecutor extends LifeCycleEventHandler with LogSupport:
 
     // If there are any exceptions occurred during the shutdown, throw them here:
     if exceptionList.nonEmpty then
-      if exceptionList.size > 1 then
-        throw MULTIPLE_SHUTDOWN_FAILURES(exceptionList.toList)
-      else
-        throw SHUTDOWN_FAILURE(exceptionList.head)
-
+      val merged = exceptionList.reduce { (e1, e2) =>
+        e1.addSuppressed(e2)
+        e1
+      }
+      throw DesignErrorCode
+        .SHUTDOWN_FAILURE
+        .newException(s"Failure at session shutdown: ${merged.getMessage}", merged)
   end beforeShutdown
 
 end FILOLifeCycleHookExecutor
