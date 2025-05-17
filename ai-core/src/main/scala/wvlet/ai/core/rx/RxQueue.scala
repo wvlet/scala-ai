@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Promise}
   */
 class RxQueue[A]() extends RxSource[A] with LogSupport:
   private implicit val ec: ExecutionContext = compat.defaultExecutionContext
-  override def parents: Seq[Rx[_]]          = Seq.empty
+  override def parents: Seq[Rx[?]]          = Seq.empty
 
   private var queue                             = scala.collection.immutable.Queue.empty[RxEvent]
   private var waiting: Option[Promise[RxEvent]] = None

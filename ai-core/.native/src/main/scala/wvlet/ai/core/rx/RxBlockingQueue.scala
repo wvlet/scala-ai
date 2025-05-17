@@ -19,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue
   * Blocking queue implementation for supporting gRPC streaming with Rx
   */
 class RxBlockingQueue[A] extends RxSource[A]:
-  override def parents: Seq[Rx[_]] = Seq.empty
+  override def parents: Seq[Rx[?]] = Seq.empty
 
   private val blockingQueue = new LinkedBlockingQueue[RxEvent]()
 

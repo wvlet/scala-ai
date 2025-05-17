@@ -159,7 +159,7 @@ trait RxOptionCache[A] extends RxOption[A]:
   def withTicker(ticker: Ticker): RxOptionCache[A]
 
 case class RxOptionOp[+A](override protected val in: Rx[Option[A]]) extends RxOption[A]:
-  override def parents: Seq[Rx[_]] = Seq(in)
+  override def parents: Seq[Rx[?]] = Seq(in)
 
 /**
   * RxVar implementation for Option[A] type values
@@ -168,7 +168,7 @@ case class RxOptionOp[+A](override protected val in: Rx[Option[A]]) extends RxOp
 class RxOptionVar[A](variable: RxVar[Option[A]]) extends RxOption[A] with RxVarOps[Option[A]]:
   override def toString: String            = s"RxOptionVar(${variable.get})"
   override protected def in: Rx[Option[A]] = variable
-  override def parents: Seq[RxOps[_]]      = Seq(in)
+  override def parents: Seq[RxOps[?]]      = Seq(in)
 
   override def get: Option[A]                                    = variable.get
   override def foreach[U](f: Option[A] => U): Cancelable         = variable.foreach(f)
@@ -183,7 +183,7 @@ class RxOptionVar[A](variable: RxVar[Option[A]]) extends RxOption[A] with RxVarO
 case class RxOptionCacheOp[A](input: RxCache[Option[A]]) extends RxOptionCache[A]:
   override def getCurrent: Option[A]       = input.getCurrent.flatten
   override protected def in: Rx[Option[A]] = input.toRx
-  override def parents: Seq[RxOps[_]]      = input.parents
+  override def parents: Seq[RxOps[?]]      = input.parents
 
   override def expireAfterWrite(time: Long, unit: TimeUnit): RxOptionCache[A] = this.copy(input =
     input.expireAfterWrite(time, unit)

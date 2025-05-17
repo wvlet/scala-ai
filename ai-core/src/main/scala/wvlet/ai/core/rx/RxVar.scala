@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
   */
 class RxVar[A](private var currentValue: A) extends Rx[A] with RxVarOps[A]:
   override def toString: String                        = s"RxVar(${currentValue})"
-  override def parents: Seq[Rx[_]]                     = Seq.empty
+  override def parents: Seq[Rx[?]]                     = Seq.empty
   private val subscribers: ArrayBuffer[RxEvent => Any] = ArrayBuffer.empty
 
   override def toOption[X, A1 >: A](implicit ev: A1 <:< Option[X]): RxOptionVar[X] =

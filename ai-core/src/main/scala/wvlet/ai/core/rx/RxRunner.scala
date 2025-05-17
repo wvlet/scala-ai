@@ -114,7 +114,7 @@ class RxRunner(
           run(fm.input) {
             case OnNext(x) =>
               var toContinue: RxResult = RxResult.Continue
-              Try(fm.f.asInstanceOf[Function[Any, RxOps[_]]](x)) match
+              Try(fm.f.asInstanceOf[Function[Any, RxOps[?]]](x)) match
                 case Success(rxb) =>
                   // This code is necessary to properly cancel the effect if this operator is evaluated before
                   c1.cancel
@@ -157,7 +157,7 @@ class RxRunner(
               effect(other)
         }
       case TransformOp(in, f) =>
-        val tryFunc = f.asInstanceOf[Try[_] => _]
+        val tryFunc = f.asInstanceOf[Try[?] => ?]
         run(in) { ev =>
           ev match
             case OnNext(x) =>
@@ -176,7 +176,7 @@ class RxRunner(
               effect(other)
         }
       case TransformTryOp(in, f) =>
-        val tryFunc = f.asInstanceOf[Try[_] => Try[_]]
+        val tryFunc = f.asInstanceOf[Try[?] => Try[?]]
         run(in) { ev =>
           ev match
             case OnNext(x) =>
@@ -195,8 +195,8 @@ class RxRunner(
               effect(other)
         }
       case TransformRxOp(in, f) =>
-        val tryFunc = f.asInstanceOf[Try[_] => RxOps[_]]
-        // A place holder for properly cancel the subscription against the result of Try[_] => Rx[_]
+        val tryFunc = f.asInstanceOf[Try[?] => RxOps[?]]
+        // A place holder for properly cancel the subscription against the result of Try[?] => Rx[?]
         var c1: Cancelable = Cancelable.empty
 
         def evalRx(rxb: RxOps[?]): RxResult =
@@ -212,7 +212,7 @@ class RxRunner(
             }
           RxResult.Continue
 
-        // Call f: Try[_] => Rx[_] using the input
+        // Call f: Try[?] => Rx[?] using the input
         val c2: Cancelable =
           run(in) {
             case OnNext(x) =>
@@ -475,7 +475,7 @@ class RxRunner(
           c2.cancel
         }
       case TapOnOp(in, f) =>
-        val f0 = f.asInstanceOf[PartialFunction[Try[_], Unit]]
+        val f0 = f.asInstanceOf[PartialFunction[Try[?], Unit]]
         run(in) { ev =>
           ev match
             case OnNext(v) =>

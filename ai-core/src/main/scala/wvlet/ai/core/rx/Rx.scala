@@ -15,6 +15,8 @@ package wvlet.ai.core.rx
 
 import java.util.concurrent.TimeUnit
 import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.util.LazyF0
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
@@ -27,7 +29,7 @@ trait RxOps[+A]:
   self =>
   import Rx.*
 
-  def parents: Seq[RxOps[_]]
+  def parents: Seq[RxOps[?]]
 
   def toRx: Rx[A]
 
@@ -649,7 +651,7 @@ object Rx extends LogSupport:
   def empty[A]: Rx[A]                = fromSeq(Seq.empty)
 
   @deprecated(message = "Use Rx.variable instead", since = "20.9.2")
-  def apply[A](v: A): RxVar[A]                        = variable(v)
+  def apply[A](v: A): RxVar[A] = variable(v)
 
   def variable[A](v: A): RxVar[A]                     = new RxVar(v)
   def optionVariable[A](v: Option[A]): RxOptionVar[A] = variable(v).toOption
@@ -847,7 +849,7 @@ object Rx extends LogSupport:
     */
   def delay(interval: Long, unit: TimeUnit): Rx[Long] = timer(interval, unit)
 
-  private def futureToRx[A](f: Future[A])(implicit ec: ExecutionContext): RxVar[Option[A]] =
+  private def futureToRx[A](f: Future[A])(using ec: ExecutionContext): RxVar[Option[A]] =
     val v = Rx.variable[Option[A]](None)
     f.foreach { x =>
       v := Some(x)
@@ -869,54 +871,53 @@ object Rx extends LogSupport:
     * response. For example, while this returns None, you can render an icon that represents loading
     * state.
     */
-  def fromFuture[A](f: Future[A])(implicit ec: ExecutionContext): RxOption[A] =
-    futureToRx(f)(ec).toOption
+  def fromFuture[A](f: Future[A])(using ec: ExecutionContext): RxOption[A] = futureToRx(f).toOption
 
   /**
     * Mapping a Scala Future into Rx that emits a value when the future is completed.
     */
-  def future[A](f: Future[A])(implicit ec: ExecutionContext): Rx[A] =
-    val v = futureToRx(f)(ec)
+  def future[A](f: Future[A])(using ec: ExecutionContext): Rx[A] =
+    val v = futureToRx(f)
     v.filter(_.isDefined).map(_.get)
 
   abstract class UnaryRx[I, A] extends Rx[A]:
     def input: RxOps[I]
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class SingleOp[A](v: LazyF0[A]) extends Rx[A]:
-    override def parents: Seq[RxOps[_]] = Seq.empty
+    override def parents: Seq[RxOps[?]] = Seq.empty
 
   case class SeqOp[A](lst: LazyF0[Seq[A]]) extends Rx[A]:
-    override def parents: Seq[RxOps[_]] = Seq.empty
+    override def parents: Seq[RxOps[?]] = Seq.empty
 
   case class TryOp[A](v: LazyF0[Try[A]]) extends Rx[A]:
-    override def parents: Seq[RxOps[_]] = Seq.empty
+    override def parents: Seq[RxOps[?]] = Seq.empty
 
   case class TransformRxOp[A, B](input: Rx[A], f: Try[A] => RxOps[B]) extends Rx[B]:
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class TransformOp[A, B](input: Rx[A], f: Try[A] => B) extends Rx[B]:
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class TransformTryOp[A, B](input: Rx[A], f: Try[A] => Try[B]) extends Rx[B]:
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class MapOp[A, B](input: Rx[A], f: A => B)            extends UnaryRx[A, B]
   case class FlatMapOp[A, B](input: Rx[A], f: A => RxOps[B]) extends UnaryRx[A, B]
   case class FilterOp[A](input: Rx[A], cond: A => Boolean)   extends UnaryRx[A, A]
   case class ZipOp[A, B](a: RxOps[A], b: RxOps[B]) extends Rx[(A, B)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b)
+    override def parents: Seq[RxOps[?]] = Seq(a, b)
 
   case class Zip3Op[A, B, C](a: RxOps[A], b: RxOps[B], c: RxOps[C]) extends Rx[(A, B, C)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c)
 
   case class Zip4Op[A, B, C, D](a: RxOps[A], b: RxOps[B], c: RxOps[C], d: RxOps[D])
       extends Rx[(A, B, C, D)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d)
 
   case class Zip5Op[A, B, C, D, E](a: RxOps[A], b: RxOps[B], c: RxOps[C], d: RxOps[D], e: RxOps[E])
       extends Rx[(A, B, C, D, E)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e)
 
   case class Zip6Op[A, B, C, D, E, F](
       a: RxOps[A],
@@ -926,7 +927,7 @@ object Rx extends LogSupport:
       e: RxOps[E],
       f: RxOps[F]
   ) extends Rx[(A, B, C, D, E, F)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f)
 
   case class Zip7Op[A, B, C, D, E, F, G](
       a: RxOps[A],
@@ -937,7 +938,7 @@ object Rx extends LogSupport:
       f: RxOps[F],
       g: RxOps[G]
   ) extends Rx[(A, B, C, D, E, F, G)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g)
 
   case class Zip8Op[A, B, C, D, E, F, G, H](
       a: RxOps[A],
@@ -949,7 +950,7 @@ object Rx extends LogSupport:
       g: RxOps[G],
       h: RxOps[H]
   ) extends Rx[(A, B, C, D, E, F, G, H)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h)
 
   case class Zip9Op[A, B, C, D, E, F, G, H, I](
       a: RxOps[A],
@@ -962,7 +963,7 @@ object Rx extends LogSupport:
       h: RxOps[H],
       i: RxOps[I]
   ) extends Rx[(A, B, C, D, E, F, G, H, I)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h, i)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h, i)
 
   case class Zip10Op[A, B, C, D, E, F, G, H, I, J](
       a: RxOps[A],
@@ -976,21 +977,21 @@ object Rx extends LogSupport:
       i: RxOps[I],
       j: RxOps[J]
   ) extends Rx[(A, B, C, D, E, F, G, H, I, J)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h, i, j)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h, i, j)
 
   case class JoinOp[A, B](a: RxOps[A], b: RxOps[B]) extends Rx[(A, B)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b)
+    override def parents: Seq[RxOps[?]] = Seq(a, b)
 
   case class Join3Op[A, B, C](a: RxOps[A], b: RxOps[B], c: RxOps[C]) extends Rx[(A, B, C)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c)
 
   case class Join4Op[A, B, C, D](a: RxOps[A], b: RxOps[B], c: RxOps[C], d: RxOps[D])
       extends Rx[(A, B, C, D)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d)
 
   case class Join5Op[A, B, C, D, E](a: RxOps[A], b: RxOps[B], c: RxOps[C], d: RxOps[D], e: RxOps[E])
       extends Rx[(A, B, C, D, E)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e)
 
   case class Join6Op[A, B, C, D, E, F](
       a: RxOps[A],
@@ -1000,7 +1001,7 @@ object Rx extends LogSupport:
       e: RxOps[E],
       f: RxOps[F]
   ) extends Rx[(A, B, C, D, E, F)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f)
 
   case class Join7Op[A, B, C, D, E, F, G](
       a: RxOps[A],
@@ -1011,7 +1012,7 @@ object Rx extends LogSupport:
       f: RxOps[F],
       g: RxOps[G]
   ) extends Rx[(A, B, C, D, E, F, G)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g)
 
   case class Join8Op[A, B, C, D, E, F, G, H](
       a: RxOps[A],
@@ -1023,7 +1024,7 @@ object Rx extends LogSupport:
       g: RxOps[G],
       h: RxOps[H]
   ) extends Rx[(A, B, C, D, E, F, G, H)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h)
 
   case class Join9Op[A, B, C, D, E, F, G, H, I](
       a: RxOps[A],
@@ -1036,7 +1037,7 @@ object Rx extends LogSupport:
       h: RxOps[H],
       i: RxOps[I]
   ) extends Rx[(A, B, C, D, E, F, G, H, I)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h, i)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h, i)
 
   case class Join10Op[A, B, C, D, E, F, G, H, I, J](
       a: RxOps[A],
@@ -1050,13 +1051,13 @@ object Rx extends LogSupport:
       i: RxOps[I],
       j: RxOps[J]
   ) extends Rx[(A, B, C, D, E, F, G, H, I, J)]:
-    override def parents: Seq[RxOps[_]] = Seq(a, b, c, d, e, f, g, h, i, j)
+    override def parents: Seq[RxOps[?]] = Seq(a, b, c, d, e, f, g, h, i, j)
 
   case class ConcatOp[A](first: RxOps[A], next: RxOps[A]) extends Rx[A]:
-    override def parents: Seq[RxOps[_]] = Seq(first, next)
+    override def parents: Seq[RxOps[?]] = Seq(first, next)
 
   case class LastOp[A](input: RxOps[A]) extends Rx[Option[A]]:
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class NamedOp[A](input: RxOps[A], name: String) extends UnaryRx[A, A]:
     override def toString: String = s"${name}:${input}"
@@ -1070,13 +1071,13 @@ object Rx extends LogSupport:
   case class TapOnOp[A](input: RxOps[A], f: PartialFunction[Try[A], Unit]) extends UnaryRx[A, A]
 
   case class IntervalOp(interval: Long, unit: TimeUnit) extends Rx[Long]:
-    override def parents: Seq[RxOps[_]] = Seq.empty
+    override def parents: Seq[RxOps[?]] = Seq.empty
 
   case class TimerOp(interval: Long, unit: TimeUnit) extends Rx[Long]:
-    override def parents: Seq[RxOps[_]] = Seq.empty
+    override def parents: Seq[RxOps[?]] = Seq.empty
 
   case class TakeOp[A](input: RxOps[A], n: Long) extends Rx[A]:
-    override def parents: Seq[RxOps[_]] = Seq(input)
+    override def parents: Seq[RxOps[?]] = Seq(input)
 
   case class ThrottleFirstOp[A](input: RxOps[A], interval: Long, unit: TimeUnit)
       extends UnaryRx[A, A]
