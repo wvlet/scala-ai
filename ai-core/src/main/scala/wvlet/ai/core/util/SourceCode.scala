@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util
+package wvlet.ai.core.util
 
 /**
   * A helper to find the source code location, it is used for tracking the log location, design

@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.ulid
+package wvlet.ai.core.ulid
 
+import java.security.{NoSuchAlgorithmException, SecureRandom}
 import scala.util.Random
 
 /**
@@ -20,12 +21,9 @@ import scala.util.Random
 object compat:
   val random: Random =
     try
-      // When 'crypto' module is available
-      new scala.util.Random(new java.security.SecureRandom())
+      SecureRandom.getInstanceStrong
     catch
-      case _: Throwable =>
-        scala.util.Random
+      case _: NoSuchAlgorithmException =>
+        Random
 
-  def sleep(millis: Int): Unit = {
-    // no-op as Scala.js has no sleep
-  }
+  def sleep(millis: Int): Unit = Thread.sleep(millis)

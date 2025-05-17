@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 import wvlet.airspec.AirSpec
 
 class SourceCodeTest extends AirSpec:

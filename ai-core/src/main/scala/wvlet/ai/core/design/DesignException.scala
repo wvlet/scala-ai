@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.surface.Surface
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 
 enum DesignErrorCode:
   case CYCLIC_DEPENDENCY  extends DesignErrorCode

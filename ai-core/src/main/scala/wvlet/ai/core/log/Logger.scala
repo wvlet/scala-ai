@@ -14,7 +14,7 @@
 package wvlet.ai.core.log
 
 import wvlet.ai.core
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Properties, logging as jl}

@@ -17,7 +17,7 @@ import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.surface.Surface
 import Binder.Binding
 import DesignOptions.*
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 
 /**
   * Immutable airframe design.

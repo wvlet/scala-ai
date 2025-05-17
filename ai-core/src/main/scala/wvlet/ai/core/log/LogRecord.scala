@@ -13,8 +13,7 @@
  */
 package wvlet.ai.core.log
 
-import wvlet.ai.util.SourceCode
-
+import wvlet.ai.core.util.SourceCode
 import java.util.logging as jl
 
 object LogRecord:

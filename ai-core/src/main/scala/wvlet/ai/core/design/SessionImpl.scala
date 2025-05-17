@@ -17,7 +17,7 @@ import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.surface.Surface
 import java.util.concurrent.ConcurrentHashMap
 import Binder.*
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Try

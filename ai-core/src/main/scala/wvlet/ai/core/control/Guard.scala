@@ -1,3 +1,5 @@
+package wvlet.ai.core.control
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.ulid
-
-import wvlet.airspec.AirSpec
-import wvlet.airspec.spi.PropertyCheck
+import java.util.concurrent.locks.ReentrantLock
 
 /**
   */
-class CrockfordBase32Test extends AirSpec with PropertyCheck:
-  test("Encode long pairs") {
-    forAll { (hi: Long, low: Long) =>
-      val encoded       = CrockfordBase32.encode128bits(hi, low)
-      val (hi_d, low_d) = CrockfordBase32.decode128bits(encoded)
-      debug(s"${hi}, ${low}, ${encoded}, ${hi_d}, ${low_d}")
-      (hi, low) shouldBe (hi_d, low_d)
-    }
-  }
+trait Guard:
+  private val lock           = new ReentrantLock()
+  protected def newCondition = lock.newCondition()
+
+  def guard[U](body: => U): U =
+    lock.lockInterruptibly()
+    try body
+    finally lock.unlock()

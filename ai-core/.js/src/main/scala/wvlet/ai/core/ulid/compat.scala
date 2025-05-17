@@ -1,5 +1,3 @@
-package wvlet.ai.util.control
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +11,21 @@ package wvlet.ai.util.control
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.util.concurrent.locks.ReentrantLock
+package wvlet.ai.core.ulid
+
+import scala.util.Random
 
 /**
   */
-trait Guard:
-  private val lock           = new ReentrantLock()
-  protected def newCondition = lock.newCondition()
+object compat:
+  val random: Random =
+    try
+      // When 'crypto' module is available
+      new scala.util.Random(new java.security.SecureRandom())
+    catch
+      case _: Throwable =>
+        scala.util.Random
 
-  def guard[U](body: => U): U =
-    lock.lockInterruptibly()
-    try body
-    finally lock.unlock()
+  def sleep(millis: Int): Unit = {
+    // no-op as Scala.js has no sleep
+  }

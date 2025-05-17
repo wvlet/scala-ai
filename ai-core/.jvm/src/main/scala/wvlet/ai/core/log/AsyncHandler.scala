@@ -1,6 +1,6 @@
 package wvlet.ai.core.log
 
-import wvlet.ai.util.control.{Guard, ThreadUtil}
+import wvlet.ai.core.control.{Guard, ThreadUtil}
 
 import java.io.Flushable
 import java.util

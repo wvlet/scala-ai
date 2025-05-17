@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.ulid
+package wvlet.ai.core.ulid
 
+import wvlet.ai.core.ulid.{CrockfordBase32, ULID}
 import wvlet.airspec.AirSpec
 import wvlet.airspec.spi.PropertyCheck
 

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.util.ulid
+package wvlet.ai.core.ulid
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit

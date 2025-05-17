@@ -1,5 +1,6 @@
-package wvlet.ai.util
+package wvlet.ai.core.util
 
+import wvlet.ai.core.util.SourceCode
 import wvlet.airspec.AirSpec
 
 class SourceCodeTest extends AirSpec:

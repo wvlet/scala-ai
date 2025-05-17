@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.log
 
-import wvlet.ai.util.SourceCode
+import wvlet.ai.core.util.SourceCode
 
 trait LoggerBase:
   self: Logger =>
