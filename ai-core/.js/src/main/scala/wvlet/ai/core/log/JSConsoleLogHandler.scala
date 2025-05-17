@@ -1,8 +1,9 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
+
+import wvlet.ai.core.log.{LogLevel, LogRecord}
 
 import java.util.logging as jl
-
-import wvlet.ai.log.JSConsoleLogHandler.JSLogColorPalette
+import JSConsoleLogHandler.JSLogColorPalette
 
 import scala.scalajs.js.Dynamic.global
 

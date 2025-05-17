@@ -1,4 +1,4 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
 
 import java.time.format.{DateTimeFormatterBuilder, SignStyle}
 import java.time.{Instant, ZoneId, ZonedDateTime}

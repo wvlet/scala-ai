@@ -1,4 +1,4 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
 
 import java.io.PrintStream
 

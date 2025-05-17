@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.log
+package wvlet.ai.core.log
 
 import ch.qos.logback.core.ContextBase
 import ch.qos.logback.core.encoder.EncoderBase
@@ -21,8 +21,8 @@ import ch.qos.logback.core.rolling.{
   TimeBasedRollingPolicy
 }
 import ch.qos.logback.core.util.FileSize
-import wvlet.ai.log.LogFormatter
-import wvlet.ai.log.LogFormatter.AppLogFormatter
+import wvlet.ai.core.log.LogFormatter
+import LogFormatter.AppLogFormatter
 
 import java.io.{File, Flushable}
 import java.nio.charset.StandardCharsets

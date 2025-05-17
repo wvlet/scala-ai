@@ -1,4 +1,6 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
+
+import wvlet.ai.core.log.{LogLevel, Logger}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 

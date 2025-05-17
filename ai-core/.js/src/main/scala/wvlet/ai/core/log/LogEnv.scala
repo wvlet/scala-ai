@@ -1,4 +1,6 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
+
+import wvlet.ai.core.log.{LogEnvBase, LogLevel}
 
 import java.io.PrintStream
 

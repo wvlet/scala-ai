@@ -1,5 +1,6 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
 
+import wvlet.ai.core.log.{LogLevel, Logger}
 import wvlet.airspec.AirSpec
 
 import java.util.logging

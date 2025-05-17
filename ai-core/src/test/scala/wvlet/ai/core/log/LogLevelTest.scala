@@ -1,6 +1,8 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
 
+import wvlet.ai.core.log.LogLevel
 import wvlet.airspec.AirSpec
+
 import java.util.logging.Level as JLevel
 
 class LogLevelTest extends AirSpec:

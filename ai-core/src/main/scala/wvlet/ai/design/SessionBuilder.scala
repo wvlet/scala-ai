@@ -13,6 +13,7 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import wvlet.ai.design.{
   AddShutdownHook,
   LifeCycleEventHandler,
@@ -20,7 +21,6 @@ import wvlet.ai.design.{
   ShowDebugLifeCycleLog,
   ShowLifeCycleLog
 }
-import wvlet.ai.log.LogSupport
 
 enum Stage:
   /**

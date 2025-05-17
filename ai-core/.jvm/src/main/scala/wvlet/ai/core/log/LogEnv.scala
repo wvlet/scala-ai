@@ -1,7 +1,7 @@
-package wvlet.ai.log
+package wvlet.ai.core.log
 
-import wvlet.ai.log.LogFormatter.SourceCodeLogFormatter
-import wvlet.ai.log.{ConsoleLogHandler, LogEnvBase, LogLevel}
+import wvlet.ai.core.log.{ConsoleLogHandler, LogEnvBase, LogLevel}
+import wvlet.ai.core.log.LogFormatter.SourceCodeLogFormatter
 
 import java.io.PrintStream
 

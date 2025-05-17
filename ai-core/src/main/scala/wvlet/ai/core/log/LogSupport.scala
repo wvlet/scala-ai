@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.log
+package wvlet.ai.core.log
 
 /**
   * Trait for adding logging methods (error, warn, info, debug and trace) to your class

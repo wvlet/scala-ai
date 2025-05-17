@@ -13,11 +13,11 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import java.util.concurrent.ConcurrentHashMap
 import wvlet.ai.design.Binder.*
 import wvlet.ai.design.{CloseHook, EventHookHolder, Injectee, LifeCycleManager}
 import wvlet.ai.surface.Surface
-import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
 
 import scala.jdk.CollectionConverters.*

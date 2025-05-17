@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import wvlet.ai.design.LifeCycleHookType.*
-import wvlet.ai.log.LogSupport
 import wvlet.ai.util.SourceCode
 import wvlet.ai.surface.Surface
 

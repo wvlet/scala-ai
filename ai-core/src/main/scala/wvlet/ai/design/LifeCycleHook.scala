@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import wvlet.ai.design.{EventHookHolder, Injectee, LifeCycleHook}
-import wvlet.ai.log.LogSupport
 import wvlet.ai.surface.Surface
 
 class Injectee(val surface: Surface, val injectee: Any):

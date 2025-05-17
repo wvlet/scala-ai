@@ -13,10 +13,10 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.{LogSupport, Logger}
 import wvlet.ai.design.LifeCycleHookType.*
 import wvlet.ai.design.LifeCycleStage.*
 import wvlet.ai.design.{Session, SessionImpl, Tracer}
-import wvlet.ai.log.{LogSupport, Logger}
 import wvlet.ai.surface.Surface
 
 import java.util.concurrent.atomic.AtomicReference

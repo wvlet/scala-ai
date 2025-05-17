@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.log
+package wvlet.ai.core.log
 
+import wvlet.ai.core
 import wvlet.ai.util.SourceCode
 
 import java.util.concurrent.ConcurrentHashMap
@@ -111,11 +112,11 @@ class Logger(
     _log.log(record)
 
   def log(level: LogLevel, source: SourceCode, message: Any): Unit = log(
-    wvlet.ai.log.LogRecord(level, source, formatLog(message))
+    core.log.LogRecord(level, source, formatLog(message))
   )
 
   def logWithCause(level: LogLevel, source: SourceCode, message: Any, cause: Throwable): Unit = log(
-    wvlet.ai.log.LogRecord(level, source, formatLog(message), cause)
+    core.log.LogRecord(level, source, formatLog(message), cause)
   )
 
   protected def formatLog(message: Any): String =

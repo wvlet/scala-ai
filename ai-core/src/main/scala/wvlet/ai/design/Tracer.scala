@@ -13,10 +13,10 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import wvlet.ai.design.Session
 import wvlet.ai.design.Injectee
 import wvlet.ai.design.TraceEvent.*
-import wvlet.ai.log.LogSupport
 import wvlet.ai.surface.Surface
 
 /**

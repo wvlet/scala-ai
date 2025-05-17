@@ -14,8 +14,7 @@
 
 package wvlet.ai.surface
 
-import wvlet.ai.log.LogSupport
-
+import wvlet.ai.core.log.LogSupport
 import java.util.concurrent.ConcurrentHashMap
 import scala.reflect.ClassTag
 

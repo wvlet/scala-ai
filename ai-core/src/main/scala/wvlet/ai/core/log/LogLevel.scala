@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.log
+package wvlet.ai.core.log
 
 import java.util.logging.Level
 

@@ -11,10 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.log
+package wvlet.ai.core.log
+
+import wvlet.ai.core.log.{ConsoleLogHandler, LogEnvBase, LogLevel}
 
 import java.io.PrintStream
-import wvlet.ai.log.LogFormatter.SourceCodeLogFormatter
+import wvlet.ai.core.log.LogFormatter.SourceCodeLogFormatter
 
 private[log] object LogEnv extends LogEnvBase:
   override def isScalaJS: Boolean        = false

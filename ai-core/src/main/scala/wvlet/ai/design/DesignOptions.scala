@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.log.LogSupport
 import wvlet.ai.surface.Surface
-import wvlet.ai.log.LogSupport
 
 /**
   * Design configs
