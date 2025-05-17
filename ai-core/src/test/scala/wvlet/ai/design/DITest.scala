@@ -1,9 +1,9 @@
 package wvlet.ai.design
 
+import wvlet.ai.core.surface.{Primitive, Surface}
 import wvlet.ai.design.Design
 import wvlet.ai.design.DesignErrorCode.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.ai.design.{LifeCycleEventHandler, LifeCycleManager}
-import wvlet.ai.surface.{Primitive, Surface}
 import wvlet.airspec.AirSpec
 import wvlet.log.LogSupport
 

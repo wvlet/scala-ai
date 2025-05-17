@@ -13,7 +13,7 @@
  */
 package wvlet.ai.design
 
-import wvlet.ai.surface.Surface
+import wvlet.ai.core.surface.Surface
 
 /**
   */

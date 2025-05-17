@@ -14,8 +14,8 @@
 package wvlet.ai.design
 
 import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.surface.Surface
 import wvlet.ai.design.{Design, Session}
-import wvlet.ai.surface.Surface
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong

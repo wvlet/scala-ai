@@ -14,7 +14,7 @@
 package wvlet.ai.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.surface.Surface
+import wvlet.ai.core.surface.Surface
 
 /**
   * Design configs

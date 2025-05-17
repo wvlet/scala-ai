@@ -14,10 +14,10 @@
 package wvlet.ai.design
 
 import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.surface.Surface
 import wvlet.ai.design.Binder.Binding
 import wvlet.ai.design.DesignOptions.*
 import wvlet.ai.design.LifeCycleHookType
-import wvlet.ai.surface.Surface
 import wvlet.ai.util.SourceCode
 
 /**

@@ -13,8 +13,8 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.surface.Surface
 import wvlet.ai.design.LifeCycleManager
-import wvlet.ai.surface.Surface
 import wvlet.ai.util.SourceCode
 
 /**

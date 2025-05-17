@@ -13,9 +13,9 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.surface.Surface
 import wvlet.ai.design.Session
 import wvlet.ai.design.Injectee
-import wvlet.ai.surface.Surface
 
 /**
   * Tracing event

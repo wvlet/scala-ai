@@ -14,10 +14,10 @@
 package wvlet.ai.design
 
 import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.surface.Surface
 import wvlet.ai.design.Session
 import wvlet.ai.design.Injectee
 import wvlet.ai.design.TraceEvent.*
-import wvlet.ai.surface.Surface
 
 /**
   * A base Tracer implementation for tracking DI events

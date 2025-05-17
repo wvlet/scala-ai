@@ -13,9 +13,9 @@
  */
 package wvlet.ai.design
 
+import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.surface.tag.*
 import wvlet.ai.design.Design
-import wvlet.ai.surface.Surface
-import wvlet.ai.surface.tag.*
 import wvlet.airspec.AirSpec
 
 /**
