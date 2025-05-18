@@ -67,7 +67,7 @@ case class DataSize(value: Double, unit: DataSizeUnit) extends Comparable[DataSi
     )
     rounded.toLong
 
-  override def compareTo(o: DataSize) = valueOf(BYTE).compareTo(o.valueOf(BYTE))
+  override def compareTo(other: DataSize) = valueOf(BYTE).compareTo(other.valueOf(BYTE))
 
 end DataSize
 
@@ -109,7 +109,10 @@ object DataSize:
           case Success(l) =>
             DataSize(l)
           case Failure(e) =>
-            throw new IllegalArgumentException(s"Invalid data size string: ${dataSizeStr}")
+            throw new IllegalArgumentException(
+              s"Invalid data size string ${dataSizeStr}: ${e.getMessage}",
+              e
+            )
       case Some(m) =>
         val num  = m.group("num").toDouble
         val unit = m.group("unit")

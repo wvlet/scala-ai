@@ -96,7 +96,10 @@ object Count:
               case Success(d) =>
                 Count(d.toLong)
               case Failure(e) =>
-                throw new IllegalArgumentException(s"Invalid count string: ${countStr}")
+                throw new IllegalArgumentException(
+                  s"Invalid count string ${countStr}: ${e.getMessage}",
+                  e
+                )
       case Some(m) =>
         val num  = m.group("num").replaceAll(",", "").toDouble
         val unit = m.group("unit")

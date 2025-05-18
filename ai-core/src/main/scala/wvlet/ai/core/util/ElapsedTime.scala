@@ -55,7 +55,7 @@ object ElapsedTime:
 
   def units = List(NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS)
 
-  private val PATTERN = Pattern.compile("^\\s*(\\d+(?:\\.\\d+)?)\\s*([a-zA-Z]+)\\s*$")
+  private val strReprPattern = Pattern.compile("^\\s*(\\d+(?:\\.\\d+)?)\\s*([a-zA-Z]+)\\s*$")
 
   def nanosSince(start: Long): ElapsedTime    = succinctNanos(System.nanoTime - start)
   def succinctNanos(nanos: Long): ElapsedTime = succinctDuration(nanos.toDouble, NANOSECONDS)
@@ -68,9 +68,11 @@ object ElapsedTime:
   def apply(elapsedTimeStr: String): ElapsedTime = parse(elapsedTimeStr)
 
   def parse(s: String): ElapsedTime =
-    val m = PATTERN.matcher(s)
+    val m = strReprPattern.matcher(s)
     if !m.matches() then
-      throw new IllegalArgumentException(s"${s} is not a valid duration string")
+      throw new IllegalArgumentException(
+        s"${s} is not a valid duration string. Expected format: '<number><unit>', e.g., 5ms, 2.5h, 1d"
+      )
     val value      = m.group(1).toDouble
     val unitString = m.group(2)
     ElapsedTime(value, valueOfTimeUnit(unitString))

@@ -88,7 +88,7 @@ class DataSizeTest extends AirSpec:
       )
   }
 
-  test("be reprsented as bytes") {
+  test("be represented as bytes") {
     "1".toDataSize.toBytes shouldBe 1L
     "1B".toDataSize.toBytes shouldBe 1L
     "1kB".toDataSize.toBytes shouldBe 1L * 1024
