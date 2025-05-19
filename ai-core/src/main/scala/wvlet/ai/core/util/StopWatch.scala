@@ -90,7 +90,7 @@ import scala.collection.mutable.LinkedHashMap
 trait Timer extends Serializable:
   import scala.jdk.CollectionConverters.*
   @transient
-  private[this] val holder =
+  private val holder =
     new ThreadLocal[util.ArrayDeque[TimeReport]]:
       override def initialValue() = new util.ArrayDeque[TimeReport]()
 

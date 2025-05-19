@@ -10,3 +10,10 @@ class WeaverTest extends AirSpec:
     val v2      = ObjectWeaver.unweave(msgpack)
     v shouldBe v2
   }
+
+  test("toJson") {
+    val v    = 1
+    val json = ObjectWeaver.toJson(1)
+    val v2   = ObjectWeaver.fromJson(json)
+    v shouldBe v2
+  }
