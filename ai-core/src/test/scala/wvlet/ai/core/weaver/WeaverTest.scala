@@ -12,8 +12,8 @@ class WeaverTest extends AirSpec:
   }
 
   test("toJson") {
-    val v    = 1
-    val json = ObjectWeaver.toJson(1)
+    val v       = 1
+    val json    = ObjectWeaver.toJson(1)
     val v2: Int = ObjectWeaver.fromJson[Int](json)
     v shouldBe v2
   }
