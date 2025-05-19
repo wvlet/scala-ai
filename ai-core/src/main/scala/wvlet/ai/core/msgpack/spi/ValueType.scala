@@ -13,22 +13,17 @@
  */
 package wvlet.ai.core.msgpack.spi;
 
-sealed abstract class ValueType(val isNumber: Boolean, val isRaw: Boolean):
+enum ValueType(val isNumber: Boolean, val isRaw: Boolean):
   def name: String = toString
-
-/**
-  * Representation of MessagePack value types.
-  */
-object ValueType:
-  case object NIL       extends ValueType(false, false)
-  case object BOOLEAN   extends ValueType(false, false)
-  case object INTEGER   extends ValueType(true, false)
-  case object FLOAT     extends ValueType(true, false)
-  case object STRING    extends ValueType(false, true)
-  case object BINARY    extends ValueType(false, true)
-  case object ARRAY     extends ValueType(false, false)
-  case object MAP       extends ValueType(false, false)
-  case object EXTENSION extends ValueType(false, false)
+  case NIL       extends ValueType(false, false)
+  case BOOLEAN   extends ValueType(false, false)
+  case INTEGER   extends ValueType(true, false)
+  case FLOAT     extends ValueType(true, false)
+  case STRING    extends ValueType(false, true)
+  case BINARY    extends ValueType(false, true)
+  case ARRAY     extends ValueType(false, false)
+  case MAP       extends ValueType(false, false)
+  case EXTENSION extends ValueType(false, false)
 
   // abstract class ExtValueType
   // Timestamp value should be reported as a first-class value?
@@ -36,5 +31,5 @@ object ValueType:
 
 //  sealed trait ExtValueType
 //  object Ext {
-//    case object TIMESTAMP extends ExtValueType
+//    case TIMESTAMP extends ExtValueType
 //  }
