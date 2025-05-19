@@ -11,7 +11,7 @@ jobs:
         uses: actions/create-github-app-token@v2
         id: app-token
         with:
-          app-id: ${{ vars.APP_ID }}
+          app-id: ${{ vars.APP_INSTALLATION_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Dependabot metadata
         id: metadata
@@ -31,7 +31,7 @@ jobs:
         uses: actions/create-github-app-token@v2
         id: app-token
         with:
-          app-id: ${{ vars.APP_ID }}
+          app-id: ${{ vars.APP_INSTALLATION_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Enable auto-merge PR for minor updates
         if: ${{ ! contains(github.event.issue.labels.*.name, 'semver-spec-major') }}
