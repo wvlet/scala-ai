@@ -1,7 +1,6 @@
 package wvlet.ai.core.log
 
 import wvlet.ai.core.control.{Guard, ThreadUtil}
-
 import java.io.Flushable
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean

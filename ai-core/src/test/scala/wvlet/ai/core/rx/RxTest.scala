@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.rx
 
-import wvlet.airframe.Design
+import wvlet.ai.core.design.Design
 import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
