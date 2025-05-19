@@ -43,7 +43,7 @@ object JSONWeaver extends ObjectWeaver[String]:
       case JSONArray(arr) =>
         val len = arr.size
         p.packArrayHeader(len)
-        arr.map {
+        arr.foreach {
           packJsonValue(p, _, config)
         }
       case JSONString(s) =>
