@@ -21,19 +21,8 @@ import wvlet.airspec.AirSpec
 class ValueTypeTest extends AirSpec:
 
   test("have name") {
-    val vt = Seq(
-      ValueType.NIL,
-      ValueType.BOOLEAN,
-      ValueType.INTEGER,
-      ValueType.FLOAT,
-      ValueType.STRING,
-      ValueType.BINARY,
-      ValueType.ARRAY,
-      ValueType.MAP,
-      ValueType.EXTENSION
-    )
-    for v <- vt do
-      v.name shouldBe v.getClass.getSimpleName.replaceAll("\\$", "")
+    for v <- ValueType.values do
+      v.name shouldBe v.toString
   }
 
   test("lookup ValueType from a byte value") {

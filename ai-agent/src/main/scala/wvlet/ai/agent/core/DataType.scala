@@ -24,7 +24,7 @@ object DataType:
     override def jsonType: String = "string"
 
   case object JsonType extends DataType:
-    override def jsonType: String = "json"
+    override def jsonType: String = "object"
 
   case object IntegerType extends DataType:
     override def jsonType: String = "integer"
