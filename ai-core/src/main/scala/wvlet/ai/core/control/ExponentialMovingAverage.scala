@@ -39,7 +39,10 @@ private[control] class ExponentialMovingAverage(windowSize: Long):
       x
     else
       val td = timeStamp - time
-      assert(td >= 0, "Nonmonotonic timestamp")
+      if td < 0 then
+        throw new IllegalArgumentException(
+          s"Time must be monotonic. Previous time: ${time}, new time: ${timeStamp}"
+        )
       time = timeStamp
       val w =
         if windowSize == 0.0 then

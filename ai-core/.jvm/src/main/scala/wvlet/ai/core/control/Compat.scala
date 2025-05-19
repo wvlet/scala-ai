@@ -15,8 +15,10 @@ package wvlet.ai.core.control
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
+  * Compat object provides compatibility functions for thread operations.
   */
 object Compat:
   def sleep(millis: Long): Unit = Thread.sleep(millis)

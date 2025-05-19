@@ -17,6 +17,7 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
+  * Compatibility layer for Scala Native
   */
 object Compat:
   def sleep(millis: Long): Unit = Thread.sleep(millis)
