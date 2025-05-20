@@ -139,7 +139,7 @@ lazy val bedrock = project
         "org.slf4j" % "slf4j-jdk14" % "2.0.17",
         // Add langchain4j as a reference implementation
         "dev.langchain4j" % "langchain4j"         % "1.0.0"       % Test,
-        "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta5" % Test
+        "dev.langchain4j" % "langchain4j-bedrock" % "1.0.1-beta6" % Test
       )
   )
   .dependsOn(agent)
