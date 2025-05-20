@@ -13,6 +13,7 @@ jobs:
         with:
           app-id: ${{ vars.APP_INSTALLATION_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
       - name: Dependabot metadata
         id: metadata
         if: ${{ github.actor == 'dependabot[bot]' }}
@@ -33,6 +34,7 @@ jobs:
         with:
           app-id: ${{ vars.APP_INSTALLATION_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
       - name: Enable auto-merge PR for minor updates
         if: ${{ ! contains(github.event.issue.labels.*.name, 'semver-spec-major') }}
         run: gh pr merge --squash --auto "${{ github.event.pull_request.html_url }}"

@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3                 = "3.7.0"
 val AIRFRAME_VERSION        = "2025.1.10"
-val AWS_SDK_VERSION         = "2.31.45"
+val AWS_SDK_VERSION         = "2.31.46"
 val JS_JAVA_LOGGING_VERSION = "1.0.0"
 
 // Common build settings
@@ -139,7 +139,7 @@ lazy val bedrock = project
         "org.slf4j" % "slf4j-jdk14" % "2.0.17",
         // Add langchain4j as a reference implementation
         "dev.langchain4j" % "langchain4j"         % "1.0.1"       % Test,
-        "dev.langchain4j" % "langchain4j-bedrock" % "1.0.0-beta5" % Test
+        "dev.langchain4j" % "langchain4j-bedrock" % "1.0.1-beta6" % Test
       )
   )
   .dependsOn(agent)
