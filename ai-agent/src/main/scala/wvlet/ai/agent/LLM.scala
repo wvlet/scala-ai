@@ -118,6 +118,9 @@ object LLM:
       "Claude 2.1"
     ) // Explicitly named 2.1 based on ID convention
     val ClaudeV2 = LLM("anthropic.claude-v2", "Claude")
+
+    val ClaudeSonnet_4_20250514V1_0 = LLM("anthropic.claude-sonnet-4-20250514-v1:0", "Claude")
+
     val Claude3Sonnet_20240229V1_0_28k = LLM(
       "anthropic.claude-3-sonnet-20240229-v1:0:28k",
       "Claude 3 Sonnet"
@@ -144,6 +147,8 @@ object LLM:
     )
 
     val Claude3Haiku_20240307V1_0 = LLM("anthropic.claude-3-haiku-20240307-v1:0", "Claude 3 Haiku")
+
+    val ClaudeOpus_4_20250514V1_0 = LLM("anthropic.claude-opus-4-20250514-v1:0", "Claude")
 
     val Claude3Opus_20240229V1_0_12k = LLM(
       "anthropic.claude-3-opus-20240229-v1:0:12k",
