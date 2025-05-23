@@ -17,8 +17,7 @@
 
 - Use `./sbt` command to open sbt shell.
 - Use `./sbt Test/compile` to compile the source and test code.
-- Use `./sbt '(project name)/testOnly *.(test class name)'` to run a specific test class. For cross-build modules, (project name) can be
-`coreJVM` (for JVM), `coreJS` (for JS), or `coreNative` (for Native).
+- Use `./sbt '(project name)/testOnly *.(test class name)'` to run a specific test class. For cross-build modules, `(project name)` can be `coreJVM` (for JVM), `coreJS` (for JS), or `coreNative` (for Native).
 - Use AirSpec testing framework and `shouldBe`, `shouldMatch` assertion syntax. Test names should be concise and descriptive, written in plain English.
 - Avoid using mock as it increases the maintenance cost.
 - Ensure tests cover new functionality and bug fixes. Aim for good test coverage.
