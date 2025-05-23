@@ -1,7 +1,8 @@
-# AirSpec Test Cases
+---
+applyTo: "**/*Test.scala"
+---
 
-## Goal:
-Generate Scala test cases using the AirSpec testing framework (`wvlet.airspec.AirSpec`).
+Generate test cases in Scala 3 syntaxes using the AirSpec testing framework (`wvlet.airspec.AirSpec`).
 
 ## AirSpec Basic Syntax Explanation:
 
@@ -99,9 +100,26 @@ class MyTest extends AirSpec:
   }
 ```
 
+## Logging 
+
+To add debug messages, use `debug` and `trace` methods. 
+
+```scala
+test("my test") {
+  debug("debug message")
+  trace("trace message")
+}
+```
+
+Debug logging can be enabled by setting the log level in `testOnly` command in sbt with `-l debug` or `-l trace`:
+```scala
+> testOnly * -- -l debug
+```
+
 ## DI Example
 
-This is an example to utilize a global session to share the same service instance between test methods:
+To set up commonly used resources, use Airframe DI to bind instances. Test methods accept the bound instances as parameters:
+
 ```scala
 import wvlet.airspec.AirSpec
 

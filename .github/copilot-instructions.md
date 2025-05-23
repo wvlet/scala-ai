@@ -2,5 +2,5 @@
 - Avoid using mock as it increases the maintenance cost.
 - case classes for configuration should have withXXX(...) methods for all fields and noXXX(...) methods for all optional fields.
 - Omit `new` for object instantiation as it is unnecessary in Scala 3.
-- For commit messages, add prefix from one of [feature, fix, internal, doc] based on the code change types. Focus on `why` and `what` of the change, not `how`. 
+- For commit messages, add a prefix from one of `feature` (for new features), `fix` (bug fixes), `internal` (non-user facing changes), of `doc` based on the code change contents. When describing commit messages, focus on `why` part of the change, not `what` or `how`. 
 - In string interpolation, always enclose expr with bracket `${...}` for consistency.
