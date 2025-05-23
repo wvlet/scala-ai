@@ -33,5 +33,5 @@
 - **Branching**: The branch naming convention `feature/$(date +"%Y%m%d_%H%M%S")` can be adapted for other types of changes (e.g., `fix/`, `doc/`, `internal/`) by replacing `feature/` with the appropriate prefix, optionally followed by a brief description: `fix/$(date +"%Y%m%d_%H%M%S")-correct-off-by-one-error`.
 - **Pull Requests (PRs)**:
     - Use `gh pr create` for creating pull requests. Provide a clear title and a detailed body, linking to any relevant issues.
-    - Follow .gihub/pull_request_template.md format for PR descriptions.
+    - Follow .github/pull_request_template.md format for PR descriptions.
     - Prefer squashing commits via auto-merge with `gh pr merge --squash --auto` command when merging PRs to maintain a linear and clean history on the main branch.
