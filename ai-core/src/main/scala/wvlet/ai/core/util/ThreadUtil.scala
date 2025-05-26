@@ -19,8 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger
 object ThreadUtil:
 
   /**
-    * Sleep the current
+    * Sleep the current thread for the specified duration. Note that this method is no-op in
+    * Scala.js, which has no way to hold the current thread.
     * @param millis
+    *   milliseconds to sleep the thread.
     */
   def sleep(millis: Int): Unit = compat.sleep(millis)
 

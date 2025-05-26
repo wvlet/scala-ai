@@ -13,14 +13,13 @@
  */
 package wvlet.ai.core.ulid
 
-import wvlet.ai.core.util
 import wvlet.ai.core.util.{SecureRandom, ThreadUtil}
 
+import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import java.util.UUID
-import java.nio.ByteBuffer
 import scala.util.Random
 
 /**
