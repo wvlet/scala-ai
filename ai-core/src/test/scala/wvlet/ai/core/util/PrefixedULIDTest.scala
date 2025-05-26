@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.ulid
+package wvlet.ai.core.util
 
-import wvlet.ai.core.ulid.{PrefixedULID, ULID}
+import wvlet.ai.core.util.{PrefixedULID, ULID}
 import wvlet.airspec.AirSpec
 import wvlet.airspec.spi.PropertyCheck
 

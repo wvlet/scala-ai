@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.ulid
+package wvlet.ai.core.util
 
 import wvlet.ai.core.util.{SecureRandom, ThreadUtil}
 
@@ -98,8 +98,8 @@ end ULID
 object ULID:
   val MinValue: ULID        = ULID("00000000000000000000000000")
   val MaxValue: ULID        = ULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")
-  private[ulid] val MinTime = 0L
-  private[ulid] val MaxTime = (~0L) >>> (64 - 48) // Timestamp uses 48-bit range
+  private[util] val MinTime = 0L
+  private[util] val MaxTime = (~0L) >>> (64 - 48) // Timestamp uses 48-bit range
 
   private var _generator: ULIDGenerator = defaultULIDGenerator
 
