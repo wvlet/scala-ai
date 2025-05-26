@@ -11,14 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.control
+package wvlet.ai.core.util
 
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.Random
 
 /**
-  * Compat object provides compatibility functions for thread operations.
   */
-object Compat:
-  def sleep(millis: Long): Unit = Thread.sleep(millis)
+object compat:
+  val random: Random =
+    try
+      // When 'crypto' module is available
+      new scala.util.Random(new java.security.SecureRandom())
+    catch
+      case _: Throwable =>
+        scala.util.Random
+
+  def sleep(millis: Int): Unit = {
+    // no-op as Scala.js has no sleep
+  }

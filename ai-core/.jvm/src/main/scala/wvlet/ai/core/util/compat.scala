@@ -11,13 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.control
+package wvlet.ai.core.util
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import java.security.{NoSuchAlgorithmException, SecureRandom}
+import scala.util.Random
 
 /**
   */
-object Compat:
-  def sleep(millis: Long): Unit = {
-    // do nothing in Scala.js as their is no way to implement sleep https://github.com/scala-js/scala-js/issues/1898
-  }
+object compat:
+  val random: Random =
+    try
+      SecureRandom.getInstanceStrong
+    catch
+      case _: NoSuchAlgorithmException =>
+        Random
+
+  def sleep(millis: Int): Unit = Thread.sleep(millis)

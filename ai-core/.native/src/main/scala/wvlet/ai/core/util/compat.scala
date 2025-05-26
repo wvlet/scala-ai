@@ -1,4 +1,4 @@
-package wvlet.ai.core.ulid
+package wvlet.ai.core.util
 
 import java.security.{NoSuchAlgorithmException, SecureRandom}
 import scala.util.Random

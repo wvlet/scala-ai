@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.ulid
+package wvlet.ai.core.util
 
 import scala.scalanative.runtime.ByteArray
 import scala.scalanative.unsafe.*

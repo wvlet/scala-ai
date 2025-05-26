@@ -16,6 +16,7 @@ package wvlet.ai.core.control
 import wvlet.ai.core.control.ResultClass.Failed
 import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.rx.Rx
+import wvlet.ai.core.util.ThreadUtil
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
@@ -276,7 +277,7 @@ object Retry extends LogSupport:
             // Retryable error
             retryContext = retryContext.withExtraWait(extraWait).nextRetry(cause)
             // Wait until the next retry
-            Compat.sleep(retryContext.nextWaitMillis)
+            ThreadUtil.sleep(retryContext.nextWaitMillis)
           case ResultClass.Failed(_, cause, _) =>
             // For regular non-retryable failures, we need to treat them as successful responses
             circuitBreaker.recordSuccess()

@@ -13,8 +13,7 @@
  */
 package wvlet.ai.core.rx
 
-import wvlet.ai.core.control.ThreadUtil
-
+import wvlet.ai.core.util.ThreadUtil
 import scala.util.Try
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
