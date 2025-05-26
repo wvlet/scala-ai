@@ -2,9 +2,7 @@ package wvlet.ai.core.util
 
 import wvlet.airspec.AirSpec
 
-import java.util.UUID
-import java.io.*
-import scala.util.Try // For serialization test
+import java.util.UUID // For serialization test
 
 class UUIDv7Test extends AirSpec:
 
@@ -54,10 +52,18 @@ class UUIDv7Test extends AirSpec:
   }
 
   test("UUIDv7.fromString should fail for non-UUIDv7 (wrong version)") {
-    val uuidV4 = UUID.randomUUID().toString // Typically version 4
+    // Construct a V4 UUID string for testing
+    val randomMsbForV4String = 0x1111222233334444L
+    val randomLsbForV4String = 0x5555666677778888L
+    val msbV4 = (randomMsbForV4String & ~0x000000000000f000L) | (4L << 12) // Set version to 4
+    val lsbV4 =
+      (randomLsbForV4String & ~0xc000000000000000L) | (2L << 62) // Set variant to RFC4122 (10xx)
+    val uuidV4String = new UUID(msbV4, lsbV4).toString
+
     val ex = intercept[IllegalArgumentException] {
-      UUIDv7.fromString(uuidV4)
+      UUIDv7.fromString(uuidV4String)
     }
+    // The version of the constructed UUID will be 4
     ex.getMessage shouldBe "Invalid UUIDv7 string: version is 4, expected 7"
   }
 
@@ -74,7 +80,14 @@ class UUIDv7Test extends AirSpec:
   }
 
   test("UUIDv7.fromUUID should fail for non-UUIDv7 (wrong version)") {
-    val uuidV4 = UUID.randomUUID() // Typically version 4
+    // Construct a V4 UUID object for testing
+    val randomMsbForV4Obj = 0xaaaabbbbccccddddL
+    val randomLsbForV4Obj = 0xeeeeffff00001111L
+    val msbV4Obj = (randomMsbForV4Obj & ~0x000000000000f000L) | (4L << 12) // Set version to 4
+    val lsbV4Obj =
+      (randomLsbForV4Obj & ~0xc000000000000000L) | (2L << 62) // Set variant to RFC4122 (10xx)
+    val uuidV4 = new UUID(msbV4Obj, lsbV4Obj)
+
     val ex = intercept[IllegalArgumentException] {
       UUIDv7.fromUUID(uuidV4)
     }
@@ -176,13 +189,17 @@ class UUIDv7Test extends AirSpec:
   test(
     "UUIDv7.fromBytes should fail for bytes not representing UUIDv7 (e.g. wrong version/variant)"
   ) {
-    // Create bytes for a non-UUIDv7 (e.g., a UUIDv4) to ensure Scala.js compatibility
-    // UUID.nameUUIDFromBytes and java.security.SecureRandom are not available in Scala.js
-    val nonV7UUID = UUID.randomUUID() // This is typically a v4 UUID
-    val bytes     = new Array[Byte](16)
-    val bb        = java.nio.ByteBuffer.wrap(bytes)
-    bb.putLong(nonV7UUID.getMostSignificantBits) // No parentheses
-    bb.putLong(nonV7UUID.getLeastSignificantBits) // No parentheses
+    // Construct bytes for a non-UUIDv7 (e.g., a UUIDv4)
+    val randomMsbForBytes = 0x1234abcd5678ef00L
+    val randomLsbForBytes = 0x00fedcba98765432L
+    val msbV4Bytes = (randomMsbForBytes & ~0x000000000000f000L) | (4L << 12) // Set version to 4
+    val lsbV4Bytes =
+      (randomLsbForBytes & ~0xc000000000000000L) | (2L << 62) // Set variant to RFC4122 (10xx)
+
+    val bytes = new Array[Byte](16)
+    val bb    = java.nio.ByteBuffer.wrap(bytes)
+    bb.putLong(msbV4Bytes)
+    bb.putLong(lsbV4Bytes)
 
     val ex = intercept[IllegalArgumentException] {
       UUIDv7.fromBytes(bytes)
