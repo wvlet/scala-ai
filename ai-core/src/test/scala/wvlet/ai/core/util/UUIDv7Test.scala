@@ -1,18 +1,19 @@
 package wvlet.ai.core.util
 
 import wvlet.airspec.AirSpec
-import java.util.UUID
-import scala.util.Try
-import java.io._ // For serialization test
 
-class UUIDv7Test extends AirSpec {
+import java.util.UUID
+import java.io.*
+import scala.util.Try // For serialization test
+
+class UUIDv7Test extends AirSpec:
 
   test("UUIDv7.newUUIDv7() should generate valid UUIDv7") {
     val uuid = UUIDv7.newUUIDv7()
     uuid.version shouldBe 7
     uuid.variant shouldBe 2 // RFC 4122 variant
 
-    val now = System.currentTimeMillis()
+    val now      = System.currentTimeMillis()
     val uuidTime = uuid.timestamp
 
     // Allow for a small clock skew between generation and check
@@ -22,25 +23,23 @@ class UUIDv7Test extends AirSpec {
 
   test("UUIDv7.newUUIDv7(timestamp) should generate UUIDv7 with specific timestamp") {
     val specificTime = System.currentTimeMillis() - 10000 // 10 seconds ago
-    val uuid = UUIDv7.newUUIDv7(specificTime)
+    val uuid         = UUIDv7.newUUIDv7(specificTime)
     uuid.version shouldBe 7
     uuid.variant shouldBe 2
     uuid.timestamp shouldBe specificTime
   }
 
   test("UUIDv7.toString should return standard UUID format") {
-    val uuid = UUIDv7.newUUIDv7()
+    val uuid    = UUIDv7.newUUIDv7()
     val uuidStr = uuid.toString
     assert(uuidStr.matches("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"))
   }
 
   test("UUIDv7.fromString should parse valid UUIDv7 string") {
     val originalUUID = UUIDv7.newUUIDv7()
-    val uuidStr = originalUUID.toString
-    val parsedUUIDTry = UUIDv7.fromString(uuidStr)
+    val uuidStr      = originalUUID.toString
+    val parsedUUID   = UUIDv7.fromString(uuidStr)
 
-    assert(parsedUUIDTry.isSuccess)
-    val parsedUUID = parsedUUIDTry.get
     parsedUUID.mostSignificantBits shouldBe originalUUID.mostSignificantBits
     parsedUUID.leastSignificantBits shouldBe originalUUID.leastSignificantBits
     parsedUUID.timestamp shouldBe originalUUID.timestamp
@@ -49,27 +48,27 @@ class UUIDv7Test extends AirSpec {
   }
 
   test("UUIDv7.fromString should fail for invalid UUID string format") {
-    assert(UUIDv7.fromString("invalid-uuid-string").isFailure)
+    intercept[IllegalArgumentException] {
+      UUIDv7.fromString("invalid-uuid-string")
+    }
   }
 
   test("UUIDv7.fromString should fail for non-UUIDv7 (wrong version)") {
     val uuidV4 = UUID.randomUUID().toString // Typically version 4
     val ex = intercept[IllegalArgumentException] {
-      UUIDv7.fromString(uuidV4).get
+      UUIDv7.fromString(uuidV4)
     }
     ex.getMessage shouldBe "Invalid UUIDv7 string: version is 4, expected 7"
   }
 
   test("UUIDv7.fromUUID and toUUID conversion") {
-    val u7 = UUIDv7.newUUIDv7()
+    val u7    = UUIDv7.newUUIDv7()
     val juuid = u7.toUUID
 
     juuid.version() shouldBe 7 // Standard java.util.UUID version method
     juuid.variant() shouldBe 2
 
-    val convertedU7Try = UUIDv7.fromUUID(juuid)
-    assert(convertedU7Try.isSuccess)
-    val convertedU7 = convertedU7Try.get
+    val convertedU7 = UUIDv7.fromUUID(juuid)
     convertedU7 shouldBe u7
     convertedU7.timestamp shouldBe u7.timestamp
   }
@@ -77,7 +76,7 @@ class UUIDv7Test extends AirSpec {
   test("UUIDv7.fromUUID should fail for non-UUIDv7 (wrong version)") {
     val uuidV4 = UUID.randomUUID() // Typically version 4
     val ex = intercept[IllegalArgumentException] {
-      UUIDv7.fromUUID(uuidV4).get
+      UUIDv7.fromUUID(uuidV4)
     }
     ex.getMessage shouldBe s"Invalid UUID: version is ${uuidV4.version()}, expected 7 for UUIDv7"
   }
@@ -95,18 +94,17 @@ class UUIDv7Test extends AirSpec {
     assert(uuid2.compareTo(uuid1) > 0)
     uuid1.compareTo(uuid1) shouldBe 0
 
-    if (uuid2.timestamp == uuid3.timestamp) {
+    if uuid2.timestamp == uuid3.timestamp then
       assert(uuid2.compareTo(uuid3) < 0)
-    } else {
+    else
       assert(uuid2.timestamp < uuid3.timestamp) // if clock ticked
-    }
   }
 
   test("UUIDv7.equals and hashCode") {
-    val uuid1 = UUIDv7.newUUIDv7()
+    val uuid1   = UUIDv7.newUUIDv7()
     val uuidStr = uuid1.toString
-    val uuid2 = UUIDv7.fromString(uuidStr).get
-    val uuid3 = UUIDv7.newUUIDv7()
+    val uuid2   = UUIDv7.fromString(uuidStr)
+    val uuid3   = UUIDv7.newUUIDv7()
 
     uuid1 shouldBe uuid2 // Uses .equals
     uuid2 shouldBe uuid1 // Uses .equals
@@ -119,17 +117,16 @@ class UUIDv7Test extends AirSpec {
   }
 
   test("UUIDv7 monotonicity for rapid generation") {
-    val N = 1000
+    val N     = 1000
     val uuids = (1 to N).map(_ => UUIDv7.newUUIDv7()).toList
 
     var i = 0
-    while (i < N - 1) {
+    while i < N - 1 do
       val u1 = uuids(i)
       val u2 = uuids(i + 1)
       assert(u1.compareTo(u2) < 0)
       assert(u1.timestamp <= u2.timestamp)
       i += 1
-    }
     uuids.foreach { u =>
       u.version shouldBe 7
       u.variant shouldBe 2
@@ -143,7 +140,7 @@ class UUIDv7Test extends AirSpec {
     minTimeUUID.variant shouldBe 2
 
     val maxTimeMillis = (1L << 48) - 1
-    val maxTimeUUID = UUIDv7.newUUIDv7(maxTimeMillis)
+    val maxTimeUUID   = UUIDv7.newUUIDv7(maxTimeMillis)
     maxTimeUUID.timestamp shouldBe maxTimeMillis
     maxTimeUUID.version shouldBe 7
     maxTimeUUID.variant shouldBe 2
@@ -157,13 +154,10 @@ class UUIDv7Test extends AirSpec {
 
   test("UUIDv7.toBytes and UUIDv7.fromBytes conversion") {
     val originalUUID = UUIDv7.newUUIDv7()
-    val bytes = UUIDv7.toBytes(originalUUID)
+    val bytes        = UUIDv7.toBytes(originalUUID)
     bytes.length shouldBe 16
 
-    val recoveredUUIDTry = UUIDv7.fromBytes(bytes)
-    assert(recoveredUUIDTry.isSuccess)
-    val recoveredUUID = recoveredUUIDTry.get
-
+    val recoveredUUID = UUIDv7.fromBytes(bytes)
     recoveredUUID shouldBe originalUUID
     recoveredUUID.timestamp shouldBe originalUUID.timestamp
     recoveredUUID.version shouldBe originalUUID.version
@@ -171,26 +165,31 @@ class UUIDv7Test extends AirSpec {
   }
 
   test("UUIDv7.fromBytes should fail for invalid byte array length") {
-    assert(UUIDv7.fromBytes(new Array[Byte](15)).isFailure)
-    assert(UUIDv7.fromBytes(new Array[Byte](17)).isFailure)
+    intercept[IllegalArgumentException] {
+      UUIDv7.fromBytes(new Array[Byte](15))
+    }
+    intercept[IllegalArgumentException] {
+      UUIDv7.fromBytes(new Array[Byte](17))
+    }
   }
 
-  test("UUIDv7.fromBytes should fail for bytes not representing UUIDv7 (e.g. wrong version/variant)") {
+  test(
+    "UUIDv7.fromBytes should fail for bytes not representing UUIDv7 (e.g. wrong version/variant)"
+  ) {
     val randomBytes = new Array[Byte](16)
     new java.security.SecureRandom().nextBytes(randomBytes)
     val juuid = UUID.nameUUIDFromBytes(randomBytes)
 
     val bytes = new Array[Byte](16)
-    val bb = java.nio.ByteBuffer.wrap(bytes)
+    val bb    = java.nio.ByteBuffer.wrap(bytes)
     bb.putLong(juuid.getMostSignificantBits)
     bb.putLong(juuid.getLeastSignificantBits)
 
-    val result = UUIDv7.fromBytes(bytes)
-    assert(result.isFailure)
     val ex = intercept[IllegalArgumentException] {
-      result.get
+      UUIDv7.fromBytes(bytes)
     }
-    ex.getMessage shouldBe "Bytes do not represent a valid UUIDv7 structure (version/variant mismatch)"
+    ex.getMessage shouldBe
+      "Bytes do not represent a valid UUIDv7 structure (version/variant mismatch)"
   }
 
   test("UUIDv7 should be serializable") {
@@ -198,18 +197,20 @@ class UUIDv7Test extends AirSpec {
 
     assert(uuid.isInstanceOf[Serializable])
 
-    val serializationSuccessful = Try {
-      val baos = new ByteArrayOutputStream()
-      val oos = new ObjectOutputStream(baos)
-      oos.writeObject(uuid)
-      oos.close()
-      val bais = new ByteArrayInputStream(baos.toByteArray())
-      val ois = new ObjectInputStream(bais)
-      val deserializedUUID = ois.readObject().asInstanceOf[UUIDv7]
-      ois.close()
-      deserializedUUID shouldBe uuid
-      deserializedUUID.timestamp shouldBe uuid.timestamp
-    }.isSuccess
+    val serializationSuccessful =
+      Try {
+        val baos = new ByteArrayOutputStream()
+        val oos  = new ObjectOutputStream(baos)
+        oos.writeObject(uuid)
+        oos.close()
+        val bais             = new ByteArrayInputStream(baos.toByteArray())
+        val ois              = new ObjectInputStream(bais)
+        val deserializedUUID = ois.readObject().asInstanceOf[UUIDv7]
+        ois.close()
+        deserializedUUID shouldBe uuid
+        deserializedUUID.timestamp shouldBe uuid.timestamp
+      }.isSuccess
     assert(serializationSuccessful)
   }
-}
+
+end UUIDv7Test

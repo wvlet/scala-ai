@@ -3,10 +3,8 @@ package wvlet.ai.core.util
 import wvlet.ai.core.control.Guard
 
 import java.nio.ByteBuffer
-import java.security.SecureRandom
 import java.time.Instant
 import java.util.UUID
-import scala.util.Try
 
 /**
   * Represents a UUIDv7 value.
@@ -85,7 +83,7 @@ final class UUIDv7 private (val mostSignificantBits: Long, val leastSignificantB
 end UUIDv7
 
 object UUIDv7 extends Guard:
-  private val random = new SecureRandom()
+  private val random = SecureRandom.getInstance
 
   private val MinTimeMillis = 0L
   private val MaxTimeMillis = (1L << 48) - 1 // 0xFFFFFFFFFFFFL
@@ -127,12 +125,13 @@ object UUIDv7 extends Guard:
       // to the 80-bit number represented by lastRandomBytes.
       val incrementAmount = 1L << (lastRandomBytes.length * 8 - 74) // 1L << 6 = 64
 
-      var k = lastRandomBytes.length - 1
+      var k                  = lastRandomBytes.length - 1
       var carryFromIncrement = incrementAmount
       while k >= 0 do
-        if carryFromIncrement == 0 then k = -1 // break loop using k
+        if carryFromIncrement == 0 then
+          k = -1 // break loop using k
         else
-          val value = (lastRandomBytes(k) & 0xFFL) + carryFromIncrement
+          val value = (lastRandomBytes(k) & 0xffL) + carryFromIncrement
           lastRandomBytes(k) = value.toByte
           carryFromIncrement = value >>> 8 // Next carry
           k -= 1
@@ -178,9 +177,11 @@ object UUIDv7 extends Guard:
     * @param uuidStr
     *   The UUID string (e.g., "f81d4fae-7dec-11d0-a765-00a0c91e6bf6").
     * @return
-    *   A Try containing the UUIDv7 if parsing is successful, otherwise a Failure.
+    *   A UUIDv7 instance.
+    * @throws IllegalArgumentException
+    *   if the string does not represent a valid UUIDv7.
     */
-  def fromString(uuidStr: String): Try[UUIDv7] = Try {
+  def fromString(uuidStr: String): UUIDv7 =
     val uuid = UUID.fromString(uuidStr)
     // Validate version and variant if it's supposed to be a strict UUIDv7 parser
     val u7 = new UUIDv7(uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
@@ -195,7 +196,6 @@ object UUIDv7 extends Guard:
         s"Invalid UUIDv7 string: variant is ${u7.variant}, expected 2 (RFC 4122)"
       )
     u7
-  }
 
   /**
     * Creates a UUIDv7 from a java.util.UUID. This method will check if the provided UUID conforms
@@ -204,24 +204,22 @@ object UUIDv7 extends Guard:
     * @param uuid
     *   The java.util.UUID instance.
     * @return
-    *   A Try containing the UUIDv7 if validation is successful, otherwise a Failure.
+    *   A UUIDv7 instance.
+    * @throws IllegalArgumentException
+    *   if the UUID does not represent a valid UUIDv7.
     */
-  def fromUUID(uuid: UUID): Try[UUIDv7] =
+  def fromUUID(uuid: UUID): UUIDv7 =
     val u7 = new UUIDv7(uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
     if u7.version != 7 then
-      Try(
-        throw new IllegalArgumentException(
-          s"Invalid UUID: version is ${u7.version}, expected 7 for UUIDv7"
-        )
+      throw new IllegalArgumentException(
+        s"Invalid UUID: version is ${u7.version}, expected 7 for UUIDv7"
       )
     else if u7.variant != 2 then
-      Try(
-        throw new IllegalArgumentException(
-          s"Invalid UUID: variant is ${u7.variant}, expected 2 (RFC 4122) for UUIDv7"
-        )
+      throw new IllegalArgumentException(
+        s"Invalid UUID: variant is ${u7.variant}, expected 2 (RFC 4122) for UUIDv7"
       )
     else
-      Try(u7)
+      u7
 
   /**
     * Creates a UUIDv7 from a 16-byte array.
@@ -230,9 +228,9 @@ object UUIDv7 extends Guard:
     * @return
     *   A UUIDv7 instance.
     * @throws IllegalArgumentException
-    *   if the byte array is not 16 bytes long.
+    *   if the byte array is not 16 bytes long or does not represent a valid UUIDv7.
     */
-  def fromBytes(bytes: Array[Byte]): Try[UUIDv7] = Try {
+  def fromBytes(bytes: Array[Byte]): UUIDv7 =
     if bytes.length != 16 then
       throw new IllegalArgumentException("Input byte array must be 16 bytes long")
     val bb  = ByteBuffer.wrap(bytes)
@@ -245,7 +243,6 @@ object UUIDv7 extends Guard:
         "Bytes do not represent a valid UUIDv7 structure (version/variant mismatch)"
       )
     u7
-  }
 
   /**
     * Returns the byte representation of this UUIDv7.
