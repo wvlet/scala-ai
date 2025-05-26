@@ -9,7 +9,7 @@
 
 - Run `./sbt scalafmtAll` to format the source code.
 - case classes for configuration should have withXXX(...) methods for all fields and noXXX(...) methods for all optional fields.
-- Omit `new` for object instantiation as it is unnecessary in Scala 3.
+- Omit `new` for object instantiation as it is unnecessary in Scala 3. For example, `StringBuilder()` is better than `new StringBuilder()`.
 - In string interpolation, always enclose expr with bracket `${...}` for consistency.
 - Public APIs (classes, methods, objects) should be documented with Scaladoc comments.
 
