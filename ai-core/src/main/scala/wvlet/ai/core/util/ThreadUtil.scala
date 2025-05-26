@@ -11,12 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.control
+package wvlet.ai.core.util
 
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 object ThreadUtil:
+
+  /**
+    * Sleep the current thread for the specified duration. Note that this method is no-op in
+    * Scala.js, which has no way to hold the current thread.
+    * @param millis
+    *   milliseconds to sleep the thread.
+    */
+  def sleep(millis: Int): Unit = compat.sleep(millis)
 
   /**
     * Create a thread factory for daemon threads, which do not block JVM shutdown

@@ -13,8 +13,7 @@
  */
 package wvlet.ai.core.rx
 
-import wvlet.ai.core.control.ThreadUtil
-
+import wvlet.ai.core.util.ThreadUtil
 import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, TimeUnit}

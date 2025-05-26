@@ -13,11 +13,13 @@
  */
 package wvlet.ai.core.ulid
 
+import wvlet.ai.core.util.{SecureRandom, ThreadUtil}
+
+import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import java.util.UUID
-import java.nio.ByteBuffer
 import scala.util.Random
 
 /**
@@ -105,7 +107,7 @@ object ULID:
     * The default secure random-based ULID Generator
     */
   def defaultULIDGenerator: ULIDGenerator =
-    val random: scala.util.Random = compat.random
+    val random: scala.util.Random = SecureRandom.getInstance
     val randGen =
       () =>
         val r = new Array[Byte](10)
@@ -297,7 +299,7 @@ object ULID:
             var nextHi = (hi & ~(~0L << 16)) + 1
             if (nextHi & (~0L << 16)) != 0 then
               // Random number overflow. Wait for one millisecond and retry
-              compat.sleep(1)
+              ThreadUtil.sleep(1)
               newULIDString
             else
               nextHi |= unixTimeMillis << (64 - 48)
