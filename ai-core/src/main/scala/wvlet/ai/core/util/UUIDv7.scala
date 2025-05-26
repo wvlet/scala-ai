@@ -24,8 +24,7 @@ import java.util.UUID
   *   The least significant 64 bits of the UUIDv7.
   */
 final class UUIDv7 private (val mostSignificantBits: Long, val leastSignificantBits: Long)
-    extends Comparable[UUIDv7]
-    with Serializable:
+    extends Comparable[UUIDv7]:
 
   /**
     * Returns the 48-bit timestamp value from the UUIDv7.
@@ -98,7 +97,7 @@ object UUIDv7 extends Guard:
     * Creates a new UUIDv7 instance. This method aims to ensure monotonicity when called rapidly.
     */
   def newUUIDv7(): UUIDv7 =
-    val currentTimeMillis = Instant.now().toEpochMilli
+    val currentTimeMillis = Instant.now().toEpochMilli()
     newUUIDv7(currentTimeMillis)
 
   /**
