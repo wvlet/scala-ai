@@ -14,8 +14,8 @@ class BedrockIntegrationTest extends AirSpec:
       LLMAgent(
         name = "test-agent",
         description = "Test Agent",
-        model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
-      ) // .withReasoning(1024)
+        model = LLM.Bedrock.Claude4Sonnet_20250514V1_0.withAWSCrossRegionInference("us")
+      )
     )
   }
 
