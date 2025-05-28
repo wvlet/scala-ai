@@ -1,9 +1,12 @@
 package wvlet.ai.agent.bedrock
 
+import software.amazon.awssdk.services.bedrockruntime.model.AccessDeniedException
 import wvlet.ai.agent.chat.*
 import wvlet.ai.agent.chat.bedrock.BedrockRunner
 import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.airspec.AirSpec
+
+import scala.concurrent.ExecutionException
 
 class BedrockIntegrationTest extends AirSpec:
   if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
@@ -14,8 +17,8 @@ class BedrockIntegrationTest extends AirSpec:
       LLMAgent(
         name = "test-agent",
         description = "Test Agent",
-        model = LLM.Bedrock.Claude3_7Sonnet_20250219V1_0.withAWSCrossRegionInference("us")
-      ) // .withReasoning(1024)
+        model = LLM.Bedrock.Claude4Sonnet_20250514V1_0.withAWSCrossRegionInference("us")
+      )
     )
   }
 
