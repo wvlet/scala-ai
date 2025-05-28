@@ -12,7 +12,6 @@
 - Omit `new` for object instantiation as it is unnecessary in Scala 3. For example, `StringBuilder()` is better than `new StringBuilder()`.
 - In string interpolation, always enclose expr with bracket `${...}` for consistency.
 - Public APIs (classes, methods, objects) should be documented with Scaladoc comments.
-- Returning Try[A] is a bad design as it forces the user to use the monadic-style. 
 
 ## Test code
 
