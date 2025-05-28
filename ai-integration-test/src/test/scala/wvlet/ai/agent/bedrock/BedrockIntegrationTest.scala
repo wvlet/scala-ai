@@ -1,12 +1,9 @@
 package wvlet.ai.agent.bedrock
 
-import software.amazon.awssdk.services.bedrockruntime.model.AccessDeniedException
 import wvlet.ai.agent.chat.*
 import wvlet.ai.agent.chat.bedrock.BedrockRunner
 import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.airspec.AirSpec
-
-import scala.concurrent.ExecutionException
 
 class BedrockIntegrationTest extends AirSpec:
   if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
