@@ -54,7 +54,7 @@ object PrimitiveWeaver:
           case ValueType.NIL =>
             try
               u.unpackNil
-              context.setInt(0)
+              context.setNull
             catch
               case e: Exception =>
                 context.setError(e)
