@@ -88,23 +88,16 @@ end UUIDv7
   *
   * @param randomSource
   *   The random number generator to use (defaults to SecureRandom)
-  * @param randomBytesSize
-  *   The size of the random bytes buffer (defaults to 10 bytes for 74-bit randomness)
   */
-class UUIDv7Generator(random: Random = SecureRandom.getInstance, randomBytesSize: Int = 10)
-    extends Guard:
-  require(
-    randomBytesSize >= 10,
-    "randomBytesSize must be at least 10 bytes to ensure 74 bits of randomness"
-  )
+class UUIDv7Generator(random: Random = SecureRandom.getInstance) extends Guard:
 
   private val MinTimeMillis = 0L
   private val MaxTimeMillis = (1L << 48) - 1 // 0xFFFFFFFFFFFFL
 
   // For synchronizing access to lastGeneratedTimestamp and sequence/randomness for monotonicity
   private var lastGeneratedTime = -1L
-  // Use 74 bits of randomness. We'll generate the specified bytes and use the needed parts.
-  private var lastRandomBytes = new Array[Byte](randomBytesSize)
+  // Use 74 bits of randomness. We'll generate 10 bytes (80 bits) and use the needed parts.
+  private var lastRandomBytes = new Array[Byte](10)
   random.nextBytes(lastRandomBytes)
 
   /**
@@ -225,19 +218,6 @@ object UUIDv7:
     *   A new UUIDv7Generator instance.
     */
   def createGenerator(randomSource: Random): UUIDv7Generator = new UUIDv7Generator(randomSource)
-
-  /**
-    * Creates a new UUIDv7Generator with custom configuration.
-    *
-    * @param randomSource
-    *   The random number generator to use.
-    * @param randomBytesSize
-    *   The size of the random bytes buffer.
-    * @return
-    *   A new UUIDv7Generator instance.
-    */
-  def createGenerator(randomSource: Random, randomBytesSize: Int): UUIDv7Generator =
-    new UUIDv7Generator(randomSource, randomBytesSize)
 
   /**
     * Creates a UUIDv7 from its string representation.
