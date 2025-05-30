@@ -14,7 +14,7 @@
 package wvlet.ai.core.msgpack.spi
 
 import wvlet.ai.core.msgpack.impl.PureScalaBufferUnpacker
-import wvlet.ai.core.msgpack.io.ByteArrayBuffer
+import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
 import wvlet.airspec.AirSpec
 
 /**

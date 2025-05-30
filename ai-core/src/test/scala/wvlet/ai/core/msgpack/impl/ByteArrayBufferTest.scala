@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.ai.core.msgpack.io
+package wvlet.ai.core.msgpack.impl
 
 import wvlet.airspec.AirSpec
 

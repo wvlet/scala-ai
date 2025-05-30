@@ -19,7 +19,7 @@ import java.time.Instant
 
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import wvlet.ai.core.msgpack.io.ByteArrayBuffer
+import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
 import wvlet.airspec.spi.PropertyCheck
 import wvlet.airspec.AirSpec
 

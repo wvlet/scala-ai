@@ -15,7 +15,7 @@ package wvlet.ai.core.msgpack.impl
 
 import java.math.BigInteger
 
-import wvlet.ai.core.msgpack.io.{ByteArrayBuffer, ByteArrayBufferBase, InfiniteByteArrayBuffer}
+import wvlet.ai.core.msgpack.impl.{ByteArrayBuffer, ByteArrayBufferBase, InfiniteByteArrayBuffer}
 import wvlet.ai.core.msgpack.spi.{BufferPacker, OffsetPacker, Packer, Value, WriteCursor}
 
 /**

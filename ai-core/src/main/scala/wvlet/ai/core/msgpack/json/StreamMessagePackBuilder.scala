@@ -14,7 +14,7 @@
 package wvlet.ai.core.msgpack.json
 
 import wvlet.ai.core.json.{JSONContext, JSONScanner, JSONSource}
-import wvlet.ai.core.msgpack.io.ByteArrayBuffer
+import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
 import wvlet.ai.core.msgpack.spi.{Code, MessagePack, MsgPack, OffsetPacker, WriteCursor}
 import wvlet.ai.core.log.LogSupport
 
