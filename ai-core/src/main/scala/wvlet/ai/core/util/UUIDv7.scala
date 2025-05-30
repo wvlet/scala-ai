@@ -5,6 +5,7 @@ import wvlet.ai.core.control.Guard
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.UUID
+import scala.util.Random
 
 /**
   * Represents a UUIDv7 value.
@@ -23,7 +24,7 @@ import java.util.UUID
   * @param leastSignificantBits
   *   The least significant 64 bits of the UUIDv7.
   */
-final class UUIDv7 private (val mostSignificantBits: Long, val leastSignificantBits: Long)
+final class UUIDv7 private[util] (val mostSignificantBits: Long, val leastSignificantBits: Long)
     extends Comparable[UUIDv7]:
 
   /**
@@ -81,16 +82,26 @@ final class UUIDv7 private (val mostSignificantBits: Long, val leastSignificantB
 
 end UUIDv7
 
-object UUIDv7 extends Guard:
-  private val random = SecureRandom.getInstance
+/**
+  * Configurable UUIDv7 generator that encapsulates the state needed for monotonic UUID generation.
+  * Each generator instance maintains its own state for thread-safe operation.
+  *
+  * @param randomSource
+  *   The random number generator to use (defaults to SecureRandom)
+  * @param randomBytesSize
+  *   The size of the random bytes buffer (defaults to 10 bytes for 74-bit randomness)
+  */
+class UUIDv7Generator(randomSource: Random = SecureRandom.getInstance, randomBytesSize: Int = 10)
+    extends Guard:
 
+  private val random        = randomSource
   private val MinTimeMillis = 0L
   private val MaxTimeMillis = (1L << 48) - 1 // 0xFFFFFFFFFFFFL
 
   // For synchronizing access to lastGeneratedTimestamp and sequence/randomness for monotonicity
   private var lastGeneratedTime = -1L
-  // Use 74 bits of randomness. We'll generate 10 bytes (80 bits) and use the needed parts.
-  private var lastRandomBytes = new Array[Byte](10)
+  // Use 74 bits of randomness. We'll generate the specified bytes and use the needed parts.
+  private var lastRandomBytes = new Array[Byte](randomBytesSize)
   random.nextBytes(lastRandomBytes)
 
   /**
@@ -169,6 +180,61 @@ object UUIDv7 extends Guard:
 
     new UUIDv7(msb, lsb)
   }
+
+end UUIDv7Generator
+
+object UUIDv7:
+  // Default generator instance for backward compatibility
+  private val defaultGenerator = new UUIDv7Generator()
+
+  /**
+    * Creates a new UUIDv7 instance. This method aims to ensure monotonicity when called rapidly.
+    */
+  def newUUIDv7(): UUIDv7 = defaultGenerator.newUUIDv7()
+
+  /**
+    * Creates a new UUIDv7 with a specified timestamp. This method is primarily for testing or
+    * specific use cases where timestamp control is needed. It handles potential clock rollbacks and
+    * ensures monotonicity by incrementing random bits if the same millisecond is requested multiple
+    * times.
+    *
+    * @param timestampMillis
+    *   The timestamp in milliseconds since the Unix epoch.
+    * @return
+    *   A new UUIDv7 instance.
+    */
+  def newUUIDv7(timestampMillis: Long): UUIDv7 = defaultGenerator.newUUIDv7(timestampMillis)
+
+  /**
+    * Creates a new UUIDv7Generator with default configuration.
+    *
+    * @return
+    *   A new UUIDv7Generator instance.
+    */
+  def createGenerator(): UUIDv7Generator = new UUIDv7Generator()
+
+  /**
+    * Creates a new UUIDv7Generator with a custom random source.
+    *
+    * @param randomSource
+    *   The random number generator to use.
+    * @return
+    *   A new UUIDv7Generator instance.
+    */
+  def createGenerator(randomSource: Random): UUIDv7Generator = new UUIDv7Generator(randomSource)
+
+  /**
+    * Creates a new UUIDv7Generator with custom configuration.
+    *
+    * @param randomSource
+    *   The random number generator to use.
+    * @param randomBytesSize
+    *   The size of the random bytes buffer.
+    * @return
+    *   A new UUIDv7Generator instance.
+    */
+  def createGenerator(randomSource: Random, randomBytesSize: Int): UUIDv7Generator =
+    new UUIDv7Generator(randomSource, randomBytesSize)
 
   /**
     * Creates a UUIDv7 from its string representation.
