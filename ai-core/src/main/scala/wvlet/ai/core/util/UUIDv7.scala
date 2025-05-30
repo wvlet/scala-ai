@@ -91,10 +91,13 @@ end UUIDv7
   * @param randomBytesSize
   *   The size of the random bytes buffer (defaults to 10 bytes for 74-bit randomness)
   */
-class UUIDv7Generator(randomSource: Random = SecureRandom.getInstance, randomBytesSize: Int = 10)
+class UUIDv7Generator(random: Random = SecureRandom.getInstance, randomBytesSize: Int = 10)
     extends Guard:
+  require(
+    randomBytesSize >= 10,
+    "randomBytesSize must be at least 10 bytes to ensure 74 bits of randomness"
+  )
 
-  private val random        = randomSource
   private val MinTimeMillis = 0L
   private val MaxTimeMillis = (1L << 48) - 1 // 0xFFFFFFFFFFFFL
 
