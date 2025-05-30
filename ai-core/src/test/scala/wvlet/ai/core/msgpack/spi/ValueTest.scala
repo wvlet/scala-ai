@@ -17,7 +17,7 @@ import java.math.BigInteger
 import java.util.Base64
 
 import org.scalacheck.Gen
-import wvlet.ai.core.msgpack.io.ByteArrayBuffer
+import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
 import wvlet.ai.core.msgpack.spi.Value.*
 import wvlet.ai.core.msgpack.spi.ValueFactory.*
 import wvlet.airspec.spi.PropertyCheck
