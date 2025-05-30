@@ -59,6 +59,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case other =>
+            u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Int"))
 
 end PrimitiveWeaver
