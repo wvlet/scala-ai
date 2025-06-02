@@ -20,3 +20,43 @@ trait ChatSession:
     val updatedMessages = previousResponse.messages :+ ChatMessage.user(newMessage)
     val updatedRequest  = ChatRequest(messages = updatedMessages)
     chatStream(updatedRequest, observer)
+
+  /**
+    * Continue a chat conversation by providing the previous conversation history directly.
+    *
+    * @param history
+    *   The previous conversation messages
+    * @param newMessage
+    *   The new user message to append
+    * @param observer
+    *   Chat observer for receiving events
+    * @return
+    *   The chat response including the full conversation history
+    */
+  def continueChat(
+      history: Seq[ChatMessage],
+      newMessage: String,
+      observer: ChatObserver
+  ): ChatResponse =
+    val updatedMessages = history :+ ChatMessage.user(newMessage)
+    val updatedRequest  = ChatRequest(messages = updatedMessages)
+    chatStream(updatedRequest, observer)
+
+  /**
+    * Continue a chat conversation by providing the previous conversation history directly. Uses the
+    * default observer.
+    *
+    * @param history
+    *   The previous conversation messages
+    * @param newMessage
+    *   The new user message to append
+    * @return
+    *   The chat response including the full conversation history
+    */
+  def continueChat(history: Seq[ChatMessage], newMessage: String): ChatResponse = continueChat(
+    history,
+    newMessage,
+    ChatObserver.defaultObserver
+  )
+
+end ChatSession
