@@ -55,6 +55,59 @@ class ChatSessionSpec extends AirSpec:
       }
   }
 
+  test("continueChat with history should handle message sequence directly") {
+    (session: TestChatSession) =>
+      val history = Seq(
+        ChatMessage.user("First message"),
+        ChatMessage.assistant("First response"),
+        ChatMessage.user("Second message"),
+        ChatMessage.assistant("Second response")
+      )
+      val response = session.continueChat(history, "Third message")
+
+      response.messages shouldMatch {
+        case Seq(
+              ChatMessage.UserMessage("First message"),
+              ChatMessage.AIMessage("First response", _),
+              ChatMessage.UserMessage("Second message"),
+              ChatMessage.AIMessage("Second response", _),
+              ChatMessage.UserMessage("Third message"),
+              ChatMessage.AIMessage("Test response", _)
+            ) =>
+      }
+  }
+
+  test("continueChat with empty history should work like chat") { (session: TestChatSession) =>
+    val response = session.continueChat(Seq.empty, "Hello")
+    response.messages shouldMatch {
+      case Seq(ChatMessage.UserMessage("Hello"), ChatMessage.AIMessage("Test response", _)) =>
+    }
+  }
+
+  test("chatWithHistory should handle conversation history") { (session: TestChatSession) =>
+    val history = Seq(
+      ChatMessage.user("Context message"),
+      ChatMessage.assistant("Context response")
+    )
+    val response = session.chatWithHistory(history, "New question")
+
+    response.messages shouldMatch {
+      case Seq(
+            ChatMessage.UserMessage("Context message"),
+            ChatMessage.AIMessage("Context response", _),
+            ChatMessage.UserMessage("New question"),
+            ChatMessage.AIMessage("Test response", _)
+          ) =>
+    }
+  }
+
+  test("chatWithHistory with empty history should work like chat") { (session: TestChatSession) =>
+    val response = session.chatWithHistory(Seq.empty, "Hello")
+    response.messages shouldMatch {
+      case Seq(ChatMessage.UserMessage("Hello"), ChatMessage.AIMessage("Test response", _)) =>
+    }
+  }
+
   initDesign { design =>
     design.bindSingleton[TestChatSession]
   }
