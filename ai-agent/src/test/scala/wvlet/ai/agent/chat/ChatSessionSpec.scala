@@ -84,12 +84,12 @@ class ChatSessionSpec extends AirSpec:
     }
   }
 
-  test("chatWithHistory should handle conversation history") { (session: TestChatSession) =>
+  test("continueChat should handle conversation history") { (session: TestChatSession) =>
     val history = Seq(
       ChatMessage.user("Context message"),
       ChatMessage.assistant("Context response")
     )
-    val response = session.chatWithHistory(history, "New question")
+    val response = session.continueChat(history, "New question")
 
     response.messages shouldMatch {
       case Seq(
@@ -101,10 +101,20 @@ class ChatSessionSpec extends AirSpec:
     }
   }
 
-  test("chatWithHistory with empty history should work like chat") { (session: TestChatSession) =>
-    val response = session.chatWithHistory(Seq.empty, "Hello")
+  test("continueChat with observer should handle conversation history") { (session: TestChatSession) =>
+    val history = Seq(
+      ChatMessage.user("First question"),
+      ChatMessage.assistant("First answer")
+    )
+    // Test the overload that explicitly takes an observer
+    val response = session.continueChat(history, "Second question", ChatObserver.defaultObserver)
     response.messages shouldMatch {
-      case Seq(ChatMessage.UserMessage("Hello"), ChatMessage.AIMessage("Test response", _)) =>
+      case Seq(
+            ChatMessage.UserMessage("First question"),
+            ChatMessage.AIMessage("First answer", _),
+            ChatMessage.UserMessage("Second question"),
+            ChatMessage.AIMessage("Test response", _)
+          ) =>
     }
   }
 

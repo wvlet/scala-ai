@@ -59,35 +59,4 @@ trait ChatSession:
     ChatObserver.defaultObserver
   )
 
-  /**
-    * Start or continue a chat with explicit conversation history.
-    *
-    * @param history
-    *   The conversation history (can be empty for new conversations)
-    * @param newMessage
-    *   The new user message
-    * @param observer
-    *   Chat observer for receiving events
-    * @return
-    *   The chat response including the full conversation history
-    */
-  def chatWithHistory(
-      history: Seq[ChatMessage],
-      newMessage: String,
-      observer: ChatObserver
-  ): ChatResponse = continueChat(history, newMessage, observer)
-
-  /**
-    * Start or continue a chat with explicit conversation history. Uses the default observer.
-    *
-    * @param history
-    *   The conversation history (can be empty for new conversations)
-    * @param newMessage
-    *   The new user message
-    * @return
-    *   The chat response including the full conversation history
-    */
-  def chatWithHistory(history: Seq[ChatMessage], newMessage: String): ChatResponse =
-    chatWithHistory(history, newMessage, ChatObserver.defaultObserver)
-
 end ChatSession
