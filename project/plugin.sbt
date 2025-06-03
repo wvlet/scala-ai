@@ -6,7 +6,7 @@ ThisBuild / libraryDependencySchemes ++=
     "org.scala-lang.modules" %% "scala-parser-combinators" % "always"
   )
 
-val AIRFRAME_VERSION = "2025.1.11"
+val AIRFRAME_VERSION = "2025.1.12"
 
 addSbtPlugin("org.scalameta"       % "sbt-scalafmt"             % "2.5.4")
 addSbtPlugin("org.portable-scala"  % "sbt-scalajs-crossproject" % "1.3.2")
