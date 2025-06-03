@@ -3,7 +3,7 @@ import sbtide.Keys.ideSkipProject
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3                 = "3.7.0"
-val AIRFRAME_VERSION        = "2025.1.11"
+val AIRFRAME_VERSION        = "2025.1.12"
 val AWS_SDK_VERSION         = "2.31.54"
 val JS_JAVA_LOGGING_VERSION = "1.0.0"
 
