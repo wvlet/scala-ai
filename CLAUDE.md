@@ -44,7 +44,10 @@ sbt agent/test
 sbt bedrock/test
 
 # Run a specific test class
-sbt "ai-agent/testOnly *LLMAgentTest"
+sbt "agent/testOnly *LLMAgentTest"
+
+# Run with debug log enabled
+sbt "coreJVM/testOnly * -- -l debug"
 
 # Cross-platform builds
 sbt projectJVM/compile    # JVM only
@@ -59,12 +62,6 @@ sbt scalafmtAll
 
 # Check formatting
 sbt scalafmtCheck
-```
-
-### Development Server
-```bash
-# Start development server with auto-reload
-sbt ~reStart
 ```
 
 ### Integration Tests
