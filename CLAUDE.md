@@ -45,6 +45,7 @@ sbt bedrock/test
 
 # Run a specific test class
 sbt "agent/testOnly *LLMAgentTest"
+sbt "coreJVM/testOnly *StringWeaverTest"
 
 # Run with debug log enabled
 sbt "coreJVM/testOnly * -- -l debug"
