@@ -44,19 +44,14 @@ class StringWeaverTest extends AirSpec:
     // Test float to String conversion
     // Note: String representation of doubles may differ between JVM and JS
     // so we check for semantic equivalence instead of exact string matching
-    val testCases = Seq(
-      (0.0, "0"),
-      (1.0, "1"),
-      (-1.0, "-1"),
-      (3.14, "3.14")
-    )
+    val testCases = Seq((0.0, "0"), (1.0, "1"), (-1.0, "-1"), (3.14, "3.14"))
 
     for (floatValue, expectedStr) <- testCases do
       val packer = MessagePack.newBufferPacker
       packer.packDouble(floatValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[String](packed)
-      
+
       // Check semantic equality (parse back to numbers)
       BigDecimal(unpacked) shouldBe BigDecimal(expectedStr)
   }
