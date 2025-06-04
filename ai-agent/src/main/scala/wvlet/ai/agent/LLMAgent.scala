@@ -75,4 +75,19 @@ case class LLMAgent(
   /** Remove the reasoning configuration. */
   def noReasoning: LLMAgent = this.withModelConfig(_.noReasoning)
 
+  /** Let the model decide which tool to use, if any. */
+  def withToolChoiceAuto: LLMAgent = this.withModelConfig(_.withToolChoiceAuto)
+
+  /** Force the model not to use any tools. */
+  def withToolChoiceNone: LLMAgent = this.withModelConfig(_.withToolChoiceNone)
+
+  /** Force the model to call the specified tool. */
+  def withToolChoice(toolName: String): LLMAgent = this.withModelConfig(_.withToolChoice(toolName))
+
+  /** Force the model to call any tool. */
+  def withToolChoiceRequired: LLMAgent = this.withModelConfig(_.withToolChoiceRequired)
+
+  /** Remove any tool choice configuration. */
+  def noToolChoice: LLMAgent = this.withModelConfig(_.noToolChoice)
+
 end LLMAgent
