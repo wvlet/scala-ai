@@ -65,36 +65,26 @@ object PrimitiveWeaver:
   given stringWeaver: ObjectWeaver[String] =
     new ObjectWeaver[String]:
       override def pack(p: Packer, v: String, config: WeaverConfig): Unit = p.packString(v)
+      
+      // Helper method to safely perform unpacking operations
+      private def withSafeUnpack[T](context: WeaverContext, operation: => T, valueMapper: T => String): Unit =
+        try
+          val value = operation
+          context.setString(valueMapper(value))
+        catch
+          case e: Exception =>
+            context.setError(e)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.STRING =>
-            try
-              context.setString(u.unpackString)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            withSafeUnpack(context, u.unpackString, identity)
           case ValueType.INTEGER =>
-            try
-              val i = u.unpackLong
-              context.setString(i.toString)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            withSafeUnpack(context, u.unpackLong, _.toString)
           case ValueType.FLOAT =>
-            try
-              val d = u.unpackDouble
-              context.setString(d.toString)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            withSafeUnpack(context, u.unpackDouble, _.toString)
           case ValueType.BOOLEAN =>
-            try
-              val b = u.unpackBoolean
-              context.setString(b.toString)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            withSafeUnpack(context, u.unpackBoolean, _.toString)
           case ValueType.NIL =>
             try
               u.unpackNil

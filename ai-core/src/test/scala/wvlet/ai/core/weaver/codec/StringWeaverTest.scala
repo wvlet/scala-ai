@@ -61,17 +61,17 @@ class StringWeaverTest extends AirSpec:
 
   test("unpack String from BOOLEAN types") {
     // Test boolean to String conversion
-    val packer1 = MessagePack.newBufferPacker
-    packer1.packBoolean(true)
-    val packed1   = packer1.toByteArray
-    val unpacked1 = ObjectWeaver.unweave[String](packed1)
-    unpacked1 shouldBe "true"
-
-    val packer2 = MessagePack.newBufferPacker
-    packer2.packBoolean(false)
-    val packed2   = packer2.toByteArray
-    val unpacked2 = ObjectWeaver.unweave[String](packed2)
-    unpacked2 shouldBe "false"
+    val testCases = Seq(
+      (true, "true"),
+      (false, "false")
+    )
+    
+    for (booleanValue, expectedStr) <- testCases do
+      val packer = MessagePack.newBufferPacker
+      packer.packBoolean(booleanValue)
+      val packed   = packer.toByteArray
+      val unpacked = ObjectWeaver.unweave[String](packed)
+      unpacked shouldBe expectedStr
   }
 
   test("unpack String from NIL type") {
@@ -91,7 +91,7 @@ class StringWeaverTest extends AirSpec:
     packer.packInt(2)
     val packed = packer.toByteArray
 
-    intercept[Exception] {
+    intercept[IllegalArgumentException] {
       ObjectWeaver.unweave[String](packed)
     }
   }
