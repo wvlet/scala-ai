@@ -1,6 +1,6 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.services.bedrockruntime.model.ToolChoice as BedrockToolChoice
+import software.amazon.awssdk.services.bedrockruntime.model.{ToolChoice => BedrockToolChoice}
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest
 import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, ToolChoice}
 import wvlet.ai.agent.chat.{ChatMessage, ChatRequest, ToolParameter, ToolSpec}
@@ -117,5 +117,3 @@ class BedrockToolChoiceTest extends AirSpec with LogSupport:
   }
 
 end BedrockToolChoiceTest
-
-

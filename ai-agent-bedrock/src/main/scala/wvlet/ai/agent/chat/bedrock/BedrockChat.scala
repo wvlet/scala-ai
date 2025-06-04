@@ -158,27 +158,34 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
     if tools.nonEmpty then
       val toolConfigBuilder = ToolConfiguration.builder().tools(tools.asJava)
 
-      // Add tool choice if configured
+      // Handle specific tool selection
       effectiveConfig
-        .toolChoice
-        .foreach { toolChoice =>
-          val bedrockToolChoice =
-            toolChoice match
-              case wvlet.ai.agent.ToolChoice.Auto =>
-                BedrockToolChoice.builder().auto(AutoToolChoice.builder().build()).build()
-              case wvlet.ai.agent.ToolChoice.None =>
-                // In AWS SDK, "none" is represented by a null tool choice
-                null
-              case wvlet.ai.agent.ToolChoice.Tool(name) =>
-                val specificToolChoice = SpecificToolChoice.builder().name(name).build()
-                BedrockToolChoice.builder().tool(specificToolChoice).build()
-              case wvlet.ai.agent.ToolChoice.Required =>
-                BedrockToolChoice.builder().any(AnyToolChoice.builder().build()).build()
-
-          // Only set the tool choice if it's not null
-          if bedrockToolChoice != null then
-            toolConfigBuilder.toolChoice(bedrockToolChoice)
+        .specificTool
+        .foreach { specificTool =>
+          val specificToolChoice = SpecificToolChoice.builder().name(specificTool.name).build()
+          val bedrockToolChoice = BedrockToolChoice.builder().tool(specificToolChoice).build()
+          toolConfigBuilder.toolChoice(bedrockToolChoice)
         }
+      
+      // Or handle general tool choice if specific tool is not set
+      if effectiveConfig.specificTool.isEmpty then
+        effectiveConfig
+          .toolChoice
+          .foreach { toolChoice =>
+            val bedrockToolChoice =
+              toolChoice match
+                case wvlet.ai.agent.ToolChoice.Auto =>
+                  BedrockToolChoice.builder().auto(AutoToolChoice.builder().build()).build()
+                case wvlet.ai.agent.ToolChoice.None =>
+                  // In AWS SDK, "none" is represented by a null tool choice
+                  null
+                case wvlet.ai.agent.ToolChoice.Required =>
+                  BedrockToolChoice.builder().any(AnyToolChoice.builder().build()).build()
+  
+            // Only set the tool choice if it's not null
+            if bedrockToolChoice != null then
+              toolConfigBuilder.toolChoice(bedrockToolChoice)
+          }
 
       builder.toolConfig(toolConfigBuilder.build())
 

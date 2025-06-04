@@ -1,6 +1,6 @@
 package wvlet.ai.agent.chat.bedrock
 
-import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig}
+import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, SpecificTool}
 import wvlet.ai.agent.chat.{ChatMessage, ChatRequest, ToolParameter, ToolSpec}
 import wvlet.ai.agent.core.DataType
 import wvlet.airspec.AirSpec
@@ -44,8 +44,9 @@ class BedrockAgentToolChoiceTest extends AirSpec:
     val toolName = "get_weather"
     val agent    = createAgent().withTools(List(createToolSpec())).withToolChoice(toolName)
 
-    agent.modelConfig.toolChoice shouldBe defined
-    agent.modelConfig.toolChoice.get.toString shouldBe s"Tool($toolName)"
+    agent.modelConfig.toolChoice shouldBe None
+    agent.modelConfig.specificTool shouldBe defined
+    agent.modelConfig.specificTool.get.name shouldBe toolName
   }
 
   test("agent should support required tool choice") {
@@ -74,9 +75,7 @@ class BedrockAgentToolChoiceTest extends AirSpec:
       .map(agent.modelConfig.overrideWith)
       .getOrElse(agent.modelConfig)
     overriden.toolChoice shouldBe defined
-    overriden.toolChoice.get.toString shouldBe "Required"
+    overriden.toolChoice.get shouldBe wvlet.ai.agent.ToolChoice.Required
   }
 
 end BedrockAgentToolChoiceTest
-
-

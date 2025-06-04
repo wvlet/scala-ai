@@ -5,7 +5,7 @@ import wvlet.ai.agent.chat.bedrock.BedrockRunner
 import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.airspec.AirSpec
 
-class BedrockIntegrationTest extends AirSpec:
+object BedrockIntegrationTest extends AirSpec:
   if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
     skip("AWS environment variables are not set. Skip this test")
 

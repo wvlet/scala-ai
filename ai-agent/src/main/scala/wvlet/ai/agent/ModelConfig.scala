@@ -10,11 +10,11 @@ enum ToolChoice:
   /** Don't call any tool, even if the tools are provided */
   case None
 
-  /** Force the model to use a specific tool by name */
-  case Tool(name: String)
-
   /** Force the model to use any tool (forces a tool call) */
   case Required
+
+/** Represents a specific tool to be called by name */
+case class SpecificTool(name: String)
 
 case class ModelConfig(
     /**
@@ -62,10 +62,15 @@ case class ModelConfig(
       *   - None: No specific setting, let the model provider determine (default)
       *   - Some(Auto): Let the model decide which tool to call, if any
       *   - Some(None): Force the model not to call any tools
-      *   - Some(Tool("tool_name")): Force the model to call a specific tool
       *   - Some(Required): Force the model to call some tool
       */
-    toolChoice: Option[ToolChoice] = None
+    toolChoice: Option[ToolChoice] = None,
+
+    /**
+      * Forces the model to call a specific named tool.
+      * This is mutually exclusive with toolChoice - if both are set, specificTool takes precedence.
+      */
+    specificTool: Option[SpecificTool] = None
 ):
 
   /** Set the temperature parameter for randomness control. */
@@ -106,15 +111,16 @@ case class ModelConfig(
   def withToolChoiceNone: ModelConfig = this.copy(toolChoice = Some(ToolChoice.None))
 
   /** Force the model to call the specified tool. */
-  def withToolChoice(toolName: String): ModelConfig = this.copy(toolChoice =
-    Some(ToolChoice.Tool(toolName))
+  def withToolChoice(toolName: String): ModelConfig = this.copy(
+    specificTool = Some(SpecificTool(toolName)),
+    toolChoice = None
   )
 
   /** Force the model to call any tool. */
   def withToolChoiceRequired: ModelConfig = this.copy(toolChoice = Some(ToolChoice.Required))
 
   /** Remove any tool choice configuration. */
-  def noToolChoice: ModelConfig = this.copy(toolChoice = None)
+  def noToolChoice: ModelConfig = this.copy(toolChoice = None, specificTool = None)
 
   /**
     * Creates a new ModelConfig by overriding the parameters of this config with the defined
@@ -137,7 +143,8 @@ case class ModelConfig(
     reasoningConfig = other
       .reasoningConfig
       .orElse(this.reasoningConfig),                      // Add reasoningConfig override
-    toolChoice = other.toolChoice.orElse(this.toolChoice) // Add toolChoice override
+    toolChoice = other.toolChoice.orElse(this.toolChoice), // Add toolChoice override
+    specificTool = other.specificTool.orElse(this.specificTool) // Add specificTool override
   )
 
 end ModelConfig
