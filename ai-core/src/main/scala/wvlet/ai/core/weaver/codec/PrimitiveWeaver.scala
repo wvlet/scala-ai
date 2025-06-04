@@ -62,4 +62,48 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Int"))
 
+  given stringWeaver: ObjectWeaver[String] =
+    new ObjectWeaver[String]:
+      override def pack(p: Packer, v: String, config: WeaverConfig): Unit = p.packString(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.STRING =>
+            try
+              context.setString(u.unpackString)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.INTEGER =>
+            try
+              val i = u.unpackLong
+              context.setString(i.toString)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              context.setString(d.toString)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setString(b.toString)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setString("")
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to String"))
+
 end PrimitiveWeaver
