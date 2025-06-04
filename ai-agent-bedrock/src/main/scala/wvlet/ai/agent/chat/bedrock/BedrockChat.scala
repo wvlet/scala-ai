@@ -163,10 +163,10 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
         .specificTool
         .foreach { specificTool =>
           val specificToolChoice = SpecificToolChoice.builder().name(specificTool.name).build()
-          val bedrockToolChoice = BedrockToolChoice.builder().tool(specificToolChoice).build()
+          val bedrockToolChoice  = BedrockToolChoice.builder().tool(specificToolChoice).build()
           toolConfigBuilder.toolChoice(bedrockToolChoice)
         }
-      
+
       // Or handle general tool choice if specific tool is not set
       if effectiveConfig.specificTool.isEmpty then
         effectiveConfig
@@ -181,13 +181,14 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
                   null
                 case wvlet.ai.agent.ToolChoice.Required =>
                   BedrockToolChoice.builder().any(AnyToolChoice.builder().build()).build()
-  
+
             // Only set the tool choice if it's not null
             if bedrockToolChoice != null then
               toolConfigBuilder.toolChoice(bedrockToolChoice)
           }
 
       builder.toolConfig(toolConfigBuilder.build())
+    end if
 
     // Set messages
     val messages: Seq[Message] = extractBedrockChatMessages(request.messages)

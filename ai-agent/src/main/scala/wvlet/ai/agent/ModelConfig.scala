@@ -67,8 +67,8 @@ case class ModelConfig(
     toolChoice: Option[ToolChoice] = None,
 
     /**
-      * Forces the model to call a specific named tool.
-      * This is mutually exclusive with toolChoice - if both are set, specificTool takes precedence.
+      * Forces the model to call a specific named tool. This is mutually exclusive with toolChoice -
+      * if both are set, specificTool takes precedence.
       */
     specificTool: Option[SpecificTool] = None
 ):
@@ -142,8 +142,8 @@ case class ModelConfig(
     candidateCount = other.candidateCount.orElse(this.candidateCount),
     reasoningConfig = other
       .reasoningConfig
-      .orElse(this.reasoningConfig),                      // Add reasoningConfig override
-    toolChoice = other.toolChoice.orElse(this.toolChoice), // Add toolChoice override
+      .orElse(this.reasoningConfig),                            // Add reasoningConfig override
+    toolChoice = other.toolChoice.orElse(this.toolChoice),      // Add toolChoice override
     specificTool = other.specificTool.orElse(this.specificTool) // Add specificTool override
   )
 
