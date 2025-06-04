@@ -3,6 +3,8 @@ package wvlet.ai.agent.chat.bedrock
 import software.amazon.awssdk.auth.credentials.{AwsCredentialsProvider, DefaultCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.model.{
+  AnyToolChoice,
+  AutoToolChoice,
   ContentBlock,
   ConversationRole,
   ConverseOutput,
@@ -13,10 +15,12 @@ import software.amazon.awssdk.services.bedrockruntime.model.{
   Message,
   ReasoningContentBlock,
   ReasoningTextBlock,
+  SpecificToolChoice,
   StopReason,
   SystemContentBlock,
   Tag,
   Tool,
+  ToolChoice as BedrockToolChoice,
   ToolConfiguration,
   ToolInputSchema,
   ToolResultBlock,
@@ -90,9 +94,12 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
     val builder = ConverseStreamRequest.builder().modelId(agent.model.id)
-    
+
     // Apply any request-specific configuration overrides
-    val effectiveConfig = request.overrideConfig.map(agent.modelConfig.overrideWith).getOrElse(agent.modelConfig)
+    val effectiveConfig = request
+      .overrideConfig
+      .map(agent.modelConfig.overrideWith)
+      .getOrElse(agent.modelConfig)
 
     // Reasoning config
     builder.ifDefined(effectiveConfig.reasoningConfig) { (builder, config) =>
@@ -150,40 +157,29 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
       }
     if tools.nonEmpty then
       val toolConfigBuilder = ToolConfiguration.builder().tools(tools.asJava)
-      
+
       // Add tool choice if configured
-      import software.amazon.awssdk.services.bedrockruntime.model.{
-        ToolChoice => BedrockToolChoice,
-        AutoToolChoice,
-        AnyToolChoice,
-        SpecificToolChoice
-      }
-      
-      effectiveConfig.toolChoice.foreach { toolChoice =>
-        val bedrockToolChoice = toolChoice match {
-          case wvlet.ai.agent.ToolChoice.Auto => 
-            BedrockToolChoice.builder()
-              .auto(AutoToolChoice.builder().build())
-              .build()
-          case wvlet.ai.agent.ToolChoice.None => 
-            // In AWS SDK, "none" is represented by a null tool choice
-            null
-          case wvlet.ai.agent.ToolChoice.Tool(name) => 
-            val specificToolChoice = SpecificToolChoice.builder().name(name).build()
-            BedrockToolChoice.builder()
-              .tool(specificToolChoice)
-              .build()
-          case wvlet.ai.agent.ToolChoice.Required => 
-            BedrockToolChoice.builder()
-              .any(AnyToolChoice.builder().build())
-              .build()
+      effectiveConfig
+        .toolChoice
+        .foreach { toolChoice =>
+          val bedrockToolChoice =
+            toolChoice match
+              case wvlet.ai.agent.ToolChoice.Auto =>
+                BedrockToolChoice.builder().auto(AutoToolChoice.builder().build()).build()
+              case wvlet.ai.agent.ToolChoice.None =>
+                // In AWS SDK, "none" is represented by a null tool choice
+                null
+              case wvlet.ai.agent.ToolChoice.Tool(name) =>
+                val specificToolChoice = SpecificToolChoice.builder().name(name).build()
+                BedrockToolChoice.builder().tool(specificToolChoice).build()
+              case wvlet.ai.agent.ToolChoice.Required =>
+                BedrockToolChoice.builder().any(AnyToolChoice.builder().build()).build()
+
+          // Only set the tool choice if it's not null
+          if bedrockToolChoice != null then
+            toolConfigBuilder.toolChoice(bedrockToolChoice)
         }
-        
-        // Only set the tool choice if it's not null
-        if bedrockToolChoice != null then
-          toolConfigBuilder.toolChoice(bedrockToolChoice)
-      }
-      
+
       builder.toolConfig(toolConfigBuilder.build())
 
     // Set messages

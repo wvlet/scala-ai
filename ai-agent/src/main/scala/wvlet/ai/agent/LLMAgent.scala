@@ -74,7 +74,7 @@ case class LLMAgent(
 
   /** Remove the reasoning configuration. */
   def noReasoning: LLMAgent = this.withModelConfig(_.noReasoning)
-  
+
   /** Let the model decide which tool to use, if any. */
   def withToolChoiceAuto: LLMAgent = this.withModelConfig(_.withToolChoiceAuto)
 

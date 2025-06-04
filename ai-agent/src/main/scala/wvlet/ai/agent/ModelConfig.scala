@@ -6,10 +6,13 @@ package wvlet.ai.agent
 enum ToolChoice:
   /** Let the model decide which tool to call and whether to call a tool */
   case Auto
+
   /** Don't call any tool, even if the tools are provided */
   case None
+
   /** Force the model to use a specific tool by name */
   case Tool(name: String)
+
   /** Force the model to use any tool (forces a tool call) */
   case Required
 
@@ -56,11 +59,11 @@ case class ModelConfig(
 
     /**
       * Controls how the model selects and uses tools.
-      * - None: No specific setting, let the model provider determine (default)
-      * - Some(Auto): Let the model decide which tool to call, if any
-      * - Some(None): Force the model not to call any tools
-      * - Some(Tool("tool_name")): Force the model to call a specific tool
-      * - Some(Required): Force the model to call some tool
+      *   - None: No specific setting, let the model provider determine (default)
+      *   - Some(Auto): Let the model decide which tool to call, if any
+      *   - Some(None): Force the model not to call any tools
+      *   - Some(Tool("tool_name")): Force the model to call a specific tool
+      *   - Some(Required): Force the model to call some tool
       */
     toolChoice: Option[ToolChoice] = None
 ):
@@ -103,7 +106,9 @@ case class ModelConfig(
   def withToolChoiceNone: ModelConfig = this.copy(toolChoice = Some(ToolChoice.None))
 
   /** Force the model to call the specified tool. */
-  def withToolChoice(toolName: String): ModelConfig = this.copy(toolChoice = Some(ToolChoice.Tool(toolName)))
+  def withToolChoice(toolName: String): ModelConfig = this.copy(toolChoice =
+    Some(ToolChoice.Tool(toolName))
+  )
 
   /** Force the model to call any tool. */
   def withToolChoiceRequired: ModelConfig = this.copy(toolChoice = Some(ToolChoice.Required))
@@ -131,7 +136,7 @@ case class ModelConfig(
     candidateCount = other.candidateCount.orElse(this.candidateCount),
     reasoningConfig = other
       .reasoningConfig
-      .orElse(this.reasoningConfig), // Add reasoningConfig override
+      .orElse(this.reasoningConfig),                      // Add reasoningConfig override
     toolChoice = other.toolChoice.orElse(this.toolChoice) // Add toolChoice override
   )
 
