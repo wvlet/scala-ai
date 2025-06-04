@@ -1,5 +1,18 @@
 package wvlet.ai.agent
 
+/**
+  * Defines how models select which tools to use during inference.
+  */
+enum ToolChoice:
+  /** Let the model decide which tool to call and whether to call a tool */
+  case Auto
+  /** Don't call any tool, even if the tools are provided */
+  case None
+  /** Force the model to use a specific tool by name */
+  case Tool(name: String)
+  /** Force the model to use any tool (forces a tool call) */
+  case Required
+
 case class ModelConfig(
     /**
       * Controls the randomness of token selection. Lower values produce less random responses,
@@ -39,7 +52,17 @@ case class ModelConfig(
       * The reasoning configuration for the model. This is a placeholder and can be used to specify
       * additional reasoning parameters.
       */
-    reasoningConfig: Option[ReasoningConfig] = None
+    reasoningConfig: Option[ReasoningConfig] = None,
+
+    /**
+      * Controls how the model selects and uses tools.
+      * - None: No specific setting, let the model provider determine (default)
+      * - Some(Auto): Let the model decide which tool to call, if any
+      * - Some(None): Force the model not to call any tools
+      * - Some(Tool("tool_name")): Force the model to call a specific tool
+      * - Some(Required): Force the model to call some tool
+      */
+    toolChoice: Option[ToolChoice] = None
 ):
 
   /** Set the temperature parameter for randomness control. */
@@ -73,6 +96,21 @@ case class ModelConfig(
   /** Remove the reasoning configuration. */
   def noReasoning: ModelConfig = this.copy(reasoningConfig = None)
 
+  /** Let the model decide which tool to use, if any. */
+  def withToolChoiceAuto: ModelConfig = this.copy(toolChoice = Some(ToolChoice.Auto))
+
+  /** Force the model not to use any tools. */
+  def withToolChoiceNone: ModelConfig = this.copy(toolChoice = Some(ToolChoice.None))
+
+  /** Force the model to call the specified tool. */
+  def withToolChoice(toolName: String): ModelConfig = this.copy(toolChoice = Some(ToolChoice.Tool(toolName)))
+
+  /** Force the model to call any tool. */
+  def withToolChoiceRequired: ModelConfig = this.copy(toolChoice = Some(ToolChoice.Required))
+
+  /** Remove any tool choice configuration. */
+  def noToolChoice: ModelConfig = this.copy(toolChoice = None)
+
   /**
     * Creates a new ModelConfig by overriding the parameters of this config with the defined
     * parameters from the `other` config.
@@ -93,7 +131,8 @@ case class ModelConfig(
     candidateCount = other.candidateCount.orElse(this.candidateCount),
     reasoningConfig = other
       .reasoningConfig
-      .orElse(this.reasoningConfig) // Add reasoningConfig override
+      .orElse(this.reasoningConfig), // Add reasoningConfig override
+    toolChoice = other.toolChoice.orElse(this.toolChoice) // Add toolChoice override
   )
 
 end ModelConfig

@@ -90,9 +90,12 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
 
   private[bedrock] def newConverseRequest(request: ChatRequest): ConverseStreamRequest =
     val builder = ConverseStreamRequest.builder().modelId(agent.model.id)
+    
+    // Apply any request-specific configuration overrides
+    val effectiveConfig = request.overrideConfig.map(agent.modelConfig.overrideWith).getOrElse(agent.modelConfig)
 
     // Reasoning config
-    builder.ifDefined(agent.modelConfig.reasoningConfig) { (builder, config) =>
+    builder.ifDefined(effectiveConfig.reasoningConfig) { (builder, config) =>
       builder.additionalModelRequestFields(
         DocumentUtil.fromMap(
           Map("thinking" -> Map("type" -> "enabled", "budget_tokens" -> config.reasoningBudget))
@@ -108,24 +111,24 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
     // Set inference configuration
     val inferenceConfig = InferenceConfiguration
       .builder()
-      .ifDefined(agent.modelConfig.maxOutputTokens) { (builder, maxTokens) =>
+      .ifDefined(effectiveConfig.maxOutputTokens) { (builder, maxTokens) =>
         if maxTokens > 8192 then
           throw StatusCode
             .INVALID_MODEL_CONFIG
             .newException(s"maxTokens is limited to 8129 in Bedrock, but ${maxTokens} is given")
         builder.maxTokens(maxTokens.toInt)
       }
-      .ifDefined(agent.modelConfig.temperature) { (builder, temperature) =>
+      .ifDefined(effectiveConfig.temperature) { (builder, temperature) =>
         builder.temperature(temperature.toFloat)
       }
-      .ifDefined(agent.modelConfig.topP) { (builder, topP) =>
+      .ifDefined(effectiveConfig.topP) { (builder, topP) =>
         builder.topP(topP.toFloat)
       }
-      .ifDefined(agent.modelConfig.topK) { (builder, topK) =>
+      .ifDefined(effectiveConfig.topK) { (builder, topK) =>
         warn(s"Ignoring top-k parameter ${topK}, which is not supported in Bedrock")
         builder
       }
-      .ifDefined(agent.modelConfig.stopSequences) { (builder, stopSequences) =>
+      .ifDefined(effectiveConfig.stopSequences) { (builder, stopSequences) =>
         builder.stopSequences(stopSequences.asJava)
       }
       .build()
@@ -146,7 +149,42 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
         )
       }
     if tools.nonEmpty then
-      builder.toolConfig(ToolConfiguration.builder().tools(tools.asJava).build())
+      val toolConfigBuilder = ToolConfiguration.builder().tools(tools.asJava)
+      
+      // Add tool choice if configured
+      import software.amazon.awssdk.services.bedrockruntime.model.{
+        ToolChoice => BedrockToolChoice,
+        AutoToolChoice,
+        AnyToolChoice,
+        SpecificToolChoice
+      }
+      
+      effectiveConfig.toolChoice.foreach { toolChoice =>
+        val bedrockToolChoice = toolChoice match {
+          case wvlet.ai.agent.ToolChoice.Auto => 
+            BedrockToolChoice.builder()
+              .auto(AutoToolChoice.builder().build())
+              .build()
+          case wvlet.ai.agent.ToolChoice.None => 
+            // In AWS SDK, "none" is represented by a null tool choice
+            null
+          case wvlet.ai.agent.ToolChoice.Tool(name) => 
+            val specificToolChoice = SpecificToolChoice.builder().name(name).build()
+            BedrockToolChoice.builder()
+              .tool(specificToolChoice)
+              .build()
+          case wvlet.ai.agent.ToolChoice.Required => 
+            BedrockToolChoice.builder()
+              .any(AnyToolChoice.builder().build())
+              .build()
+        }
+        
+        // Only set the tool choice if it's not null
+        if bedrockToolChoice != null then
+          toolConfigBuilder.toolChoice(bedrockToolChoice)
+      }
+      
+      builder.toolConfig(toolConfigBuilder.build())
 
     // Set messages
     val messages: Seq[Message] = extractBedrockChatMessages(request.messages)
