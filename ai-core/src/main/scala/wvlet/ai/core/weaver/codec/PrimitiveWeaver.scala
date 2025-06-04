@@ -65,9 +65,13 @@ object PrimitiveWeaver:
   given stringWeaver: ObjectWeaver[String] =
     new ObjectWeaver[String]:
       override def pack(p: Packer, v: String, config: WeaverConfig): Unit = p.packString(v)
-      
+
       // Helper method to safely perform unpacking operations
-      private def withSafeUnpack[T](context: WeaverContext, operation: => T, valueMapper: T => String): Unit =
+      private def withSafeUnpack[T](
+          context: WeaverContext,
+          operation: => T,
+          valueMapper: T => String
+      ): Unit =
         try
           val value = operation
           context.setString(valueMapper(value))

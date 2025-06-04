@@ -17,14 +17,14 @@ class WeaverTest extends AirSpec:
     val v2   = ObjectWeaver.fromJson[Int](json)
     v shouldBe v2
   }
-  
+
   test("weave string") {
     val v       = "hello"
     val msgpack = ObjectWeaver.weave(v)
     val v2      = ObjectWeaver.unweave[String](msgpack)
     v shouldBe v2
   }
-  
+
   test("string toJson") {
     val v    = "hello world"
     val json = ObjectWeaver.toJson(v)

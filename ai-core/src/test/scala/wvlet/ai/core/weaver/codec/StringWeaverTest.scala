@@ -61,11 +61,8 @@ class StringWeaverTest extends AirSpec:
 
   test("unpack String from BOOLEAN types") {
     // Test boolean to String conversion
-    val testCases = Seq(
-      (true, "true"),
-      (false, "false")
-    )
-    
+    val testCases = Seq((true, "true"), (false, "false"))
+
     for (booleanValue, expectedStr) <- testCases do
       val packer = MessagePack.newBufferPacker
       packer.packBoolean(booleanValue)
