@@ -33,7 +33,7 @@ class StringWeaverTest extends AirSpec:
     )
 
     for (intValue, expectedStr) <- testCases do
-      val packer = MessagePack.newBufferPacker
+      val packer = MessagePack.newPacker
       packer.packInt(intValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[String](packed)
@@ -47,7 +47,7 @@ class StringWeaverTest extends AirSpec:
     val testCases = Seq((0.0, "0"), (1.0, "1"), (-1.0, "-1"), (3.14, "3.14"))
 
     for (floatValue, expectedStr) <- testCases do
-      val packer = MessagePack.newBufferPacker
+      val packer = MessagePack.newPacker
       packer.packDouble(floatValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[String](packed)
@@ -61,7 +61,7 @@ class StringWeaverTest extends AirSpec:
     val testCases = Seq((true, "true"), (false, "false"))
 
     for (booleanValue, expectedStr) <- testCases do
-      val packer = MessagePack.newBufferPacker
+      val packer = MessagePack.newPacker
       packer.packBoolean(booleanValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[String](packed)
@@ -70,7 +70,7 @@ class StringWeaverTest extends AirSpec:
 
   test("unpack String from NIL type") {
     // Test nil to String conversion (nil = empty string)
-    val packer = MessagePack.newBufferPacker
+    val packer = MessagePack.newPacker
     packer.packNil
     val packed   = packer.toByteArray
     val unpacked = ObjectWeaver.unweave[String](packed)
@@ -79,7 +79,7 @@ class StringWeaverTest extends AirSpec:
 
   test("unpack String from unsupported types") {
     // Test types that cannot be converted to String
-    val packer = MessagePack.newBufferPacker
+    val packer = MessagePack.newPacker
     packer.packArrayHeader(2)
     packer.packInt(1)
     packer.packInt(2)

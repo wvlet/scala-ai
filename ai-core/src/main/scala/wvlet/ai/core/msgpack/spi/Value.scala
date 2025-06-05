@@ -42,7 +42,7 @@ trait Value:
   def writeTo(packer: Packer): Unit
 
   def toMsgpack: Array[Byte] =
-    val p = MessagePack.newBufferPacker
+    val p = MessagePack.newPacker
     writeTo(p)
     p.toByteArray
 

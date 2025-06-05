@@ -212,7 +212,7 @@ AI-Core provides efficient binary serialization using MessagePack format.
 import wvlet.ai.core.msgpack.spi.{MessagePack, Packer, Unpacker}
 
 // Serialize primitive data
-val packer = MessagePack.newBufferPacker()
+val packer = MessagePack.newPacker()
 packer.packString("Alice")
 packer.packInt(30)
 val bytes = packer.toByteArray
