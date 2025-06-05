@@ -30,6 +30,14 @@ object PrimitiveWeaver:
       case e: Exception =>
         context.setError(e)
 
+  private def safeUnpackNil(context: WeaverContext, u: Unpacker): Unit =
+    try
+      u.unpackNil
+      context.setNull
+    catch
+      case e: Exception =>
+        context.setError(e)
+
   given intWeaver: ObjectWeaver[Int] =
     new ObjectWeaver[Int]:
       override def pack(p: Packer, v: Int, config: WeaverConfig): Unit = p.packInt(v)
@@ -77,12 +85,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setNull
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Int"))
@@ -157,13 +160,7 @@ object PrimitiveWeaver:
               context.setLong
             )
           case ValueType.NIL =>
-            safeUnpack(
-              context, {
-                u.unpackNil;
-                0L
-              },
-              context.setLong
-            )
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Long"))
@@ -191,13 +188,7 @@ object PrimitiveWeaver:
               context.setDouble
             )
           case ValueType.NIL =>
-            safeUnpack(
-              context, {
-                u.unpackNil;
-                0.0
-              },
-              context.setDouble
-            )
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Double"))
@@ -247,12 +238,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setFloat(0.0f)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Float"))
@@ -299,12 +285,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setBoolean(false)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Boolean"))
@@ -360,12 +341,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setByte(0.toByte)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Byte"))
@@ -421,12 +397,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setShort(0.toShort)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Short"))
@@ -462,12 +433,7 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setChar('\u0000')
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Char"))

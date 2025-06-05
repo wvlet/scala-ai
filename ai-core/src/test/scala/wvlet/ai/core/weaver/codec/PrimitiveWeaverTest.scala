@@ -100,7 +100,7 @@ class PrimitiveWeaverTest extends AirSpec:
   }
 
   test("unpack Int from NIL type") {
-    // Test nil to int conversion (nil = 0)
+    // Test nil should result in null context, which returns 0 as default
     val packer = MessagePack.newPacker()
     packer.packNil
     val packed   = packer.toByteArray
@@ -164,7 +164,7 @@ class PrimitiveWeaverTest extends AirSpec:
     val unpackedStr = ObjectWeaver.unweave[Long](packedStr)
     unpackedStr shouldBe 42L
 
-    // From nil
+    // From nil (should return default value for Long type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
@@ -210,7 +210,7 @@ class PrimitiveWeaverTest extends AirSpec:
     val unpackedBool = ObjectWeaver.unweave[Double](packedBool)
     unpackedBool shouldBe 0.0
 
-    // From nil
+    // From nil (should return default value for Double type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
