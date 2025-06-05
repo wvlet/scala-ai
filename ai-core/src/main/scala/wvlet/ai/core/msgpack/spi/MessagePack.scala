@@ -21,7 +21,7 @@ import wvlet.ai.core.msgpack.json.{NestedMessagePackBuilder, StreamMessagePackBu
 /**
   */
 object MessagePack:
-  def newPacker(): BufferPacker               = Compat.newBufferPacker
+  def newPacker(): BufferPacker                   = Compat.newBufferPacker
   def newUnpacker(msgpack: Array[Byte]): Unpacker = Compat.newUnpacker(msgpack)
   def newUnpacker(msgpack: Array[Byte], offset: Int, len: Int): Unpacker = Compat.newUnpacker(
     msgpack,
