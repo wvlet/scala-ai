@@ -78,6 +78,11 @@ sbt integrationTest/test
 - Integration tests are in separate `ai-integration-test` module
 - Mock implementations available for testing without external dependencies
 
+### AirSpec Assertion Syntax
+- Use `shouldBe`, `should include()`, `shouldBe a[Type]` for basic assertions
+- For comparison operators, wrap in parentheses: `(value >= 1) shouldBe true`
+- Avoid ScalaTest-style matchers like `should be >= 1` - not supported in AirSpec
+
 ## Key Dependencies
 
 - **Scala Version**: 3.7.0
