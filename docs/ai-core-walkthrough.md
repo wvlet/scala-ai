@@ -41,12 +41,12 @@ trait UserService:
 
 // Define implementations
 class PostgresDatabase extends DatabaseService:
-  def findUser(id: String): Option[User] = 
+  def findUser(id: String): Option[User] =
     // Database implementation
     ???
 
 class UserServiceImpl(db: DatabaseService) extends UserService:
-  def getUser(id: String): User = 
+  def getUser(id: String): User =
     db.findUser(id).getOrElse(throw new RuntimeException("User not found"))
 
 // Create a design
@@ -219,17 +219,6 @@ val unpacker = MessagePack.newUnpacker(bytes)
 val value = unpacker.unpackValue()
 ```
 
-### Custom Object Serialization
-
-```scala
-case class Person(name: String, age: Int, email: String)
-
-// MessagePack can serialize case classes automatically
-val person = Person("Bob", 25, "bob@example.com")
-val serialized = MessagePack.pack(person)
-val deserialized = MessagePack.unpack[Person](serialized)
-```
-
 ## Reactive Streams (Rx)
 
 AI-Core includes a reactive streams implementation for handling asynchronous data flows.
@@ -245,9 +234,10 @@ val evenNumbers = numbers.filter(_ % 2 == 0)
 val doubled = evenNumbers.map(_ * 2)
 
 // Subscribe to changes
-doubled.subscribe { value =>
+val cancelable = doubled.subscribe { value =>
   println(s"Received: $value")
 }
+
 
 // Create reactive variables
 val counter = Rx.variable(0)
@@ -257,6 +247,8 @@ counter.map(_ * 10).subscribe { value =>
 
 // Update reactive variables
 counter := 5  // Triggers subscriber with value 50
+
+cancelable.cancel() // Cancel the subscription
 ```
 
 ### Advanced Rx Patterns
@@ -368,24 +360,6 @@ val listSurface = Surface.of[List[String]]
 val mapSurface = Surface.of[Map[String, Int]]
 ```
 
-### Using Surface for Serialization
-
-```scala
-// Surface enables type-safe serialization
-def serialize[T](obj: T)(using surface: Surface[T]): Array[Byte] =
-  // Use surface information for serialization
-  ???
-
-def deserialize[T](bytes: Array[Byte])(using surface: Surface[T]): T =
-  // Use surface information for deserialization
-  ???
-
-// Usage
-val user = User(1, "Alice", Some("alice@example.com"))
-val serialized = serialize(user)
-val deserialized = deserialize[User](serialized)
-```
-
 ## Object Weaving
 
 Object weaving provides automatic serialization/deserialization capabilities.
@@ -409,26 +383,6 @@ val restoredConfig = ObjectWeaver.fromMap[Config](configMap)
 // JSON integration
 val jsonString = ObjectWeaver.toJSON(config)
 val fromJson = ObjectWeaver.fromJSON[Config](jsonString)
-```
-
-### Custom Weavers
-
-```scala
-// Define custom serialization logic
-given ConfigWeaver: ObjectWeaver[Config] with
-  def toMap(obj: Config): Map[String, Any] =
-    Map(
-      "server_host" -> obj.host,
-      "server_port" -> obj.port,
-      "use_ssl" -> obj.ssl
-    )
-  
-  def fromMap(m: Map[String, Any]): Config =
-    Config(
-      host = m("server_host").asInstanceOf[String],
-      port = m("server_port").asInstanceOf[Int],
-      ssl = m("use_ssl").asInstanceOf[Boolean]
-    )
 ```
 
 ## Best Practices
@@ -480,18 +434,18 @@ class ServiceImpl extends LogSupport:
 import wvlet.airspec.AirSpec
 
 class MyServiceTest extends AirSpec:
-  
+
   test("service should process data correctly") {
     val testDesign = Design.newDesign
       .bindImpl[DatabaseService, MockDatabase]
       .bindImpl[UserService, UserServiceImpl]
-    
+
     testDesign.build[UserService] { userService =>
       val result = userService.processUser("123")
       result.name shouldBe "Test User"
     }
   }
-  
+
   test("should handle errors gracefully") {
     val service = new MyService()
     val result = service.processData("invalid")
