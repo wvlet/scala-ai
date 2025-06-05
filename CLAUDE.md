@@ -79,9 +79,11 @@ sbt integrationTest/test
 - Mock implementations available for testing without external dependencies
 
 ### AirSpec Assertion Syntax
-- Use `shouldBe`, `should include()`, `shouldBe a[Type]` for basic assertions
-- For comparison operators, wrap in parentheses: `(value >= 1) shouldBe true`
+- Use `shouldBe`, `shouldNotBe`, `shouldContain`, `shouldMatch` for basic assertions
+- For type check, use `shouldMatch { case x:X => ... }` syntax.
+- For comparison operators, use `(cond) shouldBe true`: `value >= 1 shouldBe true`
 - Avoid ScalaTest-style matchers like `should be >= 1` - not supported in AirSpec
+- For more syntax examples, refer to .github/instructions/airspec.instructions.md
 
 ## Key Dependencies
 
