@@ -57,6 +57,9 @@ sbt projectNative/compile # Scala Native only
 ```
 
 ### Code Formatting
+
+Ensure the code is formatted with `scalafmtAll` command for consistent code style. CI will check formatting on pull requests.
+
 ```bash
 # Format code
 sbt scalafmtAll

@@ -28,7 +28,7 @@ object JSONWeaver extends ObjectWeaver[String]:
     p.writePayload(msgpack)
 
   private def toMsgPack(jsonValue: JSONValue, config: WeaverConfig): Array[Byte] =
-    val packer = MessagePack.newBufferPacker
+    val packer = MessagePack.newPacker()
     packJsonValue(packer, jsonValue, config)
     packer.toByteArray
 

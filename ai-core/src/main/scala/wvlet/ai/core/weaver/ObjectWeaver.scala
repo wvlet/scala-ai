@@ -23,7 +23,7 @@ trait ObjectWeaver[A]:
     JSONWeaver.unweave(msgpack, config)
 
   def toMsgPack(v: A, config: WeaverConfig = WeaverConfig()): MsgPack =
-    val packer = MessagePack.newBufferPacker
+    val packer = MessagePack.newPacker()
     pack(packer, v, config)
     packer.toByteArray
 
