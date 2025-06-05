@@ -1,6 +1,7 @@
 package wvlet.ai.agent.bedrock
 
 import wvlet.ai.agent.chat.*
+import wvlet.ai.agent.chat.ChatMessage.AIMessage
 import wvlet.ai.agent.chat.bedrock.BedrockRunner
 import wvlet.ai.agent.{LLM, LLMAgent}
 import wvlet.airspec.AirSpec
@@ -57,8 +58,8 @@ class BedrockIntegrationTest extends AirSpec:
     debug(s"First response: ${firstResponse}")
     
     // Verify basic response structure
-    firstResponse.messages should not be empty
-    firstResponse.messages.head shouldBe a[AIMessage]
+    firstResponse.messages.nonEmpty shouldBe true
+    firstResponse.messages.head.isInstanceOf[AIMessage] shouldBe true
     
     // Continue with history using continueChat - test memory retention
     val secondResponse = session.continueChat(firstResponse, "What is my name?")
@@ -66,7 +67,7 @@ class BedrockIntegrationTest extends AirSpec:
     
     // Verify the response contains the remembered name
     val secondMessage = secondResponse.messages.head.asInstanceOf[AIMessage]
-    secondMessage.text.toLowerCase should include("alice")
+    secondMessage.text.toLowerCase shouldContain "alice"
     
     // Test with explicit ChatRequest containing history
     val history = Seq(
@@ -80,11 +81,11 @@ class BedrockIntegrationTest extends AirSpec:
     
     // Verify the response references the conversation history
     val thirdMessage = thirdResponse.messages.head.asInstanceOf[AIMessage]
-    thirdMessage.text.toLowerCase should include("blue")
+    thirdMessage.text.toLowerCase shouldContain "blue"
     
     // Verify that chat history is properly maintained in responses
-    secondResponse.messages.size should be >= 1
-    thirdResponse.messages.size should be >= 1
+    (secondResponse.messages.size >= 1) shouldBe true
+    (thirdResponse.messages.size >= 1) shouldBe true
   }
 
 end BedrockIntegrationTest
