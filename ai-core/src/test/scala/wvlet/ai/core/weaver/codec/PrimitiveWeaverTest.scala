@@ -138,4 +138,198 @@ class PrimitiveWeaverTest extends AirSpec:
       }
   }
 
+  test("Long weaver basic operations") {
+    val longValues = Seq(0L, 1L, -1L, Long.MaxValue, Long.MinValue, 9223372036854775807L)
+    
+    for longValue <- longValues do
+      val packed = ObjectWeaver.weave(longValue)
+      val unpacked = ObjectWeaver.unweave[Long](packed)
+      unpacked shouldBe longValue
+  }
+
+  test("Long weaver from various types") {
+    // From boolean
+    val packerBool = MessagePack.newPacker()
+    packerBool.packBoolean(true)
+    val packedBool = packerBool.toByteArray
+    val unpackedBool = ObjectWeaver.unweave[Long](packedBool)
+    unpackedBool shouldBe 1L
+
+    // From string
+    val packerStr = MessagePack.newPacker()
+    packerStr.packString("42")
+    val packedStr = packerStr.toByteArray
+    val unpackedStr = ObjectWeaver.unweave[Long](packedStr)
+    unpackedStr shouldBe 42L
+
+    // From nil
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Long](packedNil)
+    unpackedNil shouldBe 0L
+  }
+
+  test("Double weaver basic operations") {
+    val doubleValues = Seq(0.0, 1.0, -1.0, 3.14159, Double.MaxValue, Double.MinValue)
+    
+    for doubleValue <- doubleValues do
+      val packed = ObjectWeaver.weave(doubleValue)
+      val unpacked = ObjectWeaver.unweave[Double](packed)
+      unpacked shouldBe doubleValue
+  }
+
+  test("Float weaver basic operations") {
+    val floatValues = Seq(0.0f, 1.0f, -1.0f, 3.14f, Float.MaxValue, Float.MinValue)
+    
+    for floatValue <- floatValues do
+      val packed = ObjectWeaver.weave(floatValue)
+      val unpacked = ObjectWeaver.unweave[Float](packed)
+      unpacked shouldBe floatValue
+  }
+
+  test("Boolean weaver basic operations") {
+    val boolValues = Seq(true, false)
+    
+    for boolValue <- boolValues do
+      val packed = ObjectWeaver.weave(boolValue)
+      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      unpacked shouldBe boolValue
+  }
+
+  test("Boolean weaver from various types") {
+    // From integer - non-zero is true
+    val packerInt = MessagePack.newPacker()
+    packerInt.packInt(5)
+    val packedInt = packerInt.toByteArray
+    val unpackedInt = ObjectWeaver.unweave[Boolean](packedInt)
+    unpackedInt shouldBe true
+
+    // From integer - zero is false
+    val packerZero = MessagePack.newPacker()
+    packerZero.packInt(0)
+    val packedZero = packerZero.toByteArray
+    val unpackedZero = ObjectWeaver.unweave[Boolean](packedZero)
+    unpackedZero shouldBe false
+
+    // From string - various true values
+    val trueStrings = Seq("true", "1", "yes", "on", "TRUE", "YES", "ON")
+    for trueStr <- trueStrings do
+      val packer = MessagePack.newPacker()
+      packer.packString(trueStr)
+      val packed = packer.toByteArray
+      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      unpacked shouldBe true
+
+    // From string - various false values
+    val falseStrings = Seq("false", "0", "no", "off", "", "FALSE", "NO", "OFF")
+    for falseStr <- falseStrings do
+      val packer = MessagePack.newPacker()
+      packer.packString(falseStr)
+      val packed = packer.toByteArray
+      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      unpacked shouldBe false
+  }
+
+  test("Byte weaver basic operations") {
+    val byteValues = Seq(0.toByte, 1.toByte, -1.toByte, Byte.MaxValue, Byte.MinValue)
+    
+    for byteValue <- byteValues do
+      val packed = ObjectWeaver.weave(byteValue)
+      val unpacked = ObjectWeaver.unweave[Byte](packed)
+      unpacked shouldBe byteValue
+  }
+
+  test("Byte weaver range validation") {
+    // Test value outside byte range
+    val packer = MessagePack.newPacker()
+    packer.packInt(300) // Outside byte range
+    val packed = packer.toByteArray
+    
+    intercept[Exception] {
+      ObjectWeaver.unweave[Byte](packed)
+    }
+  }
+
+  test("Short weaver basic operations") {
+    val shortValues = Seq(0.toShort, 1.toShort, -1.toShort, Short.MaxValue, Short.MinValue)
+    
+    for shortValue <- shortValues do
+      val packed = ObjectWeaver.weave(shortValue)
+      val unpacked = ObjectWeaver.unweave[Short](packed)
+      unpacked shouldBe shortValue
+  }
+
+  test("Short weaver range validation") {
+    // Test value outside short range
+    val packer = MessagePack.newPacker()
+    packer.packInt(50000) // Outside short range
+    val packed = packer.toByteArray
+    
+    intercept[Exception] {
+      ObjectWeaver.unweave[Short](packed)
+    }
+  }
+
+  test("Char weaver basic operations") {
+    val charValues = Seq('a', 'Z', '0', '9', ' ', '\n', '\u0000', '\uFFFF')
+    
+    for charValue <- charValues do
+      val packed = ObjectWeaver.weave(charValue)
+      val unpacked = ObjectWeaver.unweave[Char](packed)
+      unpacked shouldBe charValue
+  }
+
+  test("Char weaver from string") {
+    // Single character string
+    val packer = MessagePack.newPacker()
+    packer.packString("A")
+    val packed = packer.toByteArray
+    val unpacked = ObjectWeaver.unweave[Char](packed)
+    unpacked shouldBe 'A'
+  }
+
+  test("Char weaver from string - failure cases") {
+    // Multi-character string should fail
+    val packer = MessagePack.newPacker()
+    packer.packString("AB")
+    val packed = packer.toByteArray
+    
+    intercept[Exception] {
+      ObjectWeaver.unweave[Char](packed)
+    }
+  }
+
+  test("Char weaver from integer") {
+    // Character code conversion
+    val packer = MessagePack.newPacker()
+    packer.packInt(65) // ASCII 'A'
+    val packed = packer.toByteArray
+    val unpacked = ObjectWeaver.unweave[Char](packed)
+    unpacked shouldBe 'A'
+  }
+
+  test("Primitive type error handling") {
+    // Test unsupported conversions for each type
+    val packer = MessagePack.newPacker()
+    packer.packArrayHeader(1)
+    packer.packInt(1)
+    val packed = packer.toByteArray
+
+    val primitiveTypes = Seq(
+      () => ObjectWeaver.unweave[Long](packed),
+      () => ObjectWeaver.unweave[Double](packed),
+      () => ObjectWeaver.unweave[Float](packed),
+      () => ObjectWeaver.unweave[Boolean](packed),
+      () => ObjectWeaver.unweave[Byte](packed),
+      () => ObjectWeaver.unweave[Short](packed),
+      () => ObjectWeaver.unweave[Char](packed)
+    )
+
+    for unpackOperation <- primitiveTypes do
+      intercept[Exception] {
+        unpackOperation()
+      }
+  }
+
 end PrimitiveWeaverTest

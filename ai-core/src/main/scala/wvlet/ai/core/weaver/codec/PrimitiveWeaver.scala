@@ -100,4 +100,355 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to String"))
 
+  given longWeaver: ObjectWeaver[Long] =
+    new ObjectWeaver[Long]:
+      override def pack(p: Packer, v: Long, config: WeaverConfig): Unit = p.packLong(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.INTEGER =>
+            try
+              context.setLong(u.unpackLong)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              if d.isWhole && d >= Long.MinValue && d <= Long.MaxValue then
+                context.setLong(d.toLong)
+              else
+                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Long"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            try
+              val longValue = s.toLong
+              context.setLong(longValue)
+            catch
+              case e: NumberFormatException =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Long", e)
+                )
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setLong(if b then 1L else 0L)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setLong(0L)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Long"))
+
+  given doubleWeaver: ObjectWeaver[Double] =
+    new ObjectWeaver[Double]:
+      override def pack(p: Packer, v: Double, config: WeaverConfig): Unit = p.packDouble(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.FLOAT =>
+            try
+              context.setDouble(u.unpackDouble)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.INTEGER =>
+            try
+              context.setDouble(u.unpackLong.toDouble)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            try
+              val doubleValue = s.toDouble
+              context.setDouble(doubleValue)
+            catch
+              case e: NumberFormatException =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Double", e)
+                )
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setDouble(if b then 1.0 else 0.0)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setDouble(0.0)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Double"))
+
+  given floatWeaver: ObjectWeaver[Float] =
+    new ObjectWeaver[Float]:
+      override def pack(p: Packer, v: Float, config: WeaverConfig): Unit = p.packFloat(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              if d >= Float.MinValue && d <= Float.MaxValue then
+                context.setFloat(d.toFloat)
+              else
+                context.setError(new IllegalArgumentException(s"Double ${d} out of Float range"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.INTEGER =>
+            try
+              context.setFloat(u.unpackLong.toFloat)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            try
+              val floatValue = s.toFloat
+              context.setFloat(floatValue)
+            catch
+              case e: NumberFormatException =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Float", e)
+                )
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setFloat(if b then 1.0f else 0.0f)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setFloat(0.0f)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Float"))
+
+  given booleanWeaver: ObjectWeaver[Boolean] =
+    new ObjectWeaver[Boolean]:
+      override def pack(p: Packer, v: Boolean, config: WeaverConfig): Unit = p.packBoolean(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.BOOLEAN =>
+            try
+              context.setBoolean(u.unpackBoolean)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.INTEGER =>
+            try
+              val i = u.unpackLong
+              context.setBoolean(i != 0)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              context.setBoolean(d != 0.0)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            s.toLowerCase match
+              case "true" | "1" | "yes" | "on" =>
+                context.setBoolean(true)
+              case "false" | "0" | "no" | "off" | "" =>
+                context.setBoolean(false)
+              case _ =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Boolean")
+                )
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setBoolean(false)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Boolean"))
+
+  given byteWeaver: ObjectWeaver[Byte] =
+    new ObjectWeaver[Byte]:
+      override def pack(p: Packer, v: Byte, config: WeaverConfig): Unit = p.packByte(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.INTEGER =>
+            try
+              val l = u.unpackLong
+              if l >= Byte.MinValue && l <= Byte.MaxValue then
+                context.setByte(l.toByte)
+              else
+                context.setError(new IllegalArgumentException(s"Long ${l} out of Byte range"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              if d.isWhole && d >= Byte.MinValue && d <= Byte.MaxValue then
+                context.setByte(d.toByte)
+              else
+                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Byte"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            try
+              val byteValue = s.toByte
+              context.setByte(byteValue)
+            catch
+              case e: NumberFormatException =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Byte", e)
+                )
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setByte(if b then 1.toByte else 0.toByte)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setByte(0.toByte)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Byte"))
+
+  given shortWeaver: ObjectWeaver[Short] =
+    new ObjectWeaver[Short]:
+      override def pack(p: Packer, v: Short, config: WeaverConfig): Unit = p.packShort(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.INTEGER =>
+            try
+              val l = u.unpackLong
+              if l >= Short.MinValue && l <= Short.MaxValue then
+                context.setShort(l.toShort)
+              else
+                context.setError(new IllegalArgumentException(s"Long ${l} out of Short range"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.FLOAT =>
+            try
+              val d = u.unpackDouble
+              if d.isWhole && d >= Short.MinValue && d <= Short.MaxValue then
+                context.setShort(d.toShort)
+              else
+                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Short"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.STRING =>
+            val s = u.unpackString
+            try
+              val shortValue = s.toShort
+              context.setShort(shortValue)
+            catch
+              case e: NumberFormatException =>
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Short", e)
+                )
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.BOOLEAN =>
+            try
+              val b = u.unpackBoolean
+              context.setShort(if b then 1.toShort else 0.toShort)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setShort(0.toShort)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Short"))
+
+  given charWeaver: ObjectWeaver[Char] =
+    new ObjectWeaver[Char]:
+      override def pack(p: Packer, v: Char, config: WeaverConfig): Unit = p.packString(v.toString)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.STRING =>
+            try
+              val s = u.unpackString
+              if s.length == 1 then
+                context.setChar(s.charAt(0))
+              else
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert string '${s}' to Char - must be single character")
+                )
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.INTEGER =>
+            try
+              val l = u.unpackLong
+              if l >= Char.MinValue && l <= Char.MaxValue then
+                context.setChar(l.toChar)
+              else
+                context.setError(new IllegalArgumentException(s"Long ${l} out of Char range"))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            try
+              u.unpackNil
+              context.setChar('\u0000')
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Char"))
+
 end PrimitiveWeaver
