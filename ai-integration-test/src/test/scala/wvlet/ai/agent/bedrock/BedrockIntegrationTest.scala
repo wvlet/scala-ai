@@ -52,13 +52,21 @@ class BedrockIntegrationTest extends AirSpec:
   test("bedrock agent with chat history") { (runner: BedrockRunner) =>
     val session = runner.newChatSession
     
-    // First message
-    val firstResponse = session.chat("My name is Alice. What's your name?")
+    // First message - establish context
+    val firstResponse = session.chat("My name is Alice. Please remember this.")
     debug(s"First response: ${firstResponse}")
     
-    // Continue with history using continueChat
-    val secondResponse = session.continueChat(firstResponse, "Do you remember my name?")
+    // Verify basic response structure
+    firstResponse.messages should not be empty
+    firstResponse.messages.head shouldBe a[AIMessage]
+    
+    // Continue with history using continueChat - test memory retention
+    val secondResponse = session.continueChat(firstResponse, "What is my name?")
     debug(s"Second response: ${secondResponse}")
+    
+    // Verify the response contains the remembered name
+    val secondMessage = secondResponse.messages.head.asInstanceOf[AIMessage]
+    secondMessage.text.toLowerCase should include("alice")
     
     // Test with explicit ChatRequest containing history
     val history = Seq(
@@ -69,6 +77,14 @@ class BedrockIntegrationTest extends AirSpec:
     val request = ChatRequest(messages = history)
     val thirdResponse = session.chatStream(request)
     debug(s"Third response with explicit history: ${thirdResponse}")
+    
+    // Verify the response references the conversation history
+    val thirdMessage = thirdResponse.messages.head.asInstanceOf[AIMessage]
+    thirdMessage.text.toLowerCase should include("blue")
+    
+    // Verify that chat history is properly maintained in responses
+    secondResponse.messages.size should be >= 1
+    thirdResponse.messages.size should be >= 1
   }
 
 end BedrockIntegrationTest
