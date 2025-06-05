@@ -49,4 +49,26 @@ class BedrockIntegrationTest extends AirSpec:
     debug(resp)
   }
 
+  test("bedrock agent with chat history") { (runner: BedrockRunner) =>
+    val session = runner.newChatSession
+    
+    // First message
+    val firstResponse = session.chat("My name is Alice. What's your name?")
+    debug(s"First response: ${firstResponse}")
+    
+    // Continue with history using continueChat
+    val secondResponse = session.continueChat(firstResponse, "Do you remember my name?")
+    debug(s"Second response: ${secondResponse}")
+    
+    // Test with explicit ChatRequest containing history
+    val history = Seq(
+      ChatMessage.user("I like blue color"),
+      ChatMessage.assistant("That's nice! Blue is a calming color."),
+      ChatMessage.user("What color did I say I like?")
+    )
+    val request = ChatRequest(messages = history)
+    val thirdResponse = session.chatStream(request)
+    debug(s"Third response with explicit history: ${thirdResponse}")
+  }
+
 end BedrockIntegrationTest
