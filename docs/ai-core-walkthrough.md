@@ -32,6 +32,9 @@ AI-Core provides a powerful dependency injection framework based on `Design`. Th
 ```scala
 import wvlet.ai.core.design.Design
 
+// Define case classes
+case class User(id: String, name: String, email: String)
+
 // Define your interfaces
 trait DatabaseService:
   def findUser(id: String): Option[User]
@@ -206,17 +209,20 @@ AI-Core provides efficient binary serialization using MessagePack format.
 ### Basic MessagePack Usage
 
 ```scala
-import wvlet.ai.core.msgpack.spi.MessagePack
+import wvlet.ai.core.msgpack.spi.{MessagePack, Packer, Unpacker}
 
-// Serialize data
-val data = Map("name" -> "Alice", "age" -> 30)
+// Serialize primitive data
 val packer = MessagePack.newBufferPacker()
-packer.packValue(data)
+packer.packString("Alice")
+packer.packInt(30)
 val bytes = packer.toByteArray
 
 // Deserialize data
 val unpacker = MessagePack.newUnpacker(bytes)
-val value = unpacker.unpackValue()
+val name = unpacker.unpackString()
+val age = unpacker.unpackInt()
+
+// For complex objects, use ObjectWeaver (see Object Weaving section)
 ```
 
 ## Reactive Streams (Rx)
@@ -271,6 +277,9 @@ val withErrorHandling = numbers
   }
 
 // Async operations
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 val asyncResults = numbers.flatMap { n =>
   Rx.future(Future {
     Thread.sleep(100)
@@ -412,9 +421,13 @@ val testDesign = Design.newDesign
 ### 2. Error Handling
 
 ```scala
+// Define result and exception types
+case class ProcessingResult(value: String, timestamp: Long)
+class ValidationException(message: String) extends Exception(message)
+
 // Combine logging with error handling
 class ServiceImpl extends LogSupport:
-  def processData(data: String): Either[String, Result] =
+  def processData(data: String): Either[String, ProcessingResult] =
     try
       info(s"Processing: $data")
       val result = heavyComputation(data)
@@ -426,6 +439,10 @@ class ServiceImpl extends LogSupport:
       case e: Exception =>
         error("Unexpected error", e)
         Left("Internal error")
+        
+  private def heavyComputation(data: String): ProcessingResult =
+    if (data.trim.isEmpty) throw new ValidationException("Data cannot be empty")
+    ProcessingResult(data.toUpperCase, System.currentTimeMillis())
 ```
 
 ### 3. Testing
@@ -441,16 +458,21 @@ class MyServiceTest extends AirSpec:
       .bindImpl[UserService, UserServiceImpl]
 
     testDesign.build[UserService] { userService =>
-      val result = userService.processUser("123")
+      val result = userService.getUser("123")
       result.name shouldBe "Test User"
     }
   }
 
   test("should handle errors gracefully") {
-    val service = new MyService()
-    val result = service.processData("invalid")
+    val service = new ServiceImpl()
+    val result = service.processData("")
     result.isLeft shouldBe true
   }
+  
+class MockDatabase extends DatabaseService:
+  def findUser(id: String): Option[User] =
+    if (id == "123") Some(User("123", "Test User", "test@example.com"))
+    else None
 ```
 
 ### 4. Configuration Management
@@ -466,8 +488,14 @@ case class DatabaseConfig(url: String, maxConnections: Int)
 case class ServerConfig(host: String, port: Int)
 case class LoggingConfig(level: String, file: Option[String])
 
-// Load configuration from various sources
-val config = ConfigLoader.load[AppConfig]("application.conf")
+// Create configuration programmatically or from external sources
+// Note: For file-based configuration loading, consider using external libraries
+// like typesafe-config or airframe-config
+val config = AppConfig(
+  database = DatabaseConfig("jdbc:postgresql://localhost/mydb", 10),
+  server = ServerConfig("localhost", 8080),
+  logging = LoggingConfig("INFO", Some("/var/log/app.log"))
+)
 
 val design = Design.newDesign
   .bindInstance[AppConfig](config)
