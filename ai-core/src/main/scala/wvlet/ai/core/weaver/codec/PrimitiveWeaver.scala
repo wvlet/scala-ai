@@ -5,6 +5,37 @@ import wvlet.ai.core.weaver.{ObjectWeaver, WeaverConfig, WeaverContext}
 
 object PrimitiveWeaver:
 
+  private def safeUnpack[T](
+      context: WeaverContext,
+      operation: => T,
+      setValue: T => Unit
+  ): Unit =
+    try
+      val value = operation
+      setValue(value)
+    catch
+      case e: Exception =>
+        context.setError(e)
+
+  private def safeConvertFromString[T](
+      context: WeaverContext,
+      u: Unpacker,
+      converter: String => T,
+      setValue: T => Unit,
+      typeName: String
+  ): Unit =
+    try
+      val s = u.unpackString
+      val convertedValue = converter(s)
+      setValue(convertedValue)
+    catch
+      case e: NumberFormatException =>
+        context.setError(
+          new IllegalArgumentException(s"Cannot convert string to ${typeName}", e)
+        )
+      case e: Exception =>
+        context.setError(e)
+
   given intWeaver: ObjectWeaver[Int] =
     new ObjectWeaver[Int]:
       override def pack(p: Packer, v: Int, config: WeaverConfig): Unit = p.packInt(v)
@@ -107,47 +138,23 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.INTEGER =>
-            try
-              context.setLong(u.unpackLong)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, u.unpackLong, context.setLong)
           case ValueType.FLOAT =>
-            try
-              val d = u.unpackDouble
-              if d.isWhole && d >= Long.MinValue && d <= Long.MaxValue then
-                context.setLong(d.toLong)
-              else
-                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Long"))
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(
+              context,
+              {
+                val d = u.unpackDouble
+                if d.isWhole && d >= Long.MinValue && d <= Long.MaxValue then d.toLong
+                else throw new IllegalArgumentException(s"Cannot convert double ${d} to Long")
+              },
+              context.setLong
+            )
           case ValueType.STRING =>
-            val s = u.unpackString
-            try
-              val longValue = s.toLong
-              context.setLong(longValue)
-            catch
-              case e: NumberFormatException =>
-                context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Long", e)
-                )
-              case e: Exception =>
-                context.setError(e)
+            safeConvertFromString(context, u, _.toLong, context.setLong, "Long")
           case ValueType.BOOLEAN =>
-            try
-              val b = u.unpackBoolean
-              context.setLong(if b then 1L else 0L)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, if u.unpackBoolean then 1L else 0L, context.setLong)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setLong(0L)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, { u.unpackNil; 0L }, context.setLong)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Long"))
@@ -159,43 +166,15 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.FLOAT =>
-            try
-              context.setDouble(u.unpackDouble)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, u.unpackDouble, context.setDouble)
           case ValueType.INTEGER =>
-            try
-              context.setDouble(u.unpackLong.toDouble)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, u.unpackLong.toDouble, context.setDouble)
           case ValueType.STRING =>
-            val s = u.unpackString
-            try
-              val doubleValue = s.toDouble
-              context.setDouble(doubleValue)
-            catch
-              case e: NumberFormatException =>
-                context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Double", e)
-                )
-              case e: Exception =>
-                context.setError(e)
+            safeConvertFromString(context, u, _.toDouble, context.setDouble, "Double")
           case ValueType.BOOLEAN =>
-            try
-              val b = u.unpackBoolean
-              context.setDouble(if b then 1.0 else 0.0)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, if u.unpackBoolean then 1.0 else 0.0, context.setDouble)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setDouble(0.0)
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpack(context, { u.unpackNil; 0.0 }, context.setDouble)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Double"))
@@ -223,21 +202,26 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.STRING =>
-            val s = u.unpackString
             try
+              val s = u.unpackString
               val floatValue = s.toFloat
               context.setFloat(floatValue)
             catch
               case e: NumberFormatException =>
                 context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Float", e)
+                  new IllegalArgumentException(s"Cannot convert string to Float", e)
                 )
               case e: Exception =>
                 context.setError(e)
           case ValueType.BOOLEAN =>
             try
               val b = u.unpackBoolean
-              context.setFloat(if b then 1.0f else 0.0f)
+              context.setFloat(
+                if b then
+                  1.0f
+                else
+                  0.0f
+              )
             catch
               case e: Exception =>
                 context.setError(e)
@@ -279,16 +263,20 @@ object PrimitiveWeaver:
               case e: Exception =>
                 context.setError(e)
           case ValueType.STRING =>
-            val s = u.unpackString
-            s.toLowerCase match
-              case "true" | "1" | "yes" | "on" =>
-                context.setBoolean(true)
-              case "false" | "0" | "no" | "off" | "" =>
-                context.setBoolean(false)
-              case _ =>
-                context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Boolean")
-                )
+            try
+              val s = u.unpackString
+              s.toLowerCase match
+                case "true" | "1" | "yes" | "on" =>
+                  context.setBoolean(true)
+                case "false" | "0" | "no" | "off" | "" =>
+                  context.setBoolean(false)
+                case _ =>
+                  context.setError(
+                    new IllegalArgumentException(s"Cannot convert string '${s}' to Boolean")
+                  )
+            catch
+              case e: Exception =>
+                context.setError(e)
           case ValueType.NIL =>
             try
               u.unpackNil
@@ -322,26 +310,33 @@ object PrimitiveWeaver:
               if d.isWhole && d >= Byte.MinValue && d <= Byte.MaxValue then
                 context.setByte(d.toByte)
               else
-                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Byte"))
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert double ${d} to Byte")
+                )
             catch
               case e: Exception =>
                 context.setError(e)
           case ValueType.STRING =>
-            val s = u.unpackString
             try
+              val s = u.unpackString
               val byteValue = s.toByte
               context.setByte(byteValue)
             catch
               case e: NumberFormatException =>
                 context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Byte", e)
+                  new IllegalArgumentException(s"Cannot convert string to Byte", e)
                 )
               case e: Exception =>
                 context.setError(e)
           case ValueType.BOOLEAN =>
             try
               val b = u.unpackBoolean
-              context.setByte(if b then 1.toByte else 0.toByte)
+              context.setByte(
+                if b then
+                  1.toByte
+                else
+                  0.toByte
+              )
             catch
               case e: Exception =>
                 context.setError(e)
@@ -378,26 +373,33 @@ object PrimitiveWeaver:
               if d.isWhole && d >= Short.MinValue && d <= Short.MaxValue then
                 context.setShort(d.toShort)
               else
-                context.setError(new IllegalArgumentException(s"Cannot convert double ${d} to Short"))
+                context.setError(
+                  new IllegalArgumentException(s"Cannot convert double ${d} to Short")
+                )
             catch
               case e: Exception =>
                 context.setError(e)
           case ValueType.STRING =>
-            val s = u.unpackString
             try
+              val s = u.unpackString
               val shortValue = s.toShort
               context.setShort(shortValue)
             catch
               case e: NumberFormatException =>
                 context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Short", e)
+                  new IllegalArgumentException(s"Cannot convert string to Short", e)
                 )
               case e: Exception =>
                 context.setError(e)
           case ValueType.BOOLEAN =>
             try
               val b = u.unpackBoolean
-              context.setShort(if b then 1.toShort else 0.toShort)
+              context.setShort(
+                if b then
+                  1.toShort
+                else
+                  0.toShort
+              )
             catch
               case e: Exception =>
                 context.setError(e)
@@ -425,7 +427,9 @@ object PrimitiveWeaver:
                 context.setChar(s.charAt(0))
               else
                 context.setError(
-                  new IllegalArgumentException(s"Cannot convert string '${s}' to Char - must be single character")
+                  new IllegalArgumentException(
+                    s"Cannot convert string '${s}' to Char - must be single character"
+                  )
                 )
             catch
               case e: Exception =>
