@@ -28,7 +28,7 @@ class PrimitiveWeaverTest extends AirSpec:
     )
 
     for (floatValue, expectedInt) <- testCases do
-      val packer = MessagePack.newPacker
+      val packer = MessagePack.newPacker()
       packer.packDouble(floatValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[Int](packed)
@@ -40,7 +40,7 @@ class PrimitiveWeaverTest extends AirSpec:
     val invalidFloats = Seq(1.5, -2.7, Double.PositiveInfinity, Double.NegativeInfinity, Double.NaN)
 
     for floatValue <- invalidFloats do
-      val packer = MessagePack.newPacker
+      val packer = MessagePack.newPacker()
       packer.packDouble(floatValue)
       val packed = packer.toByteArray
 
@@ -61,7 +61,7 @@ class PrimitiveWeaverTest extends AirSpec:
     )
 
     for (stringValue, expectedInt) <- testCases do
-      val packer = MessagePack.newPacker
+      val packer = MessagePack.newPacker()
       packer.packString(stringValue)
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[Int](packed)
@@ -73,7 +73,7 @@ class PrimitiveWeaverTest extends AirSpec:
     val invalidStrings = Seq("hello", "1.5", "", "2147483648", "-2147483649", "0x10")
 
     for stringValue <- invalidStrings do
-      val packer = MessagePack.newPacker
+      val packer = MessagePack.newPacker()
       packer.packString(stringValue)
       val packed = packer.toByteArray
 
@@ -84,13 +84,13 @@ class PrimitiveWeaverTest extends AirSpec:
 
   test("unpack Int from BOOLEAN types") {
     // Test boolean to int conversion (true = 1, false = 0)
-    val packer1 = MessagePack.newPacker
+    val packer1 = MessagePack.newPacker()
     packer1.packBoolean(true)
     val packed1   = packer1.toByteArray
     val unpacked1 = ObjectWeaver.unweave[Int](packed1)
     unpacked1 shouldBe 1
 
-    val packer2 = MessagePack.newPacker
+    val packer2 = MessagePack.newPacker()
     packer2.packBoolean(false)
     val packed2   = packer2.toByteArray
     val unpacked2 = ObjectWeaver.unweave[Int](packed2)
@@ -99,7 +99,7 @@ class PrimitiveWeaverTest extends AirSpec:
 
   test("unpack Int from NIL type") {
     // Test nil to int conversion (nil = 0)
-    val packer = MessagePack.newPacker
+    val packer = MessagePack.newPacker()
     packer.packNil
     val packed   = packer.toByteArray
     val unpacked = ObjectWeaver.unweave[Int](packed)
@@ -108,7 +108,7 @@ class PrimitiveWeaverTest extends AirSpec:
 
   test("unpack Int from unsupported types") {
     // Test types that cannot be converted to Int
-    val packer = MessagePack.newPacker
+    val packer = MessagePack.newPacker()
     packer.packArrayHeader(2)
     packer.packInt(1)
     packer.packInt(2)
@@ -129,7 +129,7 @@ class PrimitiveWeaverTest extends AirSpec:
     )
 
     for longValue <- testCases do
-      val packer = MessagePack.newPacker
+      val packer = MessagePack.newPacker()
       packer.packLong(longValue)
       val packed = packer.toByteArray
 

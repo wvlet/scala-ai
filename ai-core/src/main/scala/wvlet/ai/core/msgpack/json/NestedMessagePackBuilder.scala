@@ -27,7 +27,7 @@ object NestedMessagePackBuilder:
 
 class NestedMessagePackBuilder extends JSONContext[Seq[MsgPack]] with LogSupport:
   parent =>
-  protected val packer = MessagePack.newPacker
+  protected val packer = MessagePack.newPacker()
 
   def mergedResult: MsgPack =
     val buffers = result
@@ -90,7 +90,7 @@ class NestedMessagePackBuilder extends JSONContext[Seq[MsgPack]] with LogSupport
         val mapElementCount = getElementCount / 2
         Seq(
           // Embed map header count
-          MessagePack.newPacker.packMapHeader(mapElementCount).toByteArray,
+          MessagePack.newPacker().packMapHeader(mapElementCount).toByteArray,
           packer.toByteArray
         )
 
@@ -102,7 +102,7 @@ class NestedMessagePackBuilder extends JSONContext[Seq[MsgPack]] with LogSupport
 
       override def result: Seq[MsgPack] = Seq(
         // Embed array header count
-        MessagePack.newPacker.packArrayHeader(getElementCount).toByteArray,
+        MessagePack.newPacker().packArrayHeader(getElementCount).toByteArray,
         packer.toByteArray
       )
 

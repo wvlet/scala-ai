@@ -45,7 +45,7 @@ object StreamMessagePackBuilder:
 
 class StreamMessagePackBuilder extends JSONContext[MsgPack] with LogSupport:
   import StreamMessagePackBuilder.*
-  protected val packer = MessagePack.newPacker
+  protected val packer = MessagePack.newPacker()
 
   protected var contextStack: List[ParseContext]         = Nil
   protected var finishedContextStack: List[ParseContext] = Nil
