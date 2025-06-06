@@ -459,7 +459,7 @@ object PrimitiveWeaver:
                   hasError = true
                   // Skip remaining pairs to keep unpacker in consistent state
                   while i < mapSize do
-                    u.skipValue // Skip remaining key if this was a value error
+                    u.skipValue // Skip key
                     u.skipValue // Skip value
                     i += 1
                 else
