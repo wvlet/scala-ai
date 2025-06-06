@@ -1,6 +1,7 @@
 package wvlet.ai.core.weaver
 
 import wvlet.airspec.AirSpec
+import scala.jdk.CollectionConverters.*
 
 class WeaverTest extends AirSpec:
 
@@ -175,6 +176,180 @@ class WeaverTest extends AirSpec:
     val result =
       try
         ObjectWeaver.unweave[Map[String, Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+    result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
+  test("weave Seq[Int]") {
+    val v       = Seq(1, 2, 3, 4, 5)
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[Seq[Int]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave empty Seq[Int]") {
+    val v       = Seq.empty[Int]
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[Seq[Int]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave Seq[String]") {
+    val v       = Seq("hello", "world", "test")
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[Seq[String]](msgpack)
+    v shouldBe v2
+  }
+
+  test("Seq[Int] toJson") {
+    val v    = Seq(1, 2, 3)
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[Seq[Int]](json)
+    v shouldBe v2
+  }
+
+  test("nested Seq[Seq[Int]]") {
+    val v       = Seq(Seq(1, 2), Seq(3, 4), Seq(5))
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[Seq[Seq[Int]]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave IndexedSeq[Int]") {
+    val v       = IndexedSeq(1, 2, 3, 4, 5)
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[IndexedSeq[Int]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave empty IndexedSeq[Int]") {
+    val v       = IndexedSeq.empty[Int]
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[IndexedSeq[Int]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave IndexedSeq[String]") {
+    val v       = IndexedSeq("hello", "world", "test")
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[IndexedSeq[String]](msgpack)
+    v shouldBe v2
+  }
+
+  test("IndexedSeq[Int] toJson") {
+    val v    = IndexedSeq(1, 2, 3)
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[IndexedSeq[Int]](json)
+    v shouldBe v2
+  }
+
+  test("nested IndexedSeq[IndexedSeq[Int]]") {
+    val v       = IndexedSeq(IndexedSeq(1, 2), IndexedSeq(3, 4), IndexedSeq(5))
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[IndexedSeq[IndexedSeq[Int]]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave java.util.List[Int]") {
+    val v       = List(1, 2, 3, 4, 5).asJava
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[java.util.List[Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave empty java.util.List[Int]") {
+    val v       = List.empty[Int].asJava
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[java.util.List[Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave java.util.List[String]") {
+    val v       = List("hello", "world", "test").asJava
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[java.util.List[String]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("java.util.List[Int] toJson") {
+    val v    = List(1, 2, 3).asJava
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[java.util.List[Int]](json)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("nested java.util.List[java.util.List[Int]]") {
+    val v       = List(List(1, 2).asJava, List(3, 4).asJava, List(5).asJava).asJava
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[java.util.List[java.util.List[Int]]](msgpack)
+    v2.asScala.map(_.asScala) shouldBe v.asScala.map(_.asScala)
+  }
+
+  test("handle malformed array data gracefully for Seq") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack array with wrong element count
+    val packer = MessagePack.newPacker()
+    packer.packArrayHeader(3)    // Say we have 3 elements
+    packer.packInt(1)            // Valid first element
+    packer.packString("invalid") // Invalid second element for Seq[Int]
+    packer.packInt(3)            // Third element that should be skipped
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[Seq[Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+    result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
+  test("handle malformed array data gracefully for IndexedSeq") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack array with wrong element count
+    val packer = MessagePack.newPacker()
+    packer.packArrayHeader(3)    // Say we have 3 elements
+    packer.packInt(1)            // Valid first element
+    packer.packString("invalid") // Invalid second element for IndexedSeq[Int]
+    packer.packInt(3)            // Third element that should be skipped
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[IndexedSeq[Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+    result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
+  test("handle malformed array data gracefully for java.util.List") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack array with wrong element count
+    val packer = MessagePack.newPacker()
+    packer.packArrayHeader(3)    // Say we have 3 elements
+    packer.packInt(1)            // Valid first element
+    packer.packString("invalid") // Invalid second element for java.util.List[Int]
+    packer.packInt(3)            // Third element that should be skipped
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[java.util.List[Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>

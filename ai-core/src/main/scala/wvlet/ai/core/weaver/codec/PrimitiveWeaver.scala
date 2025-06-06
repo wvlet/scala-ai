@@ -3,6 +3,7 @@ package wvlet.ai.core.weaver.codec
 import wvlet.ai.core.msgpack.spi.{Packer, Unpacker, ValueType}
 import wvlet.ai.core.weaver.{ObjectWeaver, WeaverConfig, WeaverContext}
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters.*
 
 object PrimitiveWeaver:
 
@@ -493,5 +494,130 @@ object PrimitiveWeaver:
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Map"))
+
+  given seqWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[Seq[A]] =
+    new ObjectWeaver[Seq[A]]:
+      override def pack(p: Packer, v: Seq[A], config: WeaverConfig): Unit =
+        p.packArrayHeader(v.size)
+        v.foreach(elementWeaver.pack(p, _, config))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            try
+              val arraySize = u.unpackArrayHeader
+              val buffer    = ListBuffer.empty[A]
+
+              var i        = 0
+              var hasError = false
+              while i < arraySize && !hasError do
+                val elementContext = WeaverContext(context.config)
+                elementWeaver.unpack(u, elementContext)
+
+                if elementContext.hasError then
+                  context.setError(elementContext.getError.get)
+                  hasError = true
+                  // Skip remaining elements to keep unpacker in consistent state
+                  while i + 1 < arraySize do
+                    u.skipValue
+                    i += 1
+                else
+                  buffer += elementContext.getLastValue.asInstanceOf[A]
+                  i += 1
+
+              if !hasError then
+                context.setObject(buffer.toSeq)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Seq"))
+
+  given indexedSeqWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[IndexedSeq[A]] =
+    new ObjectWeaver[IndexedSeq[A]]:
+      override def pack(p: Packer, v: IndexedSeq[A], config: WeaverConfig): Unit =
+        p.packArrayHeader(v.size)
+        v.foreach(elementWeaver.pack(p, _, config))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            try
+              val arraySize = u.unpackArrayHeader
+              val buffer    = ListBuffer.empty[A]
+
+              var i        = 0
+              var hasError = false
+              while i < arraySize && !hasError do
+                val elementContext = WeaverContext(context.config)
+                elementWeaver.unpack(u, elementContext)
+
+                if elementContext.hasError then
+                  context.setError(elementContext.getError.get)
+                  hasError = true
+                  // Skip remaining elements to keep unpacker in consistent state
+                  while i + 1 < arraySize do
+                    u.skipValue
+                    i += 1
+                else
+                  buffer += elementContext.getLastValue.asInstanceOf[A]
+                  i += 1
+
+              if !hasError then
+                context.setObject(buffer.toIndexedSeq)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to IndexedSeq"))
+
+  given javaListWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[java.util.List[A]] =
+    new ObjectWeaver[java.util.List[A]]:
+      override def pack(p: Packer, v: java.util.List[A], config: WeaverConfig): Unit =
+        p.packArrayHeader(v.size)
+        v.asScala.foreach(elementWeaver.pack(p, _, config))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            try
+              val arraySize = u.unpackArrayHeader
+              val buffer    = ListBuffer.empty[A]
+
+              var i        = 0
+              var hasError = false
+              while i < arraySize && !hasError do
+                val elementContext = WeaverContext(context.config)
+                elementWeaver.unpack(u, elementContext)
+
+                if elementContext.hasError then
+                  context.setError(elementContext.getError.get)
+                  hasError = true
+                  // Skip remaining elements to keep unpacker in consistent state
+                  while i + 1 < arraySize do
+                    u.skipValue
+                    i += 1
+                else
+                  buffer += elementContext.getLastValue.asInstanceOf[A]
+                  i += 1
+
+              if !hasError then
+                context.setObject(buffer.asJava)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(
+              new IllegalArgumentException(s"Cannot convert ${other} to java.util.List")
+            )
 
 end PrimitiveWeaver
