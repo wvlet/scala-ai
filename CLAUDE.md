@@ -79,9 +79,11 @@ sbt integrationTest/test
 - Uses AirSpec testing framework (lightweight alternative to ScalaTest)
 - Test files end with `Test.scala` or `Spec.scala`
 - Integration tests are in separate `ai-integration-test` module
-- Avoid using mock as it increases maintenance cost
+- Avoid using mock as it increases maintenance cost and creates brittle tests that break when internal implementation changes
 - Ensure tests cover new functionality and bug fixes with good test coverage
 - Test names should be concise and descriptive, written in plain English
+  - Good: `"should parse JSON with nested objects"`, `"should handle connection timeout gracefully"`
+  - Avoid: `"testParseJSON"`, `"test1"`, `"shouldWork"`
 
 ### AirSpec Assertion Syntax
 - Use `shouldBe`, `shouldNotBe`, `shouldContain`, `shouldMatch` for basic assertions
@@ -110,9 +112,14 @@ sbt integrationTest/test
 - For ai-core cross-platform development, use .jvm, .js, and .native folders for platform-specific code
 - Omit `new` for object instantiation (e.g., `StringBuilder()` instead of `new StringBuilder()`)
 - Always enclose expressions in string interpolation with brackets: `${...}`
-- Document public APIs (classes, methods, objects) with Scaladoc comments
+- Document public APIs (classes, methods, objects) with [Scaladoc comments](https://docs.scala-lang.org/style/scaladoc.html)
 - Avoid returning Try[A] as it forces monadic-style usage
 - Configuration case classes should have `withXXX(...)` methods for all fields and `noXXX(...)` methods for optional fields
+  - Example: `case class Config(host: String, port: Int, timeout: Option[Duration])` should have:
+    - `def withHost(host: String): Config = copy(host = host)`
+    - `def withPort(port: Int): Config = copy(port = port)`
+    - `def withTimeout(timeout: Duration): Config = copy(timeout = Some(timeout))`
+    - `def noTimeout(): Config = copy(timeout = None)`
 
 ## Git and Development Workflow
 
@@ -128,7 +135,7 @@ sbt integrationTest/test
 - Avoid: `feature: Add XXX class`
 
 ### Pull Requests
-- Use `gh pr create` with clear title and detailed body
+- Use [`gh pr create`](https://cli.github.com/manual/gh_pr_create) with clear title and detailed body
 - Follow .github/pull_request_template.md format
 - Merge with squash via `gh pr merge --squash --auto` for clean history
 
