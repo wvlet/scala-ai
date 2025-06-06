@@ -359,4 +359,142 @@ class WeaverTest extends AirSpec:
     result.get.getMessage.contains("Cannot convert") shouldBe true
   }
 
+  test("weave ListMap[String, Int]") {
+    val v       = scala.collection.immutable.ListMap("a" -> 1, "b" -> 2, "c" -> 3)
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+    v shouldBe v2
+    // Verify order is preserved
+    v.keys.toList shouldBe v2.keys.toList
+    v.values.toList shouldBe v2.values.toList
+  }
+
+  test("weave empty ListMap[String, Int]") {
+    val v       = scala.collection.immutable.ListMap.empty[String, Int]
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+    v shouldBe v2
+  }
+
+  test("weave ListMap[Int, String]") {
+    val v       = scala.collection.immutable.ListMap(1 -> "one", 2 -> "two", 3 -> "three")
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[Int, String]](msgpack)
+    v shouldBe v2
+    // Verify order is preserved
+    v.keys.toList shouldBe v2.keys.toList
+    v.values.toList shouldBe v2.values.toList
+  }
+
+  test("ListMap[String, Int] toJson") {
+    val v    = scala.collection.immutable.ListMap("x" -> 10, "y" -> 20, "z" -> 30)
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[scala.collection.immutable.ListMap[String, Int]](json)
+    v shouldBe v2
+    // Verify order is preserved
+    v.keys.toList shouldBe v2.keys.toList
+    v.values.toList shouldBe v2.values.toList
+  }
+
+  test("nested ListMap[String, List[Int]]") {
+    val v = scala
+      .collection
+      .immutable
+      .ListMap("numbers" -> List(1, 2, 3), "more" -> List(4, 5), "empty" -> List.empty[Int])
+    val msgpack = ObjectWeaver.weave(v)
+    val v2 = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, List[Int]]](msgpack)
+    v shouldBe v2
+    // Verify order is preserved
+    v.keys.toList shouldBe v2.keys.toList
+  }
+
+  test("nested ListMap[String, ListMap[String, Int]]") {
+    val v = scala
+      .collection
+      .immutable
+      .ListMap(
+        "group1" -> scala.collection.immutable.ListMap("a" -> 1, "b" -> 2),
+        "group2" -> scala.collection.immutable.ListMap("x" -> 10, "y" -> 20),
+        "empty"  -> scala.collection.immutable.ListMap.empty[String, Int]
+      )
+    val msgpack = ObjectWeaver.weave(v)
+    val v2 = ObjectWeaver.unweave[
+      scala.collection.immutable.ListMap[String, scala.collection.immutable.ListMap[String, Int]]
+    ](msgpack)
+    v shouldBe v2
+    // Verify order is preserved for outer map
+    v.keys.toList shouldBe v2.keys.toList
+    // Verify order is preserved for inner maps
+    v("group1").keys.toList shouldBe v2("group1").keys.toList
+    v("group2").keys.toList shouldBe v2("group2").keys.toList
+  }
+
+  test("ListMap preserves insertion order") {
+    // Create ListMap with specific order
+    val builder  = scala.collection.immutable.ListMap.newBuilder[String, Int]
+    builder += ("third"  -> 3)
+    builder += ("first"  -> 1)
+    builder += ("second" -> 2)
+    val v        = builder.result()
+
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+
+    // Verify values are correct
+    v shouldBe v2
+    // Verify insertion order is preserved
+    v.keys.toList shouldBe List("third", "first", "second")
+    v2.keys.toList shouldBe List("third", "first", "second")
+    v.values.toList shouldBe List(3, 1, 2)
+    v2.values.toList shouldBe List(3, 1, 2)
+  }
+
+  test("handle malformed ListMap data gracefully") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack where we claim there are more pairs than we provide
+    val packer = MessagePack.newPacker()
+    packer.packMapHeader(3)   // Say we have 3 key-value pairs
+    packer.packString("key1") // Valid first key
+    packer.packInt(1)         // Valid first value
+    packer.packString("key2") // Valid second key
+    packer.packInt(2)         // Valid second value
+    // Missing third key-value pair!
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+  }
+
+  test("handle malformed ListMap value gracefully") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack map with wrong value type
+    val packer = MessagePack.newPacker()
+    packer.packMapHeader(2)      // Say we have 2 key-value pairs
+    packer.packString("key1")    // Valid first key
+    packer.packInt(1)            // Valid first value
+    packer.packString("key2")    // Valid second key
+    packer.packString("invalid") // Invalid second value for ListMap[String, Int]
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+    result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
 end WeaverTest

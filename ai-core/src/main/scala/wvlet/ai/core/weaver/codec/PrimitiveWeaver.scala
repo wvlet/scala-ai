@@ -567,4 +567,74 @@ object PrimitiveWeaver:
               new IllegalArgumentException(s"Cannot convert ${other} to java.util.List")
             )
 
+  given listMapWeaver[K, V](using
+      keyWeaver: ObjectWeaver[K],
+      valueWeaver: ObjectWeaver[V]
+  ): ObjectWeaver[scala.collection.immutable.ListMap[K, V]] =
+    new ObjectWeaver[scala.collection.immutable.ListMap[K, V]]:
+      override def pack(
+          p: Packer,
+          v: scala.collection.immutable.ListMap[K, V],
+          config: WeaverConfig
+      ): Unit =
+        p.packMapHeader(v.size)
+        v.foreach { case (key, value) =>
+          keyWeaver.pack(p, key, config)
+          valueWeaver.pack(p, value, config)
+        }
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.MAP =>
+            try
+              val mapSize = u.unpackMapHeader
+              val buffer  = scala.collection.mutable.ListBuffer.empty[(K, V)]
+
+              var i        = 0
+              var hasError = false
+              while i < mapSize && !hasError do
+                // Unpack key
+                val keyContext = WeaverContext(context.config)
+                keyWeaver.unpack(u, keyContext)
+
+                if keyContext.hasError then
+                  context.setError(keyContext.getError.get)
+                  hasError = true
+                  // Skip remaining pairs to keep unpacker in consistent state
+                  while i < mapSize do
+                    u.skipValue // Skip key
+                    u.skipValue // Skip value
+                    i += 1
+                else
+                  val key = keyContext.getLastValue.asInstanceOf[K]
+
+                  // Unpack value
+                  val valueContext = WeaverContext(context.config)
+                  valueWeaver.unpack(u, valueContext)
+
+                  if valueContext.hasError then
+                    context.setError(valueContext.getError.get)
+                    hasError = true
+                    // Skip remaining pairs to keep unpacker in consistent state
+                    while i + 1 < mapSize do
+                      u.skipValue // Skip key
+                      u.skipValue // Skip value
+                      i += 1
+                  else
+                    val value = valueContext.getLastValue.asInstanceOf[V]
+                    buffer += (key -> value)
+                    i += 1
+              end while
+
+              if !hasError then
+                context.setObject(scala.collection.immutable.ListMap.from(buffer))
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to ListMap"))
+
 end PrimitiveWeaver
