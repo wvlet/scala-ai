@@ -116,9 +116,10 @@ class PrimitiveWeaverTest extends AirSpec:
     packer.packInt(2)
     val packed = packer.toByteArray
 
-    intercept[Exception] {
+    val exception = intercept[IllegalArgumentException] {
       ObjectWeaver.unweave[Int](packed)
     }
+    exception.getMessage.contains("Cannot convert") shouldBe true
   }
 
   test("large integer edge cases") {
@@ -227,6 +228,55 @@ class PrimitiveWeaverTest extends AirSpec:
       unpacked shouldBe floatValue
   }
 
+  test("Float weaver from various types") {
+    // From integer
+    val packerInt = MessagePack.newPacker()
+    packerInt.packLong(42L)
+    val packedInt   = packerInt.toByteArray
+    val unpackedInt = ObjectWeaver.unweave[Float](packedInt)
+    unpackedInt shouldBe 42.0f
+
+    // From double (within range)
+    val packerDouble = MessagePack.newPacker()
+    packerDouble.packDouble(3.14)
+    val packedDouble   = packerDouble.toByteArray
+    val unpackedDouble = ObjectWeaver.unweave[Float](packedDouble)
+    unpackedDouble shouldBe 3.14f
+
+    // From string
+    val packerStr = MessagePack.newPacker()
+    packerStr.packString("2.71")
+    val packedStr   = packerStr.toByteArray
+    val unpackedStr = ObjectWeaver.unweave[Float](packedStr)
+    unpackedStr shouldBe 2.71f
+
+    // From boolean
+    val packerBool = MessagePack.newPacker()
+    packerBool.packBoolean(true)
+    val packedBool   = packerBool.toByteArray
+    val unpackedBool = ObjectWeaver.unweave[Float](packedBool)
+    unpackedBool shouldBe 1.0f
+
+    // From nil (should return default value for Float type)
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil   = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Float](packedNil)
+    unpackedNil shouldBe 0.0f
+  }
+
+  test("Float weaver range validation") {
+    // Test double value outside float range
+    val packer = MessagePack.newPacker()
+    packer.packDouble(Double.MaxValue) // Too large for Float
+    val packed = packer.toByteArray
+
+    val exception = intercept[IllegalArgumentException] {
+      ObjectWeaver.unweave[Float](packed)
+    }
+    exception.getMessage.contains("out of Float range") shouldBe true
+  }
+
   test("Boolean weaver basic operations") {
     val boolValues = Seq(true, false)
 
@@ -268,6 +318,26 @@ class PrimitiveWeaverTest extends AirSpec:
       val packed   = packer.toByteArray
       val unpacked = ObjectWeaver.unweave[Boolean](packed)
       unpacked shouldBe false
+
+    // From float/double - non-zero is true, zero is false
+    val packerDoubleTrue = MessagePack.newPacker()
+    packerDoubleTrue.packDouble(3.14)
+    val packedDoubleTrue   = packerDoubleTrue.toByteArray
+    val unpackedDoubleTrue = ObjectWeaver.unweave[Boolean](packedDoubleTrue)
+    unpackedDoubleTrue shouldBe true
+
+    val packerDoubleFalse = MessagePack.newPacker()
+    packerDoubleFalse.packDouble(0.0)
+    val packedDoubleFalse   = packerDoubleFalse.toByteArray
+    val unpackedDoubleFalse = ObjectWeaver.unweave[Boolean](packedDoubleFalse)
+    unpackedDoubleFalse shouldBe false
+
+    // From nil (should return default value for Boolean type)
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil   = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Boolean](packedNil)
+    unpackedNil shouldBe false
   }
 
   test("Byte weaver basic operations") {
@@ -277,6 +347,43 @@ class PrimitiveWeaverTest extends AirSpec:
       val packed   = ObjectWeaver.weave(byteValue)
       val unpacked = ObjectWeaver.unweave[Byte](packed)
       unpacked shouldBe byteValue
+  }
+
+  test("Byte weaver from various types") {
+    // From integer (within range)
+    val packerInt = MessagePack.newPacker()
+    packerInt.packLong(42L)
+    val packedInt   = packerInt.toByteArray
+    val unpackedInt = ObjectWeaver.unweave[Byte](packedInt)
+    unpackedInt shouldBe 42.toByte
+
+    // From double (whole number within range)
+    val packerDouble = MessagePack.newPacker()
+    packerDouble.packDouble(100.0)
+    val packedDouble   = packerDouble.toByteArray
+    val unpackedDouble = ObjectWeaver.unweave[Byte](packedDouble)
+    unpackedDouble shouldBe 100.toByte
+
+    // From string
+    val packerStr = MessagePack.newPacker()
+    packerStr.packString("50")
+    val packedStr   = packerStr.toByteArray
+    val unpackedStr = ObjectWeaver.unweave[Byte](packedStr)
+    unpackedStr shouldBe 50.toByte
+
+    // From boolean
+    val packerBool = MessagePack.newPacker()
+    packerBool.packBoolean(true)
+    val packedBool   = packerBool.toByteArray
+    val unpackedBool = ObjectWeaver.unweave[Byte](packedBool)
+    unpackedBool shouldBe 1.toByte
+
+    // From nil (should return default value for Byte type)
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil   = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Byte](packedNil)
+    unpackedNil shouldBe 0.toByte
   }
 
   test("Byte weaver range validation") {
@@ -289,6 +396,16 @@ class PrimitiveWeaverTest extends AirSpec:
       ObjectWeaver.unweave[Byte](packed)
     }
     exception.getMessage.contains("out of Byte range") shouldBe true
+
+    // Test double value outside byte range
+    val packerDouble = MessagePack.newPacker()
+    packerDouble.packDouble(1000.0) // Outside byte range
+    val packedDouble = packerDouble.toByteArray
+
+    val exceptionDouble = intercept[IllegalArgumentException] {
+      ObjectWeaver.unweave[Byte](packedDouble)
+    }
+    exceptionDouble.getMessage.contains("Cannot convert double") shouldBe true
   }
 
   test("Short weaver basic operations") {
@@ -300,15 +417,63 @@ class PrimitiveWeaverTest extends AirSpec:
       unpacked shouldBe shortValue
   }
 
+  test("Short weaver from various types") {
+    // From integer (within range)
+    val packerInt = MessagePack.newPacker()
+    packerInt.packLong(1000L)
+    val packedInt   = packerInt.toByteArray
+    val unpackedInt = ObjectWeaver.unweave[Short](packedInt)
+    unpackedInt shouldBe 1000.toShort
+
+    // From double (whole number within range)
+    val packerDouble = MessagePack.newPacker()
+    packerDouble.packDouble(2000.0)
+    val packedDouble   = packerDouble.toByteArray
+    val unpackedDouble = ObjectWeaver.unweave[Short](packedDouble)
+    unpackedDouble shouldBe 2000.toShort
+
+    // From string
+    val packerStr = MessagePack.newPacker()
+    packerStr.packString("500")
+    val packedStr   = packerStr.toByteArray
+    val unpackedStr = ObjectWeaver.unweave[Short](packedStr)
+    unpackedStr shouldBe 500.toShort
+
+    // From boolean
+    val packerBool = MessagePack.newPacker()
+    packerBool.packBoolean(false)
+    val packedBool   = packerBool.toByteArray
+    val unpackedBool = ObjectWeaver.unweave[Short](packedBool)
+    unpackedBool shouldBe 0.toShort
+
+    // From nil (should return default value for Short type)
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil   = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Short](packedNil)
+    unpackedNil shouldBe 0.toShort
+  }
+
   test("Short weaver range validation") {
     // Test value outside short range
     val packer = MessagePack.newPacker()
     packer.packInt(50000) // Outside short range
     val packed = packer.toByteArray
 
-    intercept[Exception] {
+    val exception = intercept[IllegalArgumentException] {
       ObjectWeaver.unweave[Short](packed)
     }
+    exception.getMessage.contains("out of Short range") shouldBe true
+
+    // Test double value outside short range
+    val packerDouble = MessagePack.newPacker()
+    packerDouble.packDouble(100000.0) // Outside short range
+    val packedDouble = packerDouble.toByteArray
+
+    val exceptionDouble = intercept[IllegalArgumentException] {
+      ObjectWeaver.unweave[Short](packedDouble)
+    }
+    exceptionDouble.getMessage.contains("Cannot convert double") shouldBe true
   }
 
   test("Char weaver basic operations") {
@@ -347,6 +512,27 @@ class PrimitiveWeaverTest extends AirSpec:
     val packed   = packer.toByteArray
     val unpacked = ObjectWeaver.unweave[Char](packed)
     unpacked shouldBe 'A'
+  }
+
+  test("Char weaver range validation") {
+    // Test integer value outside char range
+    val packer = MessagePack.newPacker()
+    packer.packLong(100000L) // Outside char range
+    val packed = packer.toByteArray
+
+    val exception = intercept[IllegalArgumentException] {
+      ObjectWeaver.unweave[Char](packed)
+    }
+    exception.getMessage.contains("out of Char range") shouldBe true
+  }
+
+  test("Char weaver from nil") {
+    // From nil (should return default value for Char type)
+    val packerNil = MessagePack.newPacker()
+    packerNil.packNil
+    val packedNil   = packerNil.toByteArray
+    val unpackedNil = ObjectWeaver.unweave[Char](packedNil)
+    unpackedNil shouldBe '\u0000'
   }
 
   test("Primitive type error handling") {
