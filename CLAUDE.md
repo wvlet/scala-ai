@@ -79,7 +79,9 @@ sbt integrationTest/test
 - Uses AirSpec testing framework (lightweight alternative to ScalaTest)
 - Test files end with `Test.scala` or `Spec.scala`
 - Integration tests are in separate `ai-integration-test` module
-- Mock implementations available for testing without external dependencies
+- Avoid using mock as it increases maintenance cost
+- Ensure tests cover new functionality and bug fixes with good test coverage
+- Test names should be concise and descriptive, written in plain English
 
 ### AirSpec Assertion Syntax
 - Use `shouldBe`, `shouldNotBe`, `shouldContain`, `shouldMatch` for basic assertions
@@ -102,6 +104,34 @@ sbt integrationTest/test
 - `ai-agent-bedrock/`: AWS Bedrock-specific implementation
 - `ai-integration-test/`: Integration tests requiring real LLM services
 
+## Coding Style Guidelines
+
+- Use Scala 3 syntax throughout the codebase (no Scala 2 support needed)
+- For ai-core cross-platform development, use .jvm, .js, and .native folders for platform-specific code
+- Omit `new` for object instantiation (e.g., `StringBuilder()` instead of `new StringBuilder()`)
+- Always enclose expressions in string interpolation with brackets: `${...}`
+- Document public APIs (classes, methods, objects) with Scaladoc comments
+- Avoid returning Try[A] as it forces monadic-style usage
+- Configuration case classes should have `withXXX(...)` methods for all fields and `noXXX(...)` methods for optional fields
+
+## Git and Development Workflow
+
+### Branching
+- Create new branches with timestamp: `git switch -c feature/$(date +"%Y%m%d_%H%M%S")`
+- Use appropriate prefixes: `feature/`, `fix/`, `doc/`, `internal/`
+- Optionally add brief description: `fix/$(date +"%Y%m%d_%H%M%S")-correct-off-by-one-error`
+
+### Commit Messages
+- Use prefixes: `feature` (new features), `fix` (bug fixes), `internal` (non-user facing), `doc` (documentation)
+- Focus on "why" rather than "what" or "how"
+- Good example: `feature: Add XXX to improve user experience`
+- Avoid: `feature: Add XXX class`
+
+### Pull Requests
+- Use `gh pr create` with clear title and detailed body
+- Follow .github/pull_request_template.md format
+- Merge with squash via `gh pr merge --squash --auto` for clean history
+
 ## Important Implementation Notes
 
 - BedrockChat implements streaming responses using AWS SDK's ConverseStream API
@@ -109,3 +139,4 @@ sbt integrationTest/test
 - Reasoning support for models like Claude-3.5-Sonnet with thinking capabilities
 - Circuit breaker and retry logic available in ai-core for resilience
 - Dependency injection design allows for easy testing and configuration
+- ai-core designed with minimal dependencies - avoid libraries not in core module
