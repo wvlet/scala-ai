@@ -67,4 +67,27 @@ class WeaverTest extends AirSpec:
     v shouldBe v2
   }
 
+  test("handle malformed array data gracefully") {
+    import wvlet.ai.core.msgpack.spi.MessagePack
+    // Create a malformed msgpack array with wrong element count
+    val packer = MessagePack.newPacker()
+    packer.packArrayHeader(3)    // Say we have 3 elements
+    packer.packInt(1)            // Valid first element
+    packer.packString("invalid") // Invalid second element for List[Int]
+    packer.packInt(3)            // Third element that should be skipped
+
+    val malformedMsgpack = packer.toByteArray
+
+    val result =
+      try
+        ObjectWeaver.unweave[List[Int]](malformedMsgpack)
+        None
+      catch
+        case e: Exception =>
+          Some(e)
+
+    result.isDefined shouldBe true
+    result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
 end WeaverTest

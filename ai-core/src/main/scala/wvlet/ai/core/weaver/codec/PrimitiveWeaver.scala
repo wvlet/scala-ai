@@ -414,6 +414,10 @@ object PrimitiveWeaver:
                 if elementContext.hasError then
                   context.setError(elementContext.getError.get)
                   hasError = true
+                  // Skip remaining elements to keep unpacker in consistent state
+                  while i + 1 < arraySize do
+                    u.skipValue
+                    i += 1
                 else
                   buffer += elementContext.getLastValue.asInstanceOf[A]
                   i += 1
