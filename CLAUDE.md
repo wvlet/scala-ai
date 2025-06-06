@@ -139,6 +139,10 @@ sbt integrationTest/test
 - Follow .github/pull_request_template.md format
 - Merge with squash via `gh pr merge --squash --auto` for clean history
 
+### Code Reviews
+
+- Gemini will review pull requests for code quality, adherence to guidelines, and test coverage. Reflect on feedback and make necessary changes.
+
 ## Important Implementation Notes
 
 - BedrockChat implements streaming responses using AWS SDK's ConverseStream API
