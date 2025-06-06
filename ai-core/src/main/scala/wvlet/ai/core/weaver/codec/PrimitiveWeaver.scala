@@ -119,12 +119,7 @@ object PrimitiveWeaver:
           case ValueType.BOOLEAN =>
             withSafeUnpack(context, u.unpackBoolean, _.toString)
           case ValueType.NIL =>
-            try
-              u.unpackNil
-              context.setString("")
-            catch
-              case e: Exception =>
-                context.setError(e)
+            safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to String"))

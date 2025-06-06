@@ -69,12 +69,12 @@ class StringWeaverTest extends AirSpec:
   }
 
   test("unpack String from NIL type") {
-    // Test nil to String conversion (nil = empty string)
+    // Test nil to String conversion (nil = null)
     val packer = MessagePack.newPacker()
     packer.packNil
     val packed   = packer.toByteArray
     val unpacked = ObjectWeaver.unweave[String](packed)
-    unpacked shouldBe ""
+    unpacked shouldBe null
   }
 
   test("unpack String from unsupported types") {
