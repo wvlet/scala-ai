@@ -2,6 +2,7 @@ package wvlet.ai.core.weaver.codec
 
 import wvlet.ai.core.msgpack.spi.{Packer, Unpacker, ValueType}
 import wvlet.ai.core.weaver.{ObjectWeaver, WeaverConfig, WeaverContext}
+import scala.collection.mutable.ListBuffer
 
 object PrimitiveWeaver:
 
@@ -390,5 +391,46 @@ object PrimitiveWeaver:
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Char"))
+
+  given listWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[List[A]] =
+    new ObjectWeaver[List[A]]:
+      override def pack(p: Packer, v: List[A], config: WeaverConfig): Unit =
+        p.packArrayHeader(v.size)
+        v.foreach(elementWeaver.pack(p, _, config))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            try
+              val arraySize = u.unpackArrayHeader
+              val buffer    = ListBuffer.empty[A]
+
+              var i        = 0
+              var hasError = false
+              while i < arraySize && !hasError do
+                val elementContext = WeaverContext(context.config)
+                elementWeaver.unpack(u, elementContext)
+
+                if elementContext.hasError then
+                  context.setError(elementContext.getError.get)
+                  hasError = true
+                  // Skip remaining elements to keep unpacker in consistent state
+                  while i + 1 < arraySize do
+                    u.skipValue
+                    i += 1
+                else
+                  buffer += elementContext.getLastValue.asInstanceOf[A]
+                  i += 1
+
+              if !hasError then
+                context.setObject(buffer.toList)
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to List"))
 
 end PrimitiveWeaver
