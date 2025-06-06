@@ -75,6 +75,61 @@ object PrimitiveWeaver:
         context.setError(e)
         None
 
+  private def unpackMapToBuffer[K, V](
+      u: Unpacker,
+      context: WeaverContext,
+      keyWeaver: ObjectWeaver[K],
+      valueWeaver: ObjectWeaver[V]
+  ): Option[ListBuffer[(K, V)]] =
+    try
+      val mapSize = u.unpackMapHeader
+      val buffer  = ListBuffer.empty[(K, V)]
+
+      var i        = 0
+      var hasError = false
+      while i < mapSize && !hasError do
+        // Unpack key
+        val keyContext = WeaverContext(context.config)
+        keyWeaver.unpack(u, keyContext)
+
+        if keyContext.hasError then
+          context.setError(keyContext.getError.get)
+          hasError = true
+          // Skip remaining pairs to keep unpacker in consistent state
+          while i < mapSize do
+            u.skipValue // Skip key
+            u.skipValue // Skip value
+            i += 1
+        else
+          val key = keyContext.getLastValue.asInstanceOf[K]
+
+          // Unpack value
+          val valueContext = WeaverContext(context.config)
+          valueWeaver.unpack(u, valueContext)
+
+          if valueContext.hasError then
+            context.setError(valueContext.getError.get)
+            hasError = true
+            // Skip remaining pairs to keep unpacker in consistent state
+            while i + 1 < mapSize do
+              u.skipValue // Skip key
+              u.skipValue // Skip value
+              i += 1
+          else
+            val value = valueContext.getLastValue.asInstanceOf[V]
+            buffer += (key -> value)
+            i += 1
+      end while
+
+      if hasError then
+        None
+      else
+        Some(buffer)
+    catch
+      case e: Exception =>
+        context.setError(e)
+        None
+
   given intWeaver: ObjectWeaver[Int] =
     new ObjectWeaver[Int]:
       override def pack(p: Packer, v: Int, config: WeaverConfig): Unit = p.packInt(v)
@@ -457,51 +512,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.MAP =>
-            try
-              val mapSize = u.unpackMapHeader
-              val buffer  = scala.collection.mutable.Map.empty[K, V]
-
-              var i        = 0
-              var hasError = false
-              while i < mapSize && !hasError do
-                // Unpack key
-                val keyContext = WeaverContext(context.config)
-                keyWeaver.unpack(u, keyContext)
-
-                if keyContext.hasError then
-                  context.setError(keyContext.getError.get)
-                  hasError = true
-                  // Skip remaining pairs to keep unpacker in consistent state
-                  while i < mapSize do
-                    u.skipValue // Skip key
-                    u.skipValue // Skip value
-                    i += 1
-                else
-                  val key = keyContext.getLastValue.asInstanceOf[K]
-
-                  // Unpack value
-                  val valueContext = WeaverContext(context.config)
-                  valueWeaver.unpack(u, valueContext)
-
-                  if valueContext.hasError then
-                    context.setError(valueContext.getError.get)
-                    hasError = true
-                    // Skip remaining pairs to keep unpacker in consistent state
-                    while i + 1 < mapSize do
-                      u.skipValue // Skip key
-                      u.skipValue // Skip value
-                      i += 1
-                  else
-                    val value = valueContext.getLastValue.asInstanceOf[V]
-                    buffer += (key -> value)
-                    i += 1
-              end while
-
-              if !hasError then
+            unpackMapToBuffer(u, context, keyWeaver, valueWeaver) match
+              case Some(buffer) =>
                 context.setObject(buffer.toMap)
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackMapToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
@@ -586,51 +600,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.MAP =>
-            try
-              val mapSize = u.unpackMapHeader
-              val buffer  = scala.collection.mutable.ListBuffer.empty[(K, V)]
-
-              var i        = 0
-              var hasError = false
-              while i < mapSize && !hasError do
-                // Unpack key
-                val keyContext = WeaverContext(context.config)
-                keyWeaver.unpack(u, keyContext)
-
-                if keyContext.hasError then
-                  context.setError(keyContext.getError.get)
-                  hasError = true
-                  // Skip remaining pairs to keep unpacker in consistent state
-                  while i < mapSize do
-                    u.skipValue // Skip key
-                    u.skipValue // Skip value
-                    i += 1
-                else
-                  val key = keyContext.getLastValue.asInstanceOf[K]
-
-                  // Unpack value
-                  val valueContext = WeaverContext(context.config)
-                  valueWeaver.unpack(u, valueContext)
-
-                  if valueContext.hasError then
-                    context.setError(valueContext.getError.get)
-                    hasError = true
-                    // Skip remaining pairs to keep unpacker in consistent state
-                    while i + 1 < mapSize do
-                      u.skipValue // Skip key
-                      u.skipValue // Skip value
-                      i += 1
-                  else
-                    val value = valueContext.getLastValue.asInstanceOf[V]
-                    buffer += (key -> value)
-                    i += 1
-              end while
-
-              if !hasError then
+            unpackMapToBuffer(u, context, keyWeaver, valueWeaver) match
+              case Some(buffer) =>
                 context.setObject(scala.collection.immutable.ListMap.from(buffer))
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackMapToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
