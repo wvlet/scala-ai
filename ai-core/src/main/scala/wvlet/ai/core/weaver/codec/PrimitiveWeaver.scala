@@ -40,6 +40,41 @@ object PrimitiveWeaver:
       case e: Exception =>
         context.setError(e)
 
+  private def unpackArrayToBuffer[A](
+      u: Unpacker,
+      context: WeaverContext,
+      elementWeaver: ObjectWeaver[A]
+  ): Option[ListBuffer[A]] =
+    try
+      val arraySize = u.unpackArrayHeader
+      val buffer    = ListBuffer.empty[A]
+
+      var i        = 0
+      var hasError = false
+      while i < arraySize && !hasError do
+        val elementContext = WeaverContext(context.config)
+        elementWeaver.unpack(u, elementContext)
+
+        if elementContext.hasError then
+          context.setError(elementContext.getError.get)
+          hasError = true
+          // Skip remaining elements to keep unpacker in consistent state
+          while i + 1 < arraySize do
+            u.skipValue
+            i += 1
+        else
+          buffer += elementContext.getLastValue.asInstanceOf[A]
+          i += 1
+
+      if hasError then
+        None
+      else
+        Some(buffer)
+    catch
+      case e: Exception =>
+        context.setError(e)
+        None
+
   given intWeaver: ObjectWeaver[Int] =
     new ObjectWeaver[Int]:
       override def pack(p: Packer, v: Int, config: WeaverConfig): Unit = p.packInt(v)
@@ -397,32 +432,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.ARRAY =>
-            try
-              val arraySize = u.unpackArrayHeader
-              val buffer    = ListBuffer.empty[A]
-
-              var i        = 0
-              var hasError = false
-              while i < arraySize && !hasError do
-                val elementContext = WeaverContext(context.config)
-                elementWeaver.unpack(u, elementContext)
-
-                if elementContext.hasError then
-                  context.setError(elementContext.getError.get)
-                  hasError = true
-                  // Skip remaining elements to keep unpacker in consistent state
-                  while i + 1 < arraySize do
-                    u.skipValue
-                    i += 1
-                else
-                  buffer += elementContext.getLastValue.asInstanceOf[A]
-                  i += 1
-
-              if !hasError then
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
                 context.setObject(buffer.toList)
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackArrayToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
@@ -504,32 +517,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.ARRAY =>
-            try
-              val arraySize = u.unpackArrayHeader
-              val buffer    = ListBuffer.empty[A]
-
-              var i        = 0
-              var hasError = false
-              while i < arraySize && !hasError do
-                val elementContext = WeaverContext(context.config)
-                elementWeaver.unpack(u, elementContext)
-
-                if elementContext.hasError then
-                  context.setError(elementContext.getError.get)
-                  hasError = true
-                  // Skip remaining elements to keep unpacker in consistent state
-                  while i + 1 < arraySize do
-                    u.skipValue
-                    i += 1
-                else
-                  buffer += elementContext.getLastValue.asInstanceOf[A]
-                  i += 1
-
-              if !hasError then
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
                 context.setObject(buffer.toSeq)
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackArrayToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
@@ -545,32 +536,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.ARRAY =>
-            try
-              val arraySize = u.unpackArrayHeader
-              val buffer    = ListBuffer.empty[A]
-
-              var i        = 0
-              var hasError = false
-              while i < arraySize && !hasError do
-                val elementContext = WeaverContext(context.config)
-                elementWeaver.unpack(u, elementContext)
-
-                if elementContext.hasError then
-                  context.setError(elementContext.getError.get)
-                  hasError = true
-                  // Skip remaining elements to keep unpacker in consistent state
-                  while i + 1 < arraySize do
-                    u.skipValue
-                    i += 1
-                else
-                  buffer += elementContext.getLastValue.asInstanceOf[A]
-                  i += 1
-
-              if !hasError then
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
                 context.setObject(buffer.toIndexedSeq)
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackArrayToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
@@ -586,32 +555,10 @@ object PrimitiveWeaver:
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.ARRAY =>
-            try
-              val arraySize = u.unpackArrayHeader
-              val buffer    = ListBuffer.empty[A]
-
-              var i        = 0
-              var hasError = false
-              while i < arraySize && !hasError do
-                val elementContext = WeaverContext(context.config)
-                elementWeaver.unpack(u, elementContext)
-
-                if elementContext.hasError then
-                  context.setError(elementContext.getError.get)
-                  hasError = true
-                  // Skip remaining elements to keep unpacker in consistent state
-                  while i + 1 < arraySize do
-                    u.skipValue
-                    i += 1
-                else
-                  buffer += elementContext.getLastValue.asInstanceOf[A]
-                  i += 1
-
-              if !hasError then
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
                 context.setObject(buffer.asJava)
-            catch
-              case e: Exception =>
-                context.setError(e)
+              case None => // Error already set in unpackArrayToBuffer
           case ValueType.NIL =>
             safeUnpackNil(context, u)
           case other =>
