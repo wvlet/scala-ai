@@ -61,3 +61,5 @@ object ObjectWeaver:
   ): A = weaver.fromJson(json, config)
 
   export PrimitiveWeaver.given
+
+  inline given [A](using m: scala.deriving.Mirror.ProductOf[A]): ObjectWeaver[A] = CaseClassWeaver[A](using m)

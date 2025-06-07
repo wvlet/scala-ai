@@ -1,7 +1,14 @@
 package wvlet.ai.core.weaver
 
 import wvlet.airspec.AirSpec
+import wvlet.ai.core.weaver.ObjectWeaver // Ensure ObjectWeaver is imported if not already fully covered
 import scala.jdk.CollectionConverters.*
+
+// Define case classes for testing
+case class SimpleCase(i: Int, s: String, b: Boolean)
+case class NestedCase(name: String, simple: SimpleCase)
+case class OptionCase(id: Int, opt: Option[String])
+case class SeqCase(key: String, values: Seq[Int])
 
 class WeaverTest extends AirSpec:
 
@@ -495,6 +502,97 @@ class WeaverTest extends AirSpec:
 
     result.isDefined shouldBe true
     result.get.getMessage.contains("Cannot convert") shouldBe true
+  }
+
+  // Tests for SimpleCase
+  test("weave SimpleCase") {
+    val v       = SimpleCase(10, "test case", true)
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[SimpleCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("SimpleCase toJson") {
+    val v    = SimpleCase(20, "json test", false)
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[SimpleCase](json)
+    v shouldBe v2
+  }
+
+  // Tests for NestedCase
+  test("weave NestedCase") {
+    val v       = NestedCase("nested", SimpleCase(30, "inner", true))
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[NestedCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("NestedCase toJson") {
+    val v    = NestedCase("nested json", SimpleCase(40, "inner json", false))
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[NestedCase](json)
+    v shouldBe v2
+  }
+
+  // Tests for OptionCase
+  test("weave OptionCase with Some") {
+    val v       = OptionCase(50, Some("option value"))
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[OptionCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("OptionCase toJson with Some") {
+    val v    = OptionCase(60, Some("option json"))
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[OptionCase](json)
+    v shouldBe v2
+  }
+
+  test("weave OptionCase with None") {
+    val v       = OptionCase(70, None)
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[OptionCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("OptionCase toJson with None") {
+    val v    = OptionCase(80, None)
+    val json = ObjectWeaver.toJson(v)
+    // Check against expected JSON for None, as direct None might be ambiguous for fromJson
+    // Depending on JSON library, None might be represented as null or omitted
+    // Assuming it's represented as null or handled by the weaver
+    val v2 = ObjectWeaver.fromJson[OptionCase](json)
+    v shouldBe v2
+  }
+
+  // Tests for SeqCase
+  test("weave SeqCase with non-empty Seq") {
+    val v       = SeqCase("seq test", Seq(1, 2, 3, 4))
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[SeqCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("SeqCase toJson with non-empty Seq") {
+    val v    = SeqCase("seq json", Seq(5, 6, 7))
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[SeqCase](json)
+    v shouldBe v2
+  }
+
+  test("weave SeqCase with empty Seq") {
+    val v       = SeqCase("empty seq", Seq.empty[Int])
+    val msgpack = ObjectWeaver.weave(v)
+    val v2      = ObjectWeaver.unweave[SeqCase](msgpack)
+    v shouldBe v2
+  }
+
+  test("SeqCase toJson with empty Seq") {
+    val v    = SeqCase("empty seq json", Seq.empty[Int])
+    val json = ObjectWeaver.toJson(v)
+    val v2   = ObjectWeaver.fromJson[SeqCase](json)
+    v shouldBe v2
   }
 
 end WeaverTest
