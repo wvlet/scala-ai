@@ -62,4 +62,5 @@ object ObjectWeaver:
 
   export PrimitiveWeaver.given
 
-  inline given [A](using m: scala.deriving.Mirror.ProductOf[A]): ObjectWeaver[A] = CaseClassWeaver[A](using m)
+  inline given [A](using m: scala.deriving.Mirror.ProductOf[A]): ObjectWeaver[A] =
+    CaseClassWeaver[A](using m)
