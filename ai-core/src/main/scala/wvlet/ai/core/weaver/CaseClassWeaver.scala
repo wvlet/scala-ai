@@ -1,7 +1,7 @@
 package wvlet.ai.core.weaver
 
-import scala.deriving.Mirror
-import scala.compiletime.{erasedValue, summonInline}
+import scala.deriving.Mirror // Keep Mirror for `m`
+// erasedValue, summonInline, constValue, error are no longer needed here
 import wvlet.ai.core.msgpack.spi.{Packer, Unpacker}
 
 // Removed duplicate ObjectWeaver trait.
@@ -17,17 +17,14 @@ import wvlet.ai.core.msgpack.spi.{Packer, Unpacker}
 case class WeaverPackingException(message: String, cause: Throwable = null)
     extends RuntimeException(message, cause)
 
-class CaseClassWeaver[A](using m: Mirror.ProductOf[A]) extends ObjectWeaver[A]:
+// Companion object removed for this attempt
 
-  // Note: elementWeavers are now of type ObjectWeaver from the canonical definition
-  private inline def summonElementWeavers[Elems <: Tuple]: List[ObjectWeaver[?]] =
-    inline erasedValue[Elems] match
-      case _: (elem *: elemsTail) =>
-        summonInline[ObjectWeaver[elem]] :: summonElementWeavers[elemsTail]
-      case _: EmptyTuple =>
-        Nil
+// Constructor now accepts elementWeavers. Mirror m is still needed for fromProduct.
+class CaseClassWeaver[A](private val elementWeavers: List[ObjectWeaver[?]])(using
+    m: Mirror.ProductOf[A]
+) extends ObjectWeaver[A]:
 
-  private val elementWeavers: List[ObjectWeaver[?]] = summonElementWeavers[m.MirroredElemTypes]
+  // Internal buildWeavers and elementWeavers val are removed.
 
   override def pack(packer: Packer, v: A, config: WeaverConfig): Unit =
     val product = v.asInstanceOf[Product]
@@ -36,17 +33,16 @@ class CaseClassWeaver[A](using m: Mirror.ProductOf[A]) extends ObjectWeaver[A]:
         s"Element count mismatch. Expected: ${elementWeavers.size}, Got: ${product.productArity}"
       )
     packer.packArrayHeader(elementWeavers.size)
+
     product
       .productIterator
       .zip(elementWeavers)
-      .foreach { case (elem, weaver) =>
-        // This cast is generally safe due to how elementWeavers is constructed.
-        // The individual element's weaver will handle its specific packing.
-        (weaver.asInstanceOf[ObjectWeaver[Any]]).pack(packer, elem, config)
+      .foreach { case (elemValue, weaver) =>
+        (weaver.asInstanceOf[ObjectWeaver[Any]]).pack(packer, elemValue, config)
       }
 
   override def unpack(unpacker: Unpacker, context: WeaverContext): Unit =
-    val numElements = unpacker.unpackArrayHeader()
+    val numElements = unpacker.unpackArrayHeader
     if numElements != elementWeavers.size then
       context.setError(
         new IllegalArgumentException(
@@ -60,11 +56,14 @@ class CaseClassWeaver[A](using m: Mirror.ProductOf[A]) extends ObjectWeaver[A]:
     val elements = new Array[Any](elementWeavers.size)
     var i        = 0
     var failed   = false
+
     while i < elementWeavers.size && !failed do
-      val weaver = elementWeavers(i)
-      // Create a new context for each element to isolate errors and values
+      val weaver         = elementWeavers(i)
       val elementContext = WeaverContext(context.config)
-      weaver.unpack(unpacker, elementContext)
+      // Assuming weaver is ObjectWeaver[?] so direct call is not possible without cast
+      // However, the element type is unknown here to do a safe cast.
+      // This part of unpack will need careful handling if we stick to List[ObjectWeaver[?]]
+      (weaver.asInstanceOf[ObjectWeaver[Any]]).unpack(unpacker, elementContext)
 
       if elementContext.hasError then
         context.setError(
@@ -87,12 +86,16 @@ class CaseClassWeaver[A](using m: Mirror.ProductOf[A]) extends ObjectWeaver[A]:
             override def canEqual(that: Any): Boolean =
               that.isInstanceOf[Product] && that.asInstanceOf[Product].productArity == productArity
         )
-        context.setLastValue(instance)
+        context.setObject(instance)
       catch
         case e: Throwable =>
           context.setError(new RuntimeException("Failed to instantiate case class from product", e))
+        // Closing brace for try-catch
+      // Closing brace for if (!failed)
     // If failed, context will already have an error set.
-
+    // Closing brace for unpack method
   end unpack
+
+  // Closing brace for CaseClassWeaver class
 
 end CaseClassWeaver
