@@ -2,6 +2,8 @@ package wvlet.ai.core.weaver
 
 import wvlet.ai.core.msgpack.spi.{MessagePack, MsgPack, Packer, Unpacker}
 import wvlet.ai.core.weaver.codec.{JSONWeaver, PrimitiveWeaver}
+import scala.deriving.Mirror
+import scala.compiletime.{constValue, summonInline}
 
 trait ObjectWeaver[A]:
   def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack = toMsgPack(v, config)
@@ -61,3 +63,19 @@ object ObjectWeaver:
   ): A = weaver.fromJson(json, config)
 
   export PrimitiveWeaver.given
+
+  private inline def buildWeaverList[ElemTypes <: Tuple](
+      idx: Int
+  ): List[ObjectWeaver[?]] = // Removed inline from idx
+    inline if idx >= constValue[Tuple.Size[ElemTypes]] then // Base case: index out of bounds
+      Nil
+    else
+      // Summons ObjectWeaver for the element type at the current index
+      val headWeaver = summonInline[ObjectWeaver[Tuple.Elem[ElemTypes, idx.type]]]
+      headWeaver :: buildWeaverList[ElemTypes](idx + 1) // Recursive call
+
+  inline given [A](using m: Mirror.ProductOf[A]): ObjectWeaver[A] =
+    val weavers = buildWeaverList[m.MirroredElemTypes](0)
+    new CaseClassWeaver[A](weavers)(using m)
+
+end ObjectWeaver
