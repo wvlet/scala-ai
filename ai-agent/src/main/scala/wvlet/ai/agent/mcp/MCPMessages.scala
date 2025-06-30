@@ -131,7 +131,7 @@ object MCPMessages:
     */
   def createCallToolRequest(toolName: String, arguments: Map[String, Any]): JsonRpc.Request =
     JsonRpc.Request(
-      id = Some(s"call-$toolName-${System.currentTimeMillis()}"),
+      id = Some(s"call-$toolName-${java.util.UUID.randomUUID()}"),
       method = "tools/call",
       params = Some(Map("name" -> toolName, "arguments" -> arguments))
     )

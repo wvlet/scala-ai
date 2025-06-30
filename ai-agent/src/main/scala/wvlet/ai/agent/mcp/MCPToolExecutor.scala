@@ -62,17 +62,6 @@ class MCPToolExecutor(private val client: MCPClient) extends ToolExecutor with L
               contentMap.get("type") match
                 case Some("text") =>
                   contentMap.getOrElse("text", "").toString
-                case Some("image") =>
-                  val data     = contentMap.getOrElse("data", "").toString
-                  val mimeType = contentMap.getOrElse("mimeType", "").toString
-                  s"""{"type": "image", "mimeType": "$mimeType", "data": "$data"}"""
-                case Some("resource") =>
-                  contentMap.get("resource") match
-                    case Some(res: Map[String, Any]) =>
-                      val uri = res.getOrElse("uri", "").toString
-                      s"""{"type": "resource", "uri": "$uri"}"""
-                    case _ =>
-                      """{"type": "resource", "uri": ""}"""
                 case _ =>
                   MessageCodec.toJson(contentMap)
             }
@@ -85,7 +74,7 @@ class MCPToolExecutor(private val client: MCPClient) extends ToolExecutor with L
           ToolResultMessage(
             id = toolCall.id,
             toolName = toolCall.name,
-            text = s"""{"error": "${e.getMessage}"}"""
+            text = MessageCodec.toJson(Map("error" -> e.getMessage))
           )
         }
     }
@@ -111,54 +100,54 @@ class MCPToolExecutor(private val client: MCPClient) extends ToolExecutor with L
     * Extract parameters from JSON Schema.
     */
   private def extractParameters(schema: Map[String, Any]): List[ToolParameter] =
-    schema.get("properties") match
-      case Some(props: Map[String, Any]) =>
-        val required =
-          schema.get("required") match
-            case Some(req: List[String]) =>
-              req.toSet
-            case _ =>
-              Set.empty[String]
+    schema
+      .get("properties")
+      .collect { case m: Map[?, ?] =>
+        m.asInstanceOf[Map[String, Any]]
+      } match
+      case Some(props) =>
+        val required = schema
+          .get("required")
+          .collect { case l: List[?] =>
+            l.map(_.toString).toSet
+          }
+          .getOrElse(Set.empty)
 
         props
-          .map { case (name, propSchemaAny) =>
-            val propSchema = propSchemaAny.asInstanceOf[Map[String, Any]]
-            val description =
-              propSchema.get("description") match
-                case Some(desc: String) =>
-                  desc
-                case _ =>
-                  ""
-
-            val paramType: DataType =
-              propSchema.get("type") match
-                case Some(t: String) =>
-                  t match
-                    case "string" =>
+          .flatMap { case (name, propSchemaAny) =>
+            propSchemaAny match
+              case propSchema: Map[?, ?] =>
+                val propMap     = propSchema.asInstanceOf[Map[String, Any]]
+                val description = propMap.get("description").map(_.toString).getOrElse("")
+                val paramType: DataType =
+                  propMap.get("type").map(_.toString) match
+                    case Some("string") =>
                       DataType.StringType
-                    case "number" =>
+                    case Some("number") =>
                       DataType.FloatType
-                    case "integer" =>
+                    case Some("integer") =>
                       DataType.IntegerType
-                    case "boolean" =>
+                    case Some("boolean") =>
                       DataType.BooleanType
-                    case "array" =>
+                    case Some("array") =>
                       DataType.ArrayType(DataType.AnyType)
-                    case "object" =>
+                    case Some("object") =>
                       DataType.JsonType
                     case _ =>
                       DataType.JsonType
-                case _ =>
-                  DataType.JsonType
 
-            val defaultValue = propSchema.get("default")
+                val defaultValue = propMap.get("default")
 
-            ToolParameter(
-              name = name,
-              description = description,
-              dataType = paramType,
-              defaultValue = defaultValue
-            )
+                Some(
+                  ToolParameter(
+                    name = name,
+                    description = description,
+                    dataType = paramType,
+                    defaultValue = defaultValue
+                  )
+                )
+              case _ =>
+                None
           }
           .toList
 

@@ -120,9 +120,13 @@ class StdioMCPClient(
     val request = MCPMessages.createInitializeRequest("scala-ai", "1.0.0")
     sendRequest(request).map { response =>
       response.result match
-        case Some(result) =>
+        case Some(result: Map[?, ?]) =>
           val codec = MessageCodec.of[InitializeResult]
           codec.fromMap(result.asInstanceOf[Map[String, Any]])
+        case Some(other) =>
+          throw new RuntimeException(
+            s"Initialize failed: unexpected result type. Expected a JSON object, but got $other"
+          )
         case None =>
           throw new RuntimeException(s"Initialize failed: ${response.error}")
     }
@@ -131,9 +135,13 @@ class StdioMCPClient(
     val request = MCPMessages.createListToolsRequest()
     sendRequest(request).map { response =>
       response.result match
-        case Some(result) =>
+        case Some(result: Map[?, ?]) =>
           val codec = MessageCodec.of[ListToolsResult]
           codec.fromMap(result.asInstanceOf[Map[String, Any]])
+        case Some(other) =>
+          throw new RuntimeException(
+            s"List tools failed: unexpected result type. Expected a JSON object, but got $other"
+          )
         case None =>
           throw new RuntimeException(s"List tools failed: ${response.error}")
     }
@@ -142,9 +150,13 @@ class StdioMCPClient(
     val request = MCPMessages.createCallToolRequest(toolName, arguments)
     sendRequest(request).map { response =>
       response.result match
-        case Some(result) =>
+        case Some(result: Map[?, ?]) =>
           val codec = MessageCodec.of[CallToolResult]
           codec.fromMap(result.asInstanceOf[Map[String, Any]])
+        case Some(other) =>
+          throw new RuntimeException(
+            s"Tool call failed: unexpected result type. Expected a JSON object, but got $other"
+          )
         case None =>
           throw new RuntimeException(s"Tool call failed: ${response.error}")
     }
