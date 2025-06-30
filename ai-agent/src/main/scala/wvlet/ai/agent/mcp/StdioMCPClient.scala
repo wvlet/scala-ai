@@ -92,26 +92,27 @@ class StdioMCPClient(
     * Handle a response line from the server.
     */
   private def handleResponse(line: String): Unit =
-    JsonRpc.parse(line) match
-      case Right(response: JsonRpc.Response) =>
-        response.id match
-          case Some(id) =>
-            val idStr = id.toString
-            Option(pendingRequests.remove(idStr)).foreach { promise =>
-              promise.success(response)
-            }
-          case None =>
-            warn(s"Received response without id: $line")
+    try
+      JsonRpc.parse(line) match
+        case response: JsonRpc.Response =>
+          response.id match
+            case Some(id) =>
+              val idStr = id.toString
+              Option(pendingRequests.remove(idStr)).foreach { promise =>
+                promise.success(response)
+              }
+            case None =>
+              warn(s"Received response without id: $line")
 
-      case Right(notification: JsonRpc.Notification) =>
-        debug(s"Received notification: ${notification.method}")
-        // Handle notifications if needed
+        case notification: JsonRpc.Notification =>
+          debug(s"Received notification: ${notification.method}")
+          // Handle notifications if needed
 
-      case Right(request: JsonRpc.Request) =>
-        warn(s"Received unexpected request from server: ${request.method}")
-
-      case Left(err) =>
-        error(s"Failed to parse response: ${err.message}")
+        case request: JsonRpc.Request =>
+          warn(s"Received unexpected request from server: ${request.method}")
+    catch
+      case e: Exception =>
+        error(s"Failed to parse response: ${e.getMessage}", e)
 
   override def initialize(): Rx[InitializeResult] =
     if !connected.get() then

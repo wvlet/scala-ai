@@ -59,8 +59,10 @@ object JsonRpc:
 
   /**
     * Parse a JSON string into a JSON-RPC message
+    * @throws wvlet.ai.agent.core.AIException
+    *   if parsing fails
     */
-  def parse(json: String): Either[ErrorObject, Request | Response | Notification] =
+  def parse(json: String): Request | Response | Notification =
     try
       val parsed = MessageCodec.fromJson[Map[String, Any]](json)
       // Check if it has an id field to distinguish request/response from notification
@@ -71,17 +73,31 @@ object JsonRpc:
 
       if hasMethod && hasId then
         val codec = MessageCodec.of[Request]
-        Right(codec.fromMap(parsed))
+        codec.fromMap(parsed)
       else if hasMethod && !hasId then
         val codec = MessageCodec.of[Notification]
-        Right(codec.fromMap(parsed))
+        codec.fromMap(parsed)
       else if hasResult || hasError then
         val codec = MessageCodec.of[Response]
-        Right(codec.fromMap(parsed))
+        codec.fromMap(parsed)
       else
-        Left(ErrorObject(ErrorCode.InvalidRequest, "Invalid JSON-RPC message format"))
+        throw wvlet
+          .ai
+          .agent
+          .core
+          .StatusCode
+          .INVALID_MESSAGE_TYPE
+          .newException("Invalid JSON-RPC message format")
     catch
+      case e: wvlet.ai.agent.core.AIException =>
+        throw e
       case e: Exception =>
-        Left(ErrorObject(ErrorCode.ParseError, s"Failed to parse JSON: ${e.getMessage}"))
+        throw wvlet
+          .ai
+          .agent
+          .core
+          .StatusCode
+          .INVALID_MESSAGE_TYPE
+          .newException(s"Failed to parse JSON: ${e.getMessage}", e)
 
 end JsonRpc
