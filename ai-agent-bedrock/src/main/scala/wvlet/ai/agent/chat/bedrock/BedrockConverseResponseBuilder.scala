@@ -77,8 +77,10 @@ class BedrockConverseResponseBuilder(observer: ChatObserver) extends LogSupport:
   def onEvent(event: ContentBlockStopEvent): Unit = toolUseBlockBuilder.foreach { builder =>
     if toolUseInput.nonEmpty then
       builder.input(DocumentUtil.fromJson(toolUseInput.result()))
-      toolUseInput.clear()
-      toolUseBlockBuilder = None
+    // Add the completed tool use block to the list
+    toolUseBlocks += builder.build()
+    toolUseInput.clear()
+    toolUseBlockBuilder = None
   }
 
   def onEvent(event: ConverseStreamMetadataEvent): Unit =

@@ -91,6 +91,8 @@ sbt integrationTest/test
 - For comparison operators, use `(cond) shouldBe true`: `(value >= 1) shouldBe true`
 - Avoid ScalaTest-style matchers like `should be >= 1` - not supported in AirSpec
 - For more syntax examples, refer to .github/instructions/airspec.instructions.md
+- Prefer pattern matching of Scala over `.asInstanceOf[X]`
+- In AirSpec, use `shouldMatch { case ... => ... }` syntax for type checking
 
 ## Key Dependencies
 
