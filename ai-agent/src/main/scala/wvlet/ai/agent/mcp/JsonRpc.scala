@@ -86,7 +86,7 @@ object JsonRpc:
           .agent
           .core
           .StatusCode
-          .INVALID_MESSAGE_TYPE
+          .JSON_RPC_ERROR
           .newException("Invalid JSON-RPC message format")
     catch
       case e: wvlet.ai.agent.core.AIException =>
@@ -97,7 +97,7 @@ object JsonRpc:
           .agent
           .core
           .StatusCode
-          .INVALID_MESSAGE_TYPE
+          .JSON_RPC_ERROR
           .newException(s"Failed to parse JSON: ${e.getMessage}", e)
 
 end JsonRpc
