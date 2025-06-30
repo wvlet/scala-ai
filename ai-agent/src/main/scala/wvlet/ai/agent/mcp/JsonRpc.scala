@@ -1,6 +1,7 @@
 package wvlet.ai.agent.mcp
 
 import wvlet.airframe.codec.MessageCodec
+import wvlet.ai.agent.core.{AIException, StatusCode}
 
 /**
   * JSON-RPC 2.0 protocol messages for MCP communication.
@@ -59,7 +60,7 @@ object JsonRpc:
 
   /**
     * Parse a JSON string into a JSON-RPC message
-    * @throws wvlet.ai.agent.core.AIException
+    * @throws AIException
     *   if parsing fails
     */
   def parse(json: String): Request | Response | Notification =
@@ -81,23 +82,11 @@ object JsonRpc:
         val codec = MessageCodec.of[Response]
         codec.fromMap(parsed)
       else
-        throw wvlet
-          .ai
-          .agent
-          .core
-          .StatusCode
-          .JSON_RPC_ERROR
-          .newException("Invalid JSON-RPC message format")
+        throw StatusCode.JSON_RPC_ERROR.newException("Invalid JSON-RPC message format")
     catch
-      case e: wvlet.ai.agent.core.AIException =>
+      case e: AIException =>
         throw e
       case e: Exception =>
-        throw wvlet
-          .ai
-          .agent
-          .core
-          .StatusCode
-          .JSON_RPC_ERROR
-          .newException(s"Failed to parse JSON: ${e.getMessage}", e)
+        throw StatusCode.JSON_RPC_ERROR.newException(s"Failed to parse JSON: ${e.getMessage}", e)
 
 end JsonRpc
