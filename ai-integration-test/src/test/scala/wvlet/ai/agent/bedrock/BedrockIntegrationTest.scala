@@ -67,8 +67,9 @@ class BedrockIntegrationTest extends AirSpec:
     debug(s"Second response: ${secondResponse}")
     
     // Verify the response contains the remembered name
-    val secondMessage = secondResponse.messages.head.asInstanceOf[AIMessage]
-    secondMessage.text.toLowerCase shouldContain "alice"
+    secondResponse.messages.head shouldMatch { case msg: AIMessage =>
+      msg.text.toLowerCase shouldContain "alice"
+    }
     
     // Test with explicit ChatRequest containing history
     val history = Seq(
@@ -81,8 +82,9 @@ class BedrockIntegrationTest extends AirSpec:
     debug(s"Third response with explicit history: ${thirdResponse}")
     
     // Verify the response references the conversation history
-    val thirdMessage = thirdResponse.messages.head.asInstanceOf[AIMessage]
-    thirdMessage.text.toLowerCase shouldContain "blue"
+    thirdResponse.messages.head shouldMatch { case msg: AIMessage =>
+      msg.text.toLowerCase shouldContain "blue"
+    }
     
     // Verify that chat history is properly maintained in responses
     (secondResponse.messages.size >= 1) shouldBe true
@@ -122,22 +124,22 @@ class BedrockIntegrationTest extends AirSpec:
     
     // Verify the response contains tool calls
     toolResponse.messages.nonEmpty shouldBe true
-    val aiMessage = toolResponse.messages.head.asInstanceOf[AIMessage]
-    
-    // Check if the model made a tool call or just responded with text
-    debug(s"AI Message: ${aiMessage}")
-    debug(s"Tool calls: ${aiMessage.toolCalls}")
-    debug(s"Finish reason: ${toolResponse.finishReason}")
-    
-    if aiMessage.toolCalls.isEmpty && toolResponse.finishReason == ChatFinishReason.TOOL_CALL then
-      warn("Model indicated TOOL_CALL finish reason but no tool calls were captured")
-      skip("Tool calls not properly captured - implementation issue")
-    
-    aiMessage.toolCalls.nonEmpty shouldBe true
-    
-    val toolCall = aiMessage.toolCalls.head
-    toolCall.name shouldBe "get_weather"
-    toolCall.args.get("location").map(_.toString).exists(_.contains("San Francisco")) shouldBe true
+    toolResponse.messages.head shouldMatch { case aiMessage: AIMessage =>
+      // Check if the model made a tool call or just responded with text
+      debug(s"AI Message: ${aiMessage}")
+      debug(s"Tool calls: ${aiMessage.toolCalls}")
+      debug(s"Finish reason: ${toolResponse.finishReason}")
+      
+      if aiMessage.toolCalls.isEmpty && toolResponse.finishReason == ChatFinishReason.TOOL_CALL then
+        warn("Model indicated TOOL_CALL finish reason but no tool calls were captured")
+        skip("Tool calls not properly captured - implementation issue")
+      
+      aiMessage.toolCalls.nonEmpty shouldBe true
+      
+      val toolCall = aiMessage.toolCalls.head
+      toolCall.name shouldBe "get_weather"
+      toolCall.args.get("location").map(_.toString).exists(_.contains("San Francisco")) shouldBe true
+    }
     
     // Test 2: Verify tool call was made successfully
     debug("Tool call test passed - tool was called successfully")
@@ -146,8 +148,16 @@ class BedrockIntegrationTest extends AirSpec:
     val multiToolResponse = session.chat("Calculate 15 + 27 and tell me the weather in Tokyo")
     debug(s"Multi-tool response: ${multiToolResponse}")
     
-    val multiAiMessage = multiToolResponse.messages.head.asInstanceOf[AIMessage]
-    (multiAiMessage.toolCalls.size >= 1) shouldBe true
+    multiToolResponse.messages.head shouldMatch { case multiAiMessage: AIMessage =>
+      // Verify that at least one tool was called, and check which tools were invoked
+      multiAiMessage.toolCalls.nonEmpty shouldBe true
+      val toolNames = multiAiMessage.toolCalls.map(_.name).toSet
+      debug(s"Tools called: ${toolNames}")
+      
+      // The model should use at least one of the requested tools
+      val expectedTools = Set("calculate", "get_weather")
+      (toolNames & expectedTools).nonEmpty shouldBe true
+    }
     
     // Test 4: Tool choice configurations
     val autoChoiceAgent = agentWithTools.withToolChoiceAuto
@@ -157,20 +167,37 @@ class BedrockIntegrationTest extends AirSpec:
     // Test auto choice (default)
     val autoResponse = BedrockRunner(autoChoiceAgent).newChatSession.chat("What's 10 plus 20?")
     debug(s"Auto tool choice response: ${autoResponse}")
+    autoResponse.messages.head shouldMatch { case autoAiMessage: AIMessage =>
+      // With auto choice, the model should decide to use the calculate tool
+      if autoAiMessage.toolCalls.nonEmpty then
+        autoAiMessage.toolCalls.head.name shouldBe "calculate"
+    }
+    
+    // Test required choice - must use a tool
+    val requiredResponse = BedrockRunner(requiredChoiceAgent).newChatSession.chat("Hello there")
+    debug(s"Required tool choice response: ${requiredResponse}")
+    requiredResponse.messages.head shouldMatch { case requiredAiMessage: AIMessage =>
+      // With required choice, the model MUST use a tool even for a simple greeting
+      requiredAiMessage.toolCalls.nonEmpty shouldBe true
+    }
     
     // Test none choice - should not use tools
     val noneResponse = BedrockRunner(noneChoiceAgent).newChatSession.chat("What's the weather?")
     debug(s"None tool choice response: ${noneResponse}")
-    val noneAiMessage = noneResponse.messages.head.asInstanceOf[AIMessage]
-    noneAiMessage.toolCalls.isEmpty shouldBe true
+    noneResponse.messages.head shouldMatch { case noneAiMessage: AIMessage =>
+      noneAiMessage.toolCalls.isEmpty shouldBe true
+    }
     
     // Test specific tool choice
     val specificToolAgent = agentWithTools.withToolChoice("calculate")
-    val specificResponse = BedrockRunner(specificToolAgent).newChatSession.chat("Tell me about Paris")
+    // Use a prompt that would naturally need calculation, but force the specific tool
+    val specificResponse = BedrockRunner(specificToolAgent).newChatSession.chat("I need help with some math: what's the result of 42 times 3?")
     debug(s"Specific tool choice response: ${specificResponse}")
-    val specificAiMessage = specificResponse.messages.head.asInstanceOf[AIMessage]
-    if specificAiMessage.toolCalls.nonEmpty then
+    specificResponse.messages.head shouldMatch { case specificAiMessage: AIMessage =>
+      // When a specific tool is chosen, it should be used
+      specificAiMessage.toolCalls.nonEmpty shouldBe true
       specificAiMessage.toolCalls.head.name shouldBe "calculate"
+    }
   }
 
   test("bedrock tool calling with streaming") { (runner: BedrockRunner) =>
@@ -203,26 +230,26 @@ class BedrockIntegrationTest extends AirSpec:
           debug(s"Complete response: ${response}")
         
         override def onError(e: Throwable): Unit = 
-          error(s"Streaming error: ${e.getMessage}", e)
+          fail(s"Streaming error: ${e.getMessage}")
     )
     
     // Verify tool call was made
     response.messages.nonEmpty shouldBe true
-    val aiMessage = response.messages.head.asInstanceOf[AIMessage]
-    
-    // Check if the model made a tool call
-    if aiMessage.toolCalls.isEmpty then
-      debug(s"Model did not make tool calls in streaming. Response: ${aiMessage.text}")
-      skip("Model did not make tool calls in streaming - may not support tool calling")
-    
-    aiMessage.toolCalls.nonEmpty shouldBe true
-    
-    val toolCall = aiMessage.toolCalls.head
-    toolCall.name shouldBe "web_search"
-    toolCall.args.get("query").isDefined shouldBe true
-    
-    // Verify streaming captured partial tool requests
-    partialToolRequests.toString.nonEmpty shouldBe true
+    response.messages.head shouldMatch { case aiMessage: AIMessage =>
+      // Check if the model made a tool call
+      if aiMessage.toolCalls.isEmpty then
+        debug(s"Model did not make tool calls in streaming. Response: ${aiMessage.text}")
+        skip("Model did not make tool calls in streaming - may not support tool calling")
+      
+      aiMessage.toolCalls.nonEmpty shouldBe true
+      
+      val toolCall = aiMessage.toolCalls.head
+      toolCall.name shouldBe "web_search"
+      toolCall.args.get("query").isDefined shouldBe true
+      
+      // Verify streaming captured partial tool requests
+      partialToolRequests.toString.nonEmpty shouldBe true
+    }
   }
 
 end BedrockIntegrationTest
