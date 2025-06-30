@@ -14,6 +14,8 @@ enum ChatFinishReason:
   case MAX_TOKENS
   // Content was filtered by guardrail, or other reasons
   case CONTENT_FILTERED
+  // Reached the maximum number of tool execution rounds
+  case MAX_ROUNDS
   case UNKNOWN
 
 case class ChatStats(
@@ -31,6 +33,6 @@ trait AdvancedChatStats
 
 case class ChatResponse(
     messages: Seq[ChatMessage],
-    stats: ChatStats,
-    finishReason: ChatFinishReason
+    stats: ChatStats = ChatStats(0, 0, 0, 0),
+    finishReason: ChatFinishReason = ChatFinishReason.END_TURN
 )
