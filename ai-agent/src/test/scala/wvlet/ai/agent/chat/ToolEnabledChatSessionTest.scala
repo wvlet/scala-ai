@@ -26,7 +26,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
         observer.onComplete(response)
         response
       else
-        ChatResponse.error("No more responses", ChatFinishReason.END_TURN)
+        ChatResponse.errorResponse("No more responses", ChatFinishReason.END_TURN)
 
     def reset(): Unit =
       lastRequest = None

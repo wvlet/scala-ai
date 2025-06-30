@@ -63,7 +63,7 @@ trait ToolEnabledChatSession extends ChatSession with LogSupport:
     def executeRound(req: ChatRequest, round: Int): Rx[ChatResponse] =
       if round >= maxToolRounds then
         Rx.single(
-          ChatResponse.error(
+          ChatResponse.errorResponse(
             s"Reached maximum tool execution rounds ($maxToolRounds)",
             ChatFinishReason.MAX_ROUNDS
           )

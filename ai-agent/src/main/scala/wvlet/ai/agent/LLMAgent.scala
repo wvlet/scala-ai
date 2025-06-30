@@ -91,16 +91,16 @@ case class LLMAgent(
   def noToolChoice: LLMAgent = this.withModelConfig(_.noToolChoice)
 
   /**
-    * Create a chat session with tool execution support.
+    * Create a chat session with optional tool execution support.
     *
     * @param runner
     *   The agent runner to use
     * @param toolExecutor
     *   Optional tool executor for automatic tool execution
     * @return
-    *   A tool-enabled chat session
+    *   A chat session with tool support if toolExecutor is provided
     */
-  def newToolEnabledSession(
+  def newSession(
       runner: wvlet.ai.agent.runner.AgentRunner,
       toolExecutor: Option[wvlet.ai.agent.tool.ToolExecutor] = None
   ): wvlet.ai.agent.chat.ToolEnabledChatSession =
