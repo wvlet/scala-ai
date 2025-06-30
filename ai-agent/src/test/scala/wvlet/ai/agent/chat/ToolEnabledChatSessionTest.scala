@@ -26,10 +26,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
         observer.onComplete(response)
         response
       else
-        ChatResponse(
-          messages = Seq(AIMessage("No more responses")),
-          finishReason = ChatFinishReason.END_TURN
-        )
+        ChatResponse.error("No more responses", ChatFinishReason.END_TURN)
 
     def reset(): Unit =
       lastRequest = None
@@ -40,6 +37,15 @@ class ToolEnabledChatSessionTest extends AirSpec:
     description = "Get weather information",
     parameters = List(ToolParameter("location", "City name", DataType.StringType, None)),
     returnType = DataType.JsonType
+  )
+
+  private def testResponse(
+      messages: Seq[ChatMessage],
+      finishReason: ChatFinishReason = ChatFinishReason.END_TURN
+  ): ChatResponse = ChatResponse(
+    messages = messages,
+    stats = ChatStats(latencyMs = 1, inputTokens = 10, outputTokens = 20, totalTokens = 30),
+    finishReason = finishReason
   )
 
   test("create tool-enabled session from regular session") {
@@ -58,7 +64,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
     val mockSession = MockChatSession()
       // First response: AI requests tool call
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(
             AIMessage(
               text = "I'll check the weather for you.",
@@ -70,7 +76,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
       )
       // Second response: AI provides final answer with tool results
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(AIMessage("The weather in Tokyo is sunny with 25°C.")),
           finishReason = ChatFinishReason.END_TURN
         )
@@ -107,7 +113,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
     val mockSession = MockChatSession()
       // Round 1: Request weather
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(
             AIMessage(
               text = "Getting weather...",
@@ -119,7 +125,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
       )
       // Round 2: Request forecast
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(
             AIMessage(
               text = "Now getting forecast...",
@@ -131,7 +137,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
       )
       // Final response
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(AIMessage("The weather is 20°C and it will rain tomorrow.")),
           finishReason = ChatFinishReason.END_TURN
         )
@@ -156,7 +162,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
     // Create responses that always request tool calls
     for i <- 1 to 5 do
       mockSession.addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(
             AIMessage(
               text = s"Round $i",
@@ -180,7 +186,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
   test("handle missing tool executor") {
     val mockSession = MockChatSession()
       .addResponse(
-        ChatResponse(
+        testResponse(
           messages = Seq(
             AIMessage(
               text = "Calling tool...",
@@ -191,7 +197,7 @@ class ToolEnabledChatSessionTest extends AirSpec:
         )
       )
       .addResponse(
-        ChatResponse(messages = Seq(AIMessage("Done")), finishReason = ChatFinishReason.END_TURN)
+        testResponse(messages = Seq(AIMessage("Done")), finishReason = ChatFinishReason.END_TURN)
       )
 
     val toolSession = mockSession.withToolSupport(None)

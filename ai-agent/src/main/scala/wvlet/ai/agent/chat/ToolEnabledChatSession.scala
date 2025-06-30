@@ -63,17 +63,21 @@ trait ToolEnabledChatSession extends ChatSession with LogSupport:
     def executeRound(req: ChatRequest, round: Int): Rx[ChatResponse] =
       if round >= maxToolRounds then
         Rx.single(
-          ChatResponse(
-            messages = Seq(AIMessage(s"Reached maximum tool execution rounds ($maxToolRounds)")),
-            finishReason = ChatFinishReason.MAX_ROUNDS
+          ChatResponse.error(
+            s"Reached maximum tool execution rounds ($maxToolRounds)",
+            ChatFinishReason.MAX_ROUNDS
           )
         )
       else
         Rx.single(chatStream(req))
           .flatMap { response =>
             // Check if the response contains tool calls
-            response.messages.headOption match
-              case Some(aiMessage: AIMessage) if aiMessage.toolCalls.nonEmpty =>
+            response
+              .messages
+              .collectFirst { case ai: AIMessage =>
+                ai
+              } match
+              case Some(aiMessage) if aiMessage.toolCalls.nonEmpty =>
                 debug(s"Executing ${aiMessage.toolCalls.size} tool calls in round $round")
                 executeToolCalls(aiMessage.toolCalls).flatMap { toolResults =>
                   // Create a new request with the tool results
@@ -88,6 +92,8 @@ trait ToolEnabledChatSession extends ChatSession with LogSupport:
           }
 
     executeRound(request, 0)
+
+  end chatWithTools
 
   /**
     * Execute tool calls and return the results.

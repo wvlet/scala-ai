@@ -165,10 +165,13 @@ class LocalToolExecutorTest extends AirSpec:
 
     executor.availableTools.size shouldBe 2
 
-    executor.clear()
+    val clearedExecutor = executor.clear()
 
-    executor.availableTools.size shouldBe 0
-    executor.findTool("get_weather") shouldBe None
+    clearedExecutor.availableTools.size shouldBe 0
+    clearedExecutor.findTool("get_weather") shouldBe None
+
+    // Original executor remains unchanged
+    executor.availableTools.size shouldBe 2
   }
 
 end LocalToolExecutorTest

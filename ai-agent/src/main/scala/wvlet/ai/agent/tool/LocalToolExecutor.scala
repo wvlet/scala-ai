@@ -9,10 +9,17 @@ import wvlet.log.LogSupport
 /**
   * A local tool executor that executes tools in-memory using registered functions. This is useful
   * for testing and for simple tool implementations.
+  *
+  * @param toolRegistry
+  *   Map of tool names to their function implementations
+  * @param toolSpecs
+  *   List of available tool specifications
   */
-class LocalToolExecutor extends ToolExecutor with LogSupport:
-  private var toolRegistry: Map[String, ToolFunction] = Map.empty
-  private var toolSpecs: Seq[ToolSpec]                = Seq.empty
+class LocalToolExecutor(
+    private val toolRegistry: Map[String, ToolFunction] = Map.empty,
+    private val toolSpecs: Seq[ToolSpec] = Seq.empty
+) extends ToolExecutor
+    with LogSupport:
 
   /**
     * Register a tool with its implementation.
@@ -25,9 +32,7 @@ class LocalToolExecutor extends ToolExecutor with LogSupport:
     *   This executor for chaining
     */
   def registerTool(spec: ToolSpec, function: ToolFunction): LocalToolExecutor =
-    toolRegistry = toolRegistry.updated(spec.name, function)
-    toolSpecs = toolSpecs :+ spec
-    this
+    new LocalToolExecutor(toolRegistry.updated(spec.name, function), toolSpecs :+ spec)
 
   /**
     * Register multiple tools at once.
@@ -38,10 +43,10 @@ class LocalToolExecutor extends ToolExecutor with LogSupport:
     *   This executor for chaining
     */
   def registerTools(tools: Seq[(ToolSpec, ToolFunction)]): LocalToolExecutor =
-    tools.foreach { case (spec, function) =>
-      registerTool(spec, function)
+    tools.foldLeft(this) { (executor, tool) =>
+      val (spec, function) = tool
+      executor.registerTool(spec, function)
     }
-    this
 
   override def executeToolCall(toolCall: ToolCallRequest): Rx[ToolResultMessage] =
     toolRegistry.get(toolCall.name) match
@@ -83,10 +88,11 @@ class LocalToolExecutor extends ToolExecutor with LogSupport:
 
   /**
     * Clear all registered tools.
+    *
+    * @return
+    *   A new empty executor
     */
-  def clear(): Unit =
-    toolRegistry = Map.empty
-    toolSpecs = Seq.empty
+  def clear(): LocalToolExecutor = new LocalToolExecutor()
 
 end LocalToolExecutor
 

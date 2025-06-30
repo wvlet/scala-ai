@@ -36,14 +36,9 @@ trait ToolExecutor:
     *   An Rx stream that emits all tool results
     */
   def executeToolCalls(toolCalls: Seq[ToolCallRequest]): Rx[Seq[ToolResultMessage]] =
-    // Execute all tool calls and collect results
+    // Execute all tool calls in parallel and collect results
     val rxResults = toolCalls.map(executeToolCall)
-    // Combine all Rx streams into a single stream of Seq
-    rxResults.foldLeft(Rx.single(Seq.empty[ToolResultMessage])) { (accRx, nextRx) =>
-      accRx.flatMap { acc =>
-        nextRx.map(result => acc :+ result)
-      }
-    }
+    Rx.zip(rxResults)
 
   /**
     * Find a tool specification by name.
