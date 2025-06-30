@@ -14,6 +14,8 @@ enum ChatFinishReason:
   case MAX_TOKENS
   // Content was filtered by guardrail, or other reasons
   case CONTENT_FILTERED
+  // Reached the maximum number of tool execution rounds
+  case MAX_ROUNDS
   case UNKNOWN
 
 case class ChatStats(
@@ -34,3 +36,14 @@ case class ChatResponse(
     stats: ChatStats,
     finishReason: ChatFinishReason
 )
+
+object ChatResponse:
+  /**
+    * Create an error response with minimal stats. This is useful for error cases where actual token
+    * usage is not available.
+    */
+  def errorResponse(message: String, finishReason: ChatFinishReason): ChatResponse = ChatResponse(
+    messages = Seq(ChatMessage.assistant(message)),
+    stats = ChatStats(latencyMs = 0, inputTokens = 0, outputTokens = 0, totalTokens = 0),
+    finishReason = finishReason
+  )
