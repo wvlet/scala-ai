@@ -19,10 +19,10 @@ import wvlet.ai.core.typeshape.TypeShape
   */
 trait LifeCycleEventHandler:
   def onInit(lifeCycleManager: LifeCycleManager, t: TypeShape, injectee: AnyRef): Unit = {}
-  def beforeStart(lifeCycleManager: LifeCycleManager): Unit                          = {}
-  def afterStart(lifeCycleManager: LifeCycleManager): Unit                           = {}
-  def beforeShutdown(lifeCycleManager: LifeCycleManager): Unit                       = {}
-  def afterShutdown(lifeCycleManager: LifeCycleManager): Unit                        = {}
+  def beforeStart(lifeCycleManager: LifeCycleManager): Unit                            = {}
+  def afterStart(lifeCycleManager: LifeCycleManager): Unit                             = {}
+  def beforeShutdown(lifeCycleManager: LifeCycleManager): Unit                         = {}
+  def afterShutdown(lifeCycleManager: LifeCycleManager): Unit                          = {}
 
   infix def andThen(next: LifeCycleEventHandler): LifeCycleEventHandler =
     new LifeCycleEventHandlerChain(this, next)

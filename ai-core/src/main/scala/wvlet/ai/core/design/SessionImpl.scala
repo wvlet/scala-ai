@@ -121,7 +121,7 @@ private[design] class SessionImpl(
 
   inline override def register[A](instance: A): Unit =
     val typeShape = TypeShape.of[A]
-    val owner   = self.findOwnerSessionOf(typeShape).getOrElse(self)
+    val owner     = self.findOwnerSessionOf(typeShape).getOrElse(self)
     owner.registerInjectee(typeShape, typeShape, instance)
     ()
 
@@ -205,14 +205,25 @@ private[design] class SessionImpl(
       sourceCode: SourceCode
   ): A =
     debug(s"[${name}] Create dependency [${typeShape}] (with factory) at ${sourceCode}")
-    getInstance(typeShape, typeShape, sourceCode, this, create = true, List.empty, Some(() => factory))
-      .asInstanceOf[A]
+    getInstance(
+      typeShape,
+      typeShape,
+      sourceCode,
+      this,
+      create = true,
+      List.empty,
+      Some(() => factory)
+    ).asInstanceOf[A]
 
   /**
     * Called when injecting an instance of the typeShape for the first time. The other hooks (e.g.,
     * onStart, onShutdown) will be called in a separate step after the object is injected.
     */
-  private[design] def registerInjectee(bindTarget: TypeShape, tpe: TypeShape, injectee: Any): AnyRef =
+  private[design] def registerInjectee(
+      bindTarget: TypeShape,
+      tpe: TypeShape,
+      injectee: Any
+  ): AnyRef =
     debug(s"[${name}] Init [${bindTarget} -> ${tpe}]: ${injectee}")
 
     stats.incrementInitCount(this, tpe)

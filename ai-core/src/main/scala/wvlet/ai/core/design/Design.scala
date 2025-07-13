@@ -157,7 +157,8 @@ class Design(
       hook.typeShape
     )
 
-  def remove(t: TypeShape): Design = new Design(designOptions, binding.filterNot(_.from == t), hooks)
+  def remove(t: TypeShape): Design =
+    new Design(designOptions, binding.filterNot(_.from == t), hooks)
 
   def withLifeCycleLogging: Design = new Design(designOptions.withLifeCycleLogging, binding, hooks)
 
