@@ -215,7 +215,7 @@ class LifeCycleManager(
               l.shutdownHookHolder.remove(c)
             }
           if l.shutdownHookHolder.registerOnlyOnce(h) then
-            debug(s"[${l.sessionName}] Override CloseHook of ${h.typeShape} with a shtudown hook")
+            debug(s"[${l.sessionName}] Override CloseHook of ${h.typeShape} with a shutdown hook")
       }
     }
 

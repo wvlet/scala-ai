@@ -115,15 +115,15 @@ class Design(
     * @return
     */
   def minimize: Design =
-    var seenBindingSurrace   = Set.empty[TypeShape]
+    var seenBindingTypeShapes = Set.empty[TypeShape]
     var minimizedBindingList = List.empty[Binding]
 
     // Later binding has higher precedence, so traverse bindings from the tail
     for b <- binding.reverseIterator do
       val surface = b.from
-      if !seenBindingSurrace.contains(surface) then
+      if !seenBindingTypeShapes.contains(surface) then
         minimizedBindingList = b :: minimizedBindingList
-        seenBindingSurrace += surface
+        seenBindingTypeShapes += surface
 
     var seenHooks      = Set.empty[(LifeCycleHookType, TypeShape)]
     var minimizedHooks = List.empty[LifeCycleHookDesign]

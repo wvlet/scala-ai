@@ -16,7 +16,7 @@ private[typeshape] object CompileTimeTypeShapeFactory:
     import quotes.reflect.*
 
     val f           = new CompileTimeTypeShapeFactory(using quotes)
-    val surfaceExpr = f.typeShapeOf(tpe)
+    val typeShapeExpr = f.typeShapeOf(tpe)
     val t           = TypeRepr.of[A]
     val flags       = t.typeSymbol.flags
     if !flags.is(Flags.JavaStatic) && flags.is(Flags.NoInits) then
@@ -28,7 +28,7 @@ private[typeshape] object CompileTimeTypeShapeFactory:
           // println(s"${t}\n${flags.show}\nowner:${s}\n${s.flags.show}")
           '{
             ${
-              surfaceExpr
+              typeShapeExpr
             }.withOuter(
               ${
                 This(s).asExpr
@@ -36,9 +36,9 @@ private[typeshape] object CompileTimeTypeShapeFactory:
             )
           }
         case _ =>
-          surfaceExpr
+          typeShapeExpr
     else
-      surfaceExpr
+      typeShapeExpr
 
   def methodsOf[A](using tpe: Type[A], quotes: Quotes): Expr[Seq[MethodTypeShape]] =
     val f = new CompileTimeTypeShapeFactory(using quotes)
