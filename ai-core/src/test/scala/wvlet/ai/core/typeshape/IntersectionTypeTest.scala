@@ -22,7 +22,7 @@ object IntersectionTypeTest extends AirSpec:
     // ...
     val s = TypeShape.of[String & Label1]
     s.name shouldBe "String&Label1"
-    s.fullName shouldBe "java.lang.String&wvlet.ai.core.typeShape.IntersectionTypeTest.Label1"
+    s.fullName shouldBe "java.lang.String&wvlet.ai.core.typeshape.IntersectionTypeTest.Label1"
     s shouldMatch { case i: IntersectionTypeShape =>
       i.left shouldBe TypeShape.of[String]
       i.right shouldBe TypeShape.of[Label1]

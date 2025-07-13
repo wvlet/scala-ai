@@ -21,7 +21,7 @@ object Scala3NewTypeTest extends AirSpec:
   test("support intersection type") {
     val s = TypeShape.of[String & Label1]
     s.name shouldBe "String&Label1"
-    s.fullName shouldBe "java.lang.String&wvlet.ai.core.typeShape.Scala3NewTypeTest.Label1"
+    s.fullName shouldBe "java.lang.String&wvlet.ai.core.typeshape.Scala3NewTypeTest.Label1"
     s shouldMatch { case i: IntersectionTypeShape =>
       i.left shouldBe TypeShape.of[String]
       i.right shouldBe TypeShape.of[Label1]
@@ -32,7 +32,7 @@ object Scala3NewTypeTest extends AirSpec:
   test("support union type") {
     val s = TypeShape.of[String | Label1]
     s.name shouldBe "String|Label1"
-    s.fullName shouldBe "java.lang.String|wvlet.ai.core.typeShape.Scala3NewTypeTest.Label1"
+    s.fullName shouldBe "java.lang.String|wvlet.ai.core.typeshape.Scala3NewTypeTest.Label1"
     s shouldMatch { case i: UnionTypeShape =>
       i.left shouldBe TypeShape.of[String]
       i.right shouldBe TypeShape.of[Label1]
@@ -45,7 +45,7 @@ object Scala3NewTypeTest extends AirSpec:
   test("opaque types") {
     val s = TypeShape.of[MyEnv]
     s.name shouldBe "MyEnv"
-    s.fullName shouldBe "wvlet.ai.core.typeShape.Scala3NewTypeTest.MyEnv"
+    s.fullName shouldBe "wvlet.ai.core.typeshape.Scala3NewTypeTest.MyEnv"
     s shouldNotBe TypeShape.of[String]
     s.dealias shouldBe TypeShape.of[String]
   }

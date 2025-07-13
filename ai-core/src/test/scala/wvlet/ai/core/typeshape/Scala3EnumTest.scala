@@ -27,7 +27,7 @@ object Scala3EnumTest extends AirSpec:
     val s = TypeShape.of[Color]
 
     s.name shouldBe "Color"
-    s.fullName shouldBe "wvlet.ai.core.typeShape.Scala3EnumTest.Color"
+    s.fullName shouldBe "wvlet.ai.core.typeshape.Scala3EnumTest.Color"
     s.params shouldBe empty
 
     s.isEnum shouldBe true

@@ -15,19 +15,19 @@ package wvlet.ai.core.typeshape
 
 import wvlet.ai.core.typeshape
 
-object RecursiveSurfaceTest:
+object RecursiveTypeShapeTest:
   case class Leaf(name: String)
   case class Cons(head: String, tail: Cons)
   case class TypedCons[A](head: Int, tail: TypedCons[A])
 
 /**
   */
-class RecursiveSurfaceTest extends SurfaceSpec:
-  import RecursiveSurfaceTest.*
+class RecursiveTypeShapeTest extends SurfaceSpec:
+  import RecursiveTypeShapeTest.*
 
   test("find recursive typeShape cache from the full type name string") {
     val s = TypeShape.of[Cons]
-    assert(TypeShape.getCached("wvlet.ai.core.typeShape.RecursiveSurfaceTest.Cons") == s)
+    assert(TypeShape.getCached("wvlet.ai.core.typeshape.RecursiveTypeShapeTest.Cons") == s)
   }
 
   test("support recursive type") {
@@ -66,4 +66,4 @@ class RecursiveSurfaceTest extends SurfaceSpec:
     lazyC.isOption shouldBe false
   }
 
-end RecursiveSurfaceTest
+end RecursiveTypeShapeTest
