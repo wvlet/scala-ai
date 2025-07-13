@@ -1,6 +1,6 @@
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import DesignTest.Alias.{HelloRef, StringHello}
 import wvlet.airspec.AirSpec
 
@@ -69,10 +69,10 @@ object DesignTest extends AirSpec:
   test("remove binding") {
     val dd = d1.remove[Message]
 
-    def hasMessage(d: Design): Boolean = d.binding.exists(_.from == Surface.of[Message])
+    def hasMessage(d: Design): Boolean = d.binding.exists(_.from == TypeShape.of[Message])
     def hasProductionMessage(d: Design): Boolean = d
       .binding
-      .exists(_.from == Surface.of[ProductionMessage])
+      .exists(_.from == TypeShape.of[ProductionMessage])
 
     hasMessage(d1) shouldBe true
     hasMessage(dd) shouldBe false

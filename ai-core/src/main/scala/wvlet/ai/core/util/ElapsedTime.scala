@@ -3,7 +3,7 @@ package wvlet.ai.core.util
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-import wvlet.ai.core.surface.{Surface, Zero}
+import wvlet.ai.core.typeshape.{TypeShape, Zero}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.*
@@ -50,8 +50,8 @@ case class ElapsedTime(value: Double, unit: TimeUnit) extends Comparable[Elapsed
 end ElapsedTime
 
 object ElapsedTime:
-  Zero.register(Surface.of[ElapsedTime], ElapsedTime.succinctMillis(0))
-  Zero.register(Surface.of[TimeUnit], TimeUnit.NANOSECONDS)
+  Zero.register(TypeShape.of[ElapsedTime], ElapsedTime.succinctMillis(0))
+  Zero.register(TypeShape.of[TimeUnit], TimeUnit.NANOSECONDS)
 
   def units = List(NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS)
 

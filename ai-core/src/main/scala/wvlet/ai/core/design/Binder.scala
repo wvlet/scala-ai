@@ -14,22 +14,26 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import LifeCycleHookType.*
 import wvlet.ai.core.util.{LazyF0, SourceCode}
 
 object Binder:
   sealed trait Binding extends Serializable:
     def forSingleton: Boolean = false
-    def from: Surface
+    def from: TypeShape
     def sourceCode: SourceCode
 
-  case class ClassBinding(from: Surface, to: Surface, sourceCode: SourceCode) extends Binding:
+  case class ClassBinding(from: TypeShape, to: TypeShape, sourceCode: SourceCode) extends Binding:
     if from == to then
       throw DesignException.cyclicDependency(List(to), sourceCode)
 
-  case class SingletonBinding(from: Surface, to: Surface, isEager: Boolean, sourceCode: SourceCode)
-      extends Binding:
+  case class SingletonBinding(
+      from: TypeShape,
+      to: TypeShape,
+      isEager: Boolean,
+      sourceCode: SourceCode
+  ) extends Binding:
     override def forSingleton: Boolean = true
 
   case class ProviderBinding(
@@ -39,7 +43,7 @@ object Binder:
       sourceCode: SourceCode
   ) extends Binding:
     assert(!eager || (eager && provideSingleton))
-    def from: Surface                  = factory.from
+    def from: TypeShape                = factory.from
     override def forSingleton: Boolean = provideSingleton
 
     private val objectId = new Object().hashCode()
@@ -54,7 +58,7 @@ object Binder:
         case _ =>
           false
 
-  case class DependencyFactory(from: Surface, dependencyTypes: Seq[Surface], factory: Any):
+  case class DependencyFactory(from: TypeShape, dependencyTypes: Seq[TypeShape], factory: Any):
     override def toString: String =
       val deps =
         if dependencyTypes.isEmpty then
@@ -96,7 +100,7 @@ import Binder.*
 
 /**
   */
-class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCode)
+class Binder[A](val design: Design, val from: TypeShape, val sourceCode: SourceCode)
     extends LogSupport:
   /**
     * Bind the type to a given instance. The instance will be instantiated as an eager singleton
@@ -130,14 +134,14 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     * @tparam B
     */
   inline def to[B <: A]: DesignWithContext[B] =
-    val to = Surface.of[B]
+    val to = TypeShape.of[B]
     if from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
       throw DesignException.cyclicDependency(List(to), SourceCode())
     design.addBinding[B](SingletonBinding(from, to, false, sourceCode))
 
   inline def toEagerSingletonOf[B <: A]: DesignWithContext[B] =
-    val to = Surface.of[B]
+    val to = TypeShape.of[B]
     if from == to then
       warn("Binding to the same type is not allowed: " + to.toString)
       throw DesignException.cyclicDependency(List(to), SourceCode())
@@ -145,7 +149,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
 
   inline def toProvider[D1](factory: D1 => A): DesignWithContext[A] = design.addBinding[A](
     ProviderBinding(
-      DependencyFactory(from, Seq(Surface.of[D1]), factory),
+      DependencyFactory(from, Seq(TypeShape.of[D1]), factory),
       true,
       false,
       SourceCode()
@@ -156,7 +160,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     A
   ](
     ProviderBinding(
-      DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2]), factory),
+      DependencyFactory(from, Seq(TypeShape.of[D1], TypeShape.of[D2]), factory),
       true,
       false,
       SourceCode()
@@ -166,7 +170,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
   inline def toProvider[D1, D2, D3](factory: (D1, D2, D3) => A): DesignWithContext[A] = design
     .addBinding[A](
       ProviderBinding(
-        DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3]), factory),
+        DependencyFactory(from, Seq(TypeShape.of[D1], TypeShape.of[D2], TypeShape.of[D3]), factory),
         true,
         false,
         SourceCode()
@@ -178,7 +182,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
       ProviderBinding(
         DependencyFactory(
           from,
-          Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4]),
+          Seq(TypeShape.of[D1], TypeShape.of[D2], TypeShape.of[D3], TypeShape.of[D4]),
           factory
         ),
         true,
@@ -193,7 +197,13 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     ProviderBinding(
       DependencyFactory(
         from,
-        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4], Surface.of[D5]),
+        Seq(
+          TypeShape.of[D1],
+          TypeShape.of[D2],
+          TypeShape.of[D3],
+          TypeShape.of[D4],
+          TypeShape.of[D5]
+        ),
         factory
       ),
       true,
@@ -205,7 +215,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
   inline def toEagerSingletonProvider[D1](factory: D1 => A): DesignWithContext[A] = design
     .addBinding[A](
       ProviderBinding(
-        DependencyFactory(from, Seq(Surface.of[D1]), factory),
+        DependencyFactory(from, Seq(TypeShape.of[D1]), factory),
         true,
         true,
         SourceCode()
@@ -215,7 +225,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
   inline def toEagerSingletonProvider[D1, D2](factory: (D1, D2) => A): DesignWithContext[A] = design
     .addBinding[A](
       ProviderBinding(
-        DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2]), factory),
+        DependencyFactory(from, Seq(TypeShape.of[D1], TypeShape.of[D2]), factory),
         true,
         true,
         SourceCode()
@@ -226,7 +236,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
       factory: (D1, D2, D3) => A
   ): DesignWithContext[A] = design.addBinding[A](
     ProviderBinding(
-      DependencyFactory(from, Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3]), factory),
+      DependencyFactory(from, Seq(TypeShape.of[D1], TypeShape.of[D2], TypeShape.of[D3]), factory),
       true,
       true,
       SourceCode()
@@ -239,7 +249,7 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     ProviderBinding(
       DependencyFactory(
         from,
-        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4]),
+        Seq(TypeShape.of[D1], TypeShape.of[D2], TypeShape.of[D3], TypeShape.of[D4]),
         factory
       ),
       true,
@@ -254,7 +264,13 @@ class Binder[A](val design: Design, val from: Surface, val sourceCode: SourceCod
     ProviderBinding(
       DependencyFactory(
         from,
-        Seq(Surface.of[D1], Surface.of[D2], Surface.of[D3], Surface.of[D4], Surface.of[D5]),
+        Seq(
+          TypeShape.of[D1],
+          TypeShape.of[D2],
+          TypeShape.of[D3],
+          TypeShape.of[D4],
+          TypeShape.of[D5]
+        ),
         factory
       ),
       true,
@@ -293,28 +309,28 @@ end Binder
   * DesignWithContext[A] is a wrapper of Design class for chaining lifecycle hooks for the same type
   * A. This can be safely cast to just Design
   */
-class DesignWithContext[A](design: Design, lastSurface: Surface)
+class DesignWithContext[A](design: Design, lastTypeShape: TypeShape)
     extends Design(design.designOptions, design.binding, design.hooks):
   def onInit(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(ON_INIT, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(ON_INIT, lastTypeShape, body.asInstanceOf[Any => Unit])
   )
 
   def onInject(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(ON_INJECT, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(ON_INJECT, lastTypeShape, body.asInstanceOf[Any => Unit])
   )
 
   def onStart(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(ON_START, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(ON_START, lastTypeShape, body.asInstanceOf[Any => Unit])
   )
 
   def afterStart(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(AFTER_START, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(AFTER_START, lastTypeShape, body.asInstanceOf[Any => Unit])
   )
 
   def beforeShutdown(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(BEFORE_SHUTDOWN, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(BEFORE_SHUTDOWN, lastTypeShape, body.asInstanceOf[Any => Unit])
   )
 
   def onShutdown(body: A => Unit): DesignWithContext[A] = design.withLifeCycleHook[A](
-    LifeCycleHookDesign(ON_SHUTDOWN, lastSurface, body.asInstanceOf[Any => Unit])
+    LifeCycleHookDesign(ON_SHUTDOWN, lastTypeShape, body.asInstanceOf[Any => Unit])
   )

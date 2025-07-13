@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -22,10 +22,10 @@ import scala.jdk.CollectionConverters.*
 
 case class DesignStatsReport(
     coverage: Double,
-    observedTypes: Seq[Surface],
-    initCount: Map[Surface, Long],
-    injectCount: Map[Surface, Long],
-    unusedTypes: Seq[Surface]
+    observedTypes: Seq[TypeShape],
+    initCount: Map[TypeShape, Long],
+    injectCount: Map[TypeShape, Long],
+    unusedTypes: Seq[TypeShape]
 ):
   override def toString: String =
     val report = Seq.newBuilder[String]
@@ -53,36 +53,36 @@ class DesignStats extends LogSupport with Serializable:
   // This will holds the stat data while the session is active.
   // To avoid holding too many stats for applications that create many child sessions,
   // we will just store the aggregated stats.
-  private val injectCountTable = new ConcurrentHashMap[Surface, AtomicLong]().asScala
-  private val initCountTable   = new ConcurrentHashMap[Surface, AtomicLong]().asScala
+  private val injectCountTable = new ConcurrentHashMap[TypeShape, AtomicLong]().asScala
+  private val initCountTable   = new ConcurrentHashMap[TypeShape, AtomicLong]().asScala
 
   private val baseNano  = System.nanoTime()
-  private val firstSeen = new ConcurrentHashMap[Surface, Long]().asScala
+  private val firstSeen = new ConcurrentHashMap[TypeShape, Long]().asScala
 
-  private[design] def observe(s: Surface): Unit = firstSeen.getOrElseUpdate(
+  private[design] def observe(s: TypeShape): Unit = firstSeen.getOrElseUpdate(
     s,
     System.nanoTime() - baseNano
   )
 
-  private[design] def incrementInjectCount(session: Session, surface: Surface): Unit =
-    observe(surface)
-    val counter = injectCountTable.getOrElseUpdate(surface, new AtomicLong(0))
+  private[design] def incrementInjectCount(session: Session, typeShape: TypeShape): Unit =
+    observe(typeShape)
+    val counter = injectCountTable.getOrElseUpdate(typeShape, new AtomicLong(0))
     counter.incrementAndGet()
 
-  private[design] def incrementInitCount(session: Session, surface: Surface): Unit =
-    observe(surface)
-    val counter = initCountTable.getOrElseUpdate(surface, new AtomicLong(0))
+  private[design] def incrementInitCount(session: Session, typeShape: TypeShape): Unit =
+    observe(typeShape)
+    val counter = initCountTable.getOrElseUpdate(typeShape, new AtomicLong(0))
     counter.incrementAndGet()
 
-  private def getInjectCount(surface: Surface): Long = injectCountTable
-    .get(surface)
+  private def getInjectCount(typeShape: TypeShape): Long = injectCountTable
+    .get(typeShape)
     .map(_.get())
     .getOrElse(0)
 
   def coverageReportFor(design: Design): DesignStatsReport =
     var bindingCount     = 0
     var usedBindingCount = 0
-    val unusedBindings   = Seq.newBuilder[Surface]
+    val unusedBindings   = Seq.newBuilder[TypeShape]
     for (b <- design.binding)
       yield
         bindingCount += 1

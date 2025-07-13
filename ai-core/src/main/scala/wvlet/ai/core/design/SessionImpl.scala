@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 import java.util.concurrent.ConcurrentHashMap
 import Binder.*
@@ -31,8 +31,8 @@ private[design] class SessionImpl(
     val design: Design,
     stage: Stage,
     val lifeCycleManager: LifeCycleManager,
-    private val singletonHolder: collection.mutable.Map[Surface, Any] =
-      new ConcurrentHashMap[Surface, Any]().asScala
+    private val singletonHolder: collection.mutable.Map[TypeShape, Any] =
+      new ConcurrentHashMap[TypeShape, Any]().asScala
 ) extends Session
     with LogSupport:
   self =>
@@ -62,35 +62,35 @@ private[design] class SessionImpl(
       .getOrElse(DefaultTracer) // or the default tracer
 
   // Build a lookup table for all bindings in the design
-  private lazy val bindingTable: Map[Surface, Binding] =
-    val b = Seq.newBuilder[(Surface, Binding)]
+  private lazy val bindingTable: Map[TypeShape, Binding] =
+    val b = Seq.newBuilder[(TypeShape, Binding)]
     // Add a reference to this session to allow bind[Session]
-    val sessionSurface = Surface.of[Session]
+    val sessionTypeShape = TypeShape.of[Session]
     val sessionBinding = ProviderBinding(
-      DependencyFactory(sessionSurface, Seq.empty, LazyF0(this).asInstanceOf[Any]),
+      DependencyFactory(sessionTypeShape, Seq.empty, LazyF0(this).asInstanceOf[Any]),
       true,
       true,
       implicitly[SourceCode]
     )
-    b += sessionSurface -> sessionBinding
+    b += sessionTypeShape -> sessionBinding
 
     // Add a reference to the design
-    val designSurface = Surface.of[Design]
+    val designTypeShape = TypeShape.of[Design]
     val designBinding = ProviderBinding(
-      DependencyFactory(designSurface, Seq.empty, LazyF0(this.design).asInstanceOf[Any]),
+      DependencyFactory(designTypeShape, Seq.empty, LazyF0(this.design).asInstanceOf[Any]),
       true,
       true,
       implicitly[SourceCode]
     )
-    b += designSurface -> designBinding
+    b += designTypeShape -> designBinding
 
     // Add user-defined bindings
     design.binding.foreach(x => b += (x.from -> x))
-    b.result().toMap[Surface, Binding]
+    b.result().toMap[TypeShape, Binding]
 
-  private[design] def getSingletonOf(t: Surface): Option[Any] = singletonHolder.get(t)
+  private[design] def getSingletonOf(t: TypeShape): Option[Any] = singletonHolder.get(t)
 
-  private def getOrBuildSingleton(t: Surface, factory: => Any): Any =
+  private def getOrBuildSingleton(t: TypeShape, factory: => Any): Any =
     singletonHolder.get(t) match
       case Some(value) =>
         value
@@ -110,7 +110,7 @@ private[design] class SessionImpl(
       .getOrElse(current)
   }
 
-  def getInstanceOf(t: Surface)(implicit sourceCode: SourceCode): AnyRef = getInstance(
+  def getInstanceOf(t: TypeShape)(implicit sourceCode: SourceCode): AnyRef = getInstance(
     t,
     t,
     sourceCode,
@@ -120,9 +120,9 @@ private[design] class SessionImpl(
   )
 
   inline override def register[A](instance: A): Unit =
-    val surface = Surface.of[A]
-    val owner   = self.findOwnerSessionOf(surface).getOrElse(self)
-    owner.registerInjectee(surface, surface, instance)
+    val typeShape = TypeShape.of[A]
+    val owner   = self.findOwnerSessionOf(typeShape).getOrElse(self)
+    owner.registerInjectee(typeShape, typeShape, instance)
     ()
 
   override def newSharedChildSession(d: Design): Session =
@@ -179,15 +179,15 @@ private[design] class SessionImpl(
     tracer.onSessionInitEnd(this)
     debug(s"[${name}] Completed the initialization")
 
-  def get[A](surface: Surface)(implicit sourceCode: SourceCode): A =
-    debug(s"[${name}] Get dependency [${surface}] at ${sourceCode}")
-    getInstance(surface, surface, sourceCode, this, create = false, List.empty).asInstanceOf[A]
+  def get[A](typeShape: TypeShape)(implicit sourceCode: SourceCode): A =
+    debug(s"[${name}] Get dependency [${typeShape}] at ${sourceCode}")
+    getInstance(typeShape, typeShape, sourceCode, this, create = false, List.empty).asInstanceOf[A]
 
-  def getOrElse[A](surface: Surface, objectFactory: => A)(implicit sourceCode: SourceCode): A =
-    debug(s"[${name}] Get dependency [${surface}] (or create with factory) at ${sourceCode}")
+  def getOrElse[A](typeShape: TypeShape, objectFactory: => A)(implicit sourceCode: SourceCode): A =
+    debug(s"[${name}] Get dependency [${typeShape}] (or create with factory) at ${sourceCode}")
     getInstance(
-      surface,
-      surface,
+      typeShape,
+      typeShape,
       sourceCode,
       this,
       create = false,
@@ -195,22 +195,24 @@ private[design] class SessionImpl(
       Some(() => objectFactory)
     ).asInstanceOf[A]
 
-  private[design] def createNewInstanceOf[A](surface: Surface)(implicit sourceCode: SourceCode): A =
-    debug(s"[${name}] Create dependency [${surface}] at ${sourceCode}")
-    getInstance(surface, surface, sourceCode, this, create = true, List.empty).asInstanceOf[A]
-
-  private[design] def createNewInstanceOf[A](surface: Surface, factory: => A)(implicit
+  private[design] def createNewInstanceOf[A](typeShape: TypeShape)(implicit
       sourceCode: SourceCode
   ): A =
-    debug(s"[${name}] Create dependency [${surface}] (with factory) at ${sourceCode}")
-    getInstance(surface, surface, sourceCode, this, create = true, List.empty, Some(() => factory))
+    debug(s"[${name}] Create dependency [${typeShape}] at ${sourceCode}")
+    getInstance(typeShape, typeShape, sourceCode, this, create = true, List.empty).asInstanceOf[A]
+
+  private[design] def createNewInstanceOf[A](typeShape: TypeShape, factory: => A)(implicit
+      sourceCode: SourceCode
+  ): A =
+    debug(s"[${name}] Create dependency [${typeShape}] (with factory) at ${sourceCode}")
+    getInstance(typeShape, typeShape, sourceCode, this, create = true, List.empty, Some(() => factory))
       .asInstanceOf[A]
 
   /**
-    * Called when injecting an instance of the surface for the first time. The other hooks (e.g.,
+    * Called when injecting an instance of the typeShape for the first time. The other hooks (e.g.,
     * onStart, onShutdown) will be called in a separate step after the object is injected.
     */
-  private[design] def registerInjectee(bindTarget: Surface, tpe: Surface, injectee: Any): AnyRef =
+  private[design] def registerInjectee(bindTarget: TypeShape, tpe: TypeShape, injectee: Any): AnyRef =
     debug(s"[${name}] Init [${bindTarget} -> ${tpe}]: ${injectee}")
 
     stats.incrementInitCount(this, tpe)
@@ -248,39 +250,39 @@ private[design] class SessionImpl(
 
   end registerInjectee
 
-  private def findLifeCycleHooksFor(t: Surface): Seq[LifeCycleHookDesign] =
+  private def findLifeCycleHooksFor(t: TypeShape): Seq[LifeCycleHookDesign] =
     // trace(s"[${name}] findLifeCycleHooksFor ${t}")
     if design.hooks.isEmpty then
       parent.map(_.findLifeCycleHooksFor(t)).getOrElse(Seq.empty)
     else
       val lst = Seq.newBuilder[LifeCycleHookDesign]
       // hooks in the child session has higher precedence than that in the parent
-      lst ++= design.hooks.filter(_.surface == t)
+      lst ++= design.hooks.filter(_.typeShape == t)
       parent.foreach { p =>
         lst ++= p.findLifeCycleHooksFor(t)
       }
       lst.result()
 
   // type -> firstObservedTimeMillis
-  private[design] val observedTypes = new ConcurrentHashMap[Surface, Long]().asScala
+  private[design] val observedTypes = new ConcurrentHashMap[TypeShape, Long]().asScala
 
   /**
     * Find a session (including parent and ancestor parents) that owns t, that is, a session that
     * can build t or has ever built t.
     */
-  private[design] def findOwnerSessionOf(t: Surface): Option[SessionImpl] =
+  private[design] def findOwnerSessionOf(t: TypeShape): Option[SessionImpl] =
     if bindingTable.contains(t) || observedTypes.contains(t) then
       Some(this)
     else
       parent.flatMap(_.findOwnerSessionOf(t))
 
   private[design] def getInstance(
-      bindTarget: Surface,
-      tpe: Surface,
+      bindTarget: TypeShape,
+      tpe: TypeShape,
       sourceCode: SourceCode,
       contextSession: SessionImpl,
       create: Boolean, // true for factory binding
-      seen: List[Surface],
+      seen: List[TypeShape],
       defaultValue: Option[() => Any] = None
   ): AnyRef =
     stats.observe(tpe)
@@ -419,10 +421,10 @@ private[design] class SessionImpl(
   end getInstance
 
   private[design] def buildInstance(
-      tpe: Surface,
+      tpe: TypeShape,
       sourceCode: SourceCode,
       contextSession: SessionImpl,
-      seen: List[Surface],
+      seen: List[TypeShape],
       defaultValue: Option[() => Any]
   ): Any =
     // Use the provided object factory if exists
@@ -440,27 +442,27 @@ private[design] class SessionImpl(
     * Create a new instance of the surface
     */
   private def buildInstance(
-      surface: Surface,
+      typeShape: TypeShape,
       sourceCode: SourceCode,
       contextSession: SessionImpl,
-      seen: List[Surface]
+      seen: List[TypeShape]
   ): Any =
-    trace(s"[${name}] buildInstance ${surface}, dependencies:[${seen.mkString(" <- ")}]")
-    if surface.isPrimitive then
+    trace(s"[${name}] buildInstance ${typeShape}, dependencies:[${seen.mkString(" <- ")}]")
+    if typeShape.isPrimitive then
       // Cannot build Primitive types
       throw DesignException.missingDependency(seen, sourceCode)
     else
-      surface.objectFactory match
+      typeShape.objectFactory match
         case Some(factory) =>
-          trace(s"Using the default constructor for building ${surface} at ${sourceCode}")
+          trace(s"Using the default constructor for building ${typeShape} at ${sourceCode}")
           val args =
-            for (p <- surface.params)
+            for (p <- typeShape.params)
               yield
                 // When using the default constructor, we should disable singleton registration for p unless p has SingletonBinding
                 // For example, when building A(p1:Long=10, p2:Long=20, ...), we should not register p1, p2 long values as singleton.
                 contextSession.getInstance(
-                  p.surface,
-                  p.surface,
+                  p.typeShape,
+                  p.typeShape,
                   sourceCode,
                   contextSession,
                   // If the default value for the parameter is given, do not register the instance as a singleton
@@ -472,8 +474,8 @@ private[design] class SessionImpl(
           obj
         case None =>
           warn(
-            s"[${name}] No binding nor the default constructor for ${surface} at ${sourceCode} is found. " +
-              s"Add bind[${surface}].toXXX to your design or make sure ${surface} is not an abstract class. The dependency order: ${seen
+            s"[${name}] No binding nor the default constructor for ${typeShape} at ${sourceCode} is found. " +
+              s"Add bind[${typeShape}].toXXX to your design or make sure ${typeShape} is not an abstract class. The dependency order: ${seen
                   .reverse
                   .mkString(" -> ")}"
           )

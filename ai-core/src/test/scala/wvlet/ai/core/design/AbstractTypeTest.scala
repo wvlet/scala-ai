@@ -1,6 +1,6 @@
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import wvlet.airspec.AirSpec
 
 object AbstractTypeTest extends AirSpec:
@@ -14,7 +14,7 @@ object AbstractTypeTest extends AirSpec:
   test("bind to abstract type") {
     val d = Design.newSilentDesign.bindImpl[Abst, AbstImpl]
 
-    val s = Surface.of[AbstImpl]
+    val s = TypeShape.of[AbstImpl]
     s.objectFactory shouldBe defined
 
     d.build[Abst] { (a: Abst) =>

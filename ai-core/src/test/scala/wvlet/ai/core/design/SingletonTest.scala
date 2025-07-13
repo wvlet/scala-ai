@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import wvlet.airspec.AirSpec
 import wvlet.ai.core.log.{LogLevel, LogSupport, Logger}
 
@@ -77,7 +77,7 @@ class SingletonTest extends AirSpec:
   test("support overriding non-abstract singleton trait") {
     val d = Design.newDesign.bindSingleton[E].bindImpl[NonAbstract, C]
 
-    info(Surface.of[C].getClass)
+    info(TypeShape.of[C].getClass)
     val session = d.newSession
     val e       = session.build[E]
     e.m.hello shouldBe "nice"

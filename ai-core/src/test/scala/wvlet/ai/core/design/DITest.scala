@@ -1,6 +1,6 @@
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.{Primitive, Surface}
+import wvlet.ai.core.typeshape.{Primitive, TypeShape}
 import DesignErrorCode.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
 import wvlet.airspec.AirSpec
 import wvlet.ai.core.log.LogSupport
@@ -164,7 +164,7 @@ object DITest extends AirSpec:
         .newSessionBuilder
         .withEventHandler(
           new LifeCycleEventHandler:
-            override def onInit(l: LifeCycleManager, t: Surface, injectee: AnyRef): Unit =
+            override def onInit(l: LifeCycleManager, t: TypeShape, injectee: AnyRef): Unit =
               logger.debug(s"injected: ${t}")
               counter.incrementAndGet()
         )
@@ -182,7 +182,7 @@ object DITest extends AirSpec:
   case class FruitMarket(apple: Apple, banana: Banana, lemon: Lemon)
 
   test("support type alias binding") {
-    val apple = Surface.of[Apple]
+    val apple = TypeShape.of[Apple]
     debug(s"apple: ${apple}, alias:${apple.isAlias}")
 
     val d = Design

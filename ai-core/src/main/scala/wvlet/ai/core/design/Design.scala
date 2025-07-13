@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import Binder.Binding
 import DesignOptions.*
 import wvlet.ai.core.util.SourceCode
@@ -22,7 +22,7 @@ import wvlet.ai.core.util.SourceCode
 /**
   * Immutable airframe design.
   *
-  * Design instance does not hold any duplicate bindings for the same Surface.
+  * Design instance does not hold any duplicate bindings for the same TypeShape.
   */
 class Design(
     private[design] val designOptions: DesignOptions,
@@ -51,10 +51,10 @@ class Design(
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 
   private inline def bind[A](using sourceCode: SourceCode): Binder[A] =
-    new Binder(this, Surface.of[A], sourceCode).asInstanceOf[Binder[A]]
+    new Binder(this, TypeShape.of[A], sourceCode).asInstanceOf[Binder[A]]
 
   inline def remove[A]: Design =
-    val target = Surface.of[A]
+    val target = TypeShape.of[A]
     new Design(designOptions, binding.filterNot(_.from == target), hooks)
 
   inline def bindInstance[A](obj: A)(using sourceCode: SourceCode): DesignWithContext[A] = bind[A]
@@ -115,7 +115,7 @@ class Design(
     * @return
     */
   def minimize: Design =
-    var seenBindingSurrace   = Set.empty[Surface]
+    var seenBindingSurrace   = Set.empty[TypeShape]
     var minimizedBindingList = List.empty[Binding]
 
     // Later binding has higher precedence, so traverse bindings from the tail
@@ -125,11 +125,11 @@ class Design(
         minimizedBindingList = b :: minimizedBindingList
         seenBindingSurrace += surface
 
-    var seenHooks      = Set.empty[(LifeCycleHookType, Surface)]
+    var seenHooks      = Set.empty[(LifeCycleHookType, TypeShape)]
     var minimizedHooks = List.empty[LifeCycleHookDesign]
     // Override hooks for the same surface and event type
     for h <- hooks.reverseIterator do
-      val key: (LifeCycleHookType, Surface) = (h.lifeCycleHookType, h.surface)
+      val key: (LifeCycleHookType, TypeShape) = (h.lifeCycleHookType, h.typeShape)
       if !seenHooks.contains(key) then
         minimizedHooks = h :: minimizedHooks
         seenHooks += key
@@ -141,7 +141,7 @@ class Design(
 
   def +(other: Design): Design = add(other)
 
-  def bindSurface(t: Surface)(using sourceCode: SourceCode): Binder[Any] =
+  def bindTypeShape(t: TypeShape)(using sourceCode: SourceCode): Binder[Any] =
     trace(s"bind($t) ${t.isAlias}")
     val b = new Binder[Any](this, t, sourceCode)
     b
@@ -154,10 +154,10 @@ class Design(
     trace(s"withLifeCycleHook: ${hook}")
     new DesignWithContext[A](
       new Design(designOptions, binding, hooks = hooks :+ hook),
-      hook.surface
+      hook.typeShape
     )
 
-  def remove(t: Surface): Design = new Design(designOptions, binding.filterNot(_.from == t), hooks)
+  def remove(t: TypeShape): Design = new Design(designOptions, binding.filterNot(_.from == t), hooks)
 
   def withLifeCycleLogging: Design = new Design(designOptions.withLifeCycleLogging, binding, hooks)
 

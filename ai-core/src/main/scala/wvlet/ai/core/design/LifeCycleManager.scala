@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.{LogSupport, Logger}
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import LifeCycleHookType.*
 import LifeCycleStage.*
 
@@ -52,7 +52,7 @@ class LifeCycleManager(
   private val state                = new AtomicReference[LifeCycleStage](INIT)
   def currentState: LifeCycleStage = state.get()
 
-  private[design] def onInit(t: Surface, injectee: AnyRef): Unit = eventHandler.onInit(
+  private[design] def onInit(t: TypeShape, injectee: AnyRef): Unit = eventHandler.onInit(
     this,
     t,
     injectee
@@ -102,7 +102,7 @@ class LifeCycleManager(
   def preShutdownHooks: Seq[LifeCycleHook] = preShutdownHookHolder.list
   def shutdownHooks: Seq[LifeCycleHook]    = shutdownHookHolder.list
 
-  protected def findLifeCycleManagerFor[U](s: Surface)(body: LifeCycleManager => U): U =
+  protected def findLifeCycleManagerFor[U](s: TypeShape)(body: LifeCycleManager => U): U =
     // Adding a lifecycle hook in the owner session
     session.findOwnerSessionOf(s) match
       case Some(s) =>
@@ -110,7 +110,7 @@ class LifeCycleManager(
       case None =>
         body(this)
 
-  private[design] def hasHooksFor(s: Surface, lifeCycleHookType: LifeCycleHookType): Boolean =
+  private[design] def hasHooksFor(s: TypeShape, lifeCycleHookType: LifeCycleHookType): Boolean =
     findLifeCycleManagerFor(s) { l =>
       lifeCycleHookType match
         case ON_INIT =>
@@ -127,13 +127,13 @@ class LifeCycleManager(
           l.shutdownHookHolder.hasHooksFor(s)
     }
 
-  private[design] def hasShutdownHooksFor(s: Surface): Boolean = hasHooksFor(s, ON_SHUTDOWN)
+  private[design] def hasShutdownHooksFor(s: TypeShape): Boolean = hasHooksFor(s, ON_SHUTDOWN)
 
   private[design] def addLifeCycleHook(
       lifeCycleHookType: LifeCycleHookType,
       h: LifeCycleHook
   ): Unit =
-    trace(s"Adding a life cycle hook for ${lifeCycleHookType}: ${h.surface}")
+    trace(s"Adding a life cycle hook for ${lifeCycleHookType}: ${h.typeShape}")
     lifeCycleHookType match
       case ON_INIT =>
         addInitHook(h)
@@ -149,26 +149,26 @@ class LifeCycleManager(
         addShutdownHook(h)
 
   def addInitHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
+    findLifeCycleManagerFor(h.typeShape) { l =>
       if l.initHookHolder.registerOnlyOnce(h) then
-        debug(s"[${l.sessionName}] Add an init hook: ${h.surface}")
+        debug(s"[${l.sessionName}] Add an init hook: ${h.typeShape}")
         h.execute
       else
         trace(s"[${l.sessionName}] ${h.injectee} is already initialized")
     }
 
   def addInjectHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
-      debug(s"[${l.sessionName}] Running an inject hook: ${h.surface}")
+    findLifeCycleManagerFor(h.typeShape) { l =>
+      debug(s"[${l.sessionName}] Running an inject hook: ${h.typeShape}")
       // Run immediately
       h.execute
     }
 
   def addStartHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
+    findLifeCycleManagerFor(h.typeShape) { l =>
       l.synchronized {
         if l.startHookHolder.registerOnlyOnce(h) then
-          debug(s"[${l.sessionName}] Add a start hook for ${h.surface}")
+          debug(s"[${l.sessionName}] Add a start hook for ${h.typeShape}")
           val s = l.state.get
           if s == STARTED then
             // If a session is already started, run the start hook immediately
@@ -178,10 +178,10 @@ class LifeCycleManager(
     }
 
   private def addAfterStartHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
+    findLifeCycleManagerFor(h.typeShape) { l =>
       l.synchronized {
         if l.afterStartHookHolder.registerOnlyOnce(h) then
-          debug(s"[${l.sessionName}] Add a afterStart hook for ${h.surface}")
+          debug(s"[${l.sessionName}] Add a afterStart hook for ${h.typeShape}")
           val s = l.state.get
           if s == STARTED then
             // If a session is already started, run the start hook immediately
@@ -191,18 +191,18 @@ class LifeCycleManager(
     }
 
   def addPreShutdownHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
+    findLifeCycleManagerFor(h.typeShape) { l =>
       l.synchronized {
         if l.preShutdownHookHolder.registerOnlyOnce(h) then
-          debug(s"[${l.sessionName}] Add a pre-shutdown hook for ${h.surface}")
+          debug(s"[${l.sessionName}] Add a pre-shutdown hook for ${h.typeShape}")
       }
     }
 
   def addShutdownHook(h: LifeCycleHook): Unit =
-    findLifeCycleManagerFor(h.surface) { l =>
+    findLifeCycleManagerFor(h.typeShape) { l =>
       l.synchronized {
         if l.shutdownHookHolder.registerOnlyOnce(h) then
-          debug(s"[${l.sessionName}] Add a shutdown hook for ${h.surface}")
+          debug(s"[${l.sessionName}] Add a shutdown hook for ${h.typeShape}")
         else
           // Override CloseHooks
           val previousHooks = l.shutdownHookHolder.hooksFor(h.injectee)
@@ -215,7 +215,7 @@ class LifeCycleManager(
               l.shutdownHookHolder.remove(c)
             }
           if l.shutdownHookHolder.registerOnlyOnce(h) then
-            debug(s"[${l.sessionName}] Override CloseHook of ${h.surface} with a shtudown hook")
+            debug(s"[${l.sessionName}] Override CloseHook of ${h.typeShape} with a shtudown hook")
       }
     }
 
@@ -227,8 +227,8 @@ object LifeCycleManager:
   ):
     def list: Seq[LifeCycleHook] = holder
 
-    def hasHooksFor(s: Surface): Boolean = synchronized {
-      list.exists(_.surface == s)
+    def hasHooksFor(s: TypeShape): Boolean = synchronized {
+      list.exists(_.typeShape == s)
     }
 
     def remove(x: LifeCycleHook): Unit = synchronized {
@@ -359,7 +359,7 @@ object FILOLifeCycleHookExecutor extends LifeCycleEventHandler with LogSupport:
 end FILOLifeCycleHookExecutor
 
 class CloseHook(val injectee: Injectee) extends LifeCycleHook:
-  override def toString: String = s"CloseHook for [${surface}]"
+  override def toString: String = s"CloseHook for [${typeShape}]"
   override def execute: Unit =
     injectee.injectee match
       case c: AutoCloseable =>

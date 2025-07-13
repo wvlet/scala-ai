@@ -11,7 +11,7 @@ This walkthrough provides a comprehensive guide to using `ai-core`, the foundati
 - [MessagePack Serialization](#messagepack-serialization)
 - [Reactive Streams (Rx)](#reactive-streams-rx)
 - [Control Flow Utilities](#control-flow-utilities)
-- [Surface (Type Reflection)](#surface-type-reflection)
+- [TypeShape (Type Reflection)](#typeshape-type-reflection)
 - [Object Weaving](#object-weaving)
 - [Best Practices](#best-practices)
 
@@ -349,24 +349,24 @@ Resource.withResources(
 }
 ```
 
-## Surface (Type Reflection)
+## TypeShape (Type Reflection)
 
-Surface provides compile-time type reflection for Scala 3.
+TypeShape provides compile-time type reflection for Scala 3.
 
-### Basic Surface Usage
+### Basic TypeShape Usage
 
 ```scala
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 case class User(id: Long, name: String, email: Option[String])
 
-val userSurface = Surface.of[User]
-println(userSurface.name)  // "User"
-println(userSurface.params)  // Parameter information
+val userTypeShape = TypeShape.of[User]
+println(userTypeShape.name)  // "User"
+println(userTypeShape.params)  // Parameter information
 
 // Generic types
-val listSurface = Surface.of[List[String]]
-val mapSurface = Surface.of[Map[String, Int]]
+val listTypeShape = TypeShape.of[List[String]]
+val mapTypeShape = TypeShape.of[Map[String, Int]]
 ```
 
 ## Object Weaving

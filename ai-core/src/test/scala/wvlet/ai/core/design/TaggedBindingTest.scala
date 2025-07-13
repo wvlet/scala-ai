@@ -13,8 +13,8 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
-import wvlet.ai.core.surface.tag.*
+import wvlet.ai.core.typeshape.TypeShape
+import wvlet.ai.core.typeshape.tag.*
 import wvlet.airspec.AirSpec
 
 /**
@@ -33,7 +33,7 @@ object TaggedBindingTest extends AirSpec:
   )
 
   test("support tagged binding") {
-    val apple = Surface.of[Fruit @@ Apple]
+    val apple = TypeShape.of[Fruit @@ Apple]
     debug(s"apple: ${apple}, alias:${apple.isAlias}")
 
     val d = Design

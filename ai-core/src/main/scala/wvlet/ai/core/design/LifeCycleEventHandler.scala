@@ -13,12 +13,12 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 /**
   */
 trait LifeCycleEventHandler:
-  def onInit(lifeCycleManager: LifeCycleManager, t: Surface, injectee: AnyRef): Unit = {}
+  def onInit(lifeCycleManager: LifeCycleManager, t: TypeShape, injectee: AnyRef): Unit = {}
   def beforeStart(lifeCycleManager: LifeCycleManager): Unit                          = {}
   def afterStart(lifeCycleManager: LifeCycleManager): Unit                           = {}
   def beforeShutdown(lifeCycleManager: LifeCycleManager): Unit                       = {}
@@ -44,7 +44,7 @@ object NilLifeCycleEventHandler extends LifeCycleEventHandler:
 
 class LifeCycleEventHandlerChain(prev: LifeCycleEventHandler, next: LifeCycleEventHandler)
     extends LifeCycleEventHandler:
-  override def onInit(lifeCycleManager: LifeCycleManager, t: Surface, injectee: AnyRef): Unit =
+  override def onInit(lifeCycleManager: LifeCycleManager, t: TypeShape, injectee: AnyRef): Unit =
     prev.onInit(lifeCycleManager, t, injectee)
     next.onInit(lifeCycleManager, t, injectee)
 
@@ -69,7 +69,7 @@ class LifeCycleEventHandlerChain(prev: LifeCycleEventHandler, next: LifeCycleEve
 
 class LifeCycleEventHandlerPair(parent: LifeCycleEventHandler, child: LifeCycleEventHandler)
     extends LifeCycleEventHandler:
-  override def onInit(lifeCycleManager: LifeCycleManager, t: Surface, injectee: AnyRef): Unit =
+  override def onInit(lifeCycleManager: LifeCycleManager, t: TypeShape, injectee: AnyRef): Unit =
     parent.onInit(lifeCycleManager, t, injectee)
     child.onInit(lifeCycleManager, t, injectee)
 
