@@ -15,10 +15,10 @@ private[typeshape] object CompileTimeTypeShapeFactory:
     import quotes.*
     import quotes.reflect.*
 
-    val f           = new CompileTimeTypeShapeFactory(using quotes)
+    val f             = new CompileTimeTypeShapeFactory(using quotes)
     val typeShapeExpr = f.typeShapeOf(tpe)
-    val t           = TypeRepr.of[A]
-    val flags       = t.typeSymbol.flags
+    val t             = TypeRepr.of[A]
+    val flags         = t.typeSymbol.flags
     if !flags.is(Flags.JavaStatic) && flags.is(Flags.NoInits) then
       t.typeSymbol.maybeOwner match
         // For inner-class definitions

@@ -116,7 +116,7 @@ class Design(
     */
   def minimize: Design =
     var seenBindingTypeShapes = Set.empty[TypeShape]
-    var minimizedBindingList = List.empty[Binding]
+    var minimizedBindingList  = List.empty[Binding]
 
     // Later binding has higher precedence, so traverse bindings from the tail
     for b <- binding.reverseIterator do
