@@ -14,20 +14,20 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
-class Injectee(val surface: Surface, val injectee: Any):
+class Injectee(val typeShape: TypeShape, val injectee: Any):
   infix def canEqual(other: Any): Boolean = other.isInstanceOf[Injectee]
   override def equals(other: Any): Boolean =
     other match
       case that: Injectee =>
-        (that canEqual this) && surface == that.surface && injectee == that.injectee
+        (that canEqual this) && typeShape == that.typeShape && injectee == that.injectee
       case _ =>
         false
 
   override def hashCode(): Int =
     val h =
-      31 * surface.hashCode() +
+      31 * typeShape.hashCode() +
         (if injectee != null then
            injectee.hashCode()
          else
@@ -35,18 +35,16 @@ class Injectee(val surface: Surface, val injectee: Any):
     h
 
 trait LifeCycleHook:
-  def surface: Surface = injectee.surface
+  def typeShape: TypeShape = injectee.typeShape
   def execute: Unit
   def injectee: Injectee
 
 object EventHookHolder:
-  def apply[A](surface: Surface, injectee: A, hook: A => Any): EventHookHolder[A] = EventHookHolder(
-    new Injectee(surface, injectee),
-    hook
-  )
+  def apply[A](typeShape: TypeShape, injectee: A, hook: A => Any): EventHookHolder[A] =
+    EventHookHolder(new Injectee(typeShape, injectee), hook)
 
 case class EventHookHolder[A](injectee: Injectee, hook: A => Any)
     extends LifeCycleHook
     with LogSupport:
-  override def toString: String = s"hook for [$surface]"
+  override def toString: String = s"hook for [$typeShape]"
   def execute: Unit             = hook(injectee.injectee.asInstanceOf[A])
