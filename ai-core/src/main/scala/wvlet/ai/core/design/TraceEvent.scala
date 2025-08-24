@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 /**
   * Tracing event
@@ -30,11 +30,11 @@ object TraceEvent:
   case class SessionShutdown(session: Session)       extends TraceEvent
   case class SessionEnd(session: Session)            extends TraceEvent
 
-  case class InjectStart(session: Session, s: Surface)                      extends TraceEvent
-  case class InjectEnd(session: Session, s: Surface)                        extends TraceEvent
-  case class InitInstanceStart(session: Session, s: Surface, injectee: Any) extends TraceEvent
-  case class InitInstanceEnd(session: Session, s: Surface, injectee: Any)   extends TraceEvent
-  case class StartInstance(session: Session, injectee: Injectee)            extends TraceEvent
-  case class AfterStartInstance(session: Session, injectee: Injectee)       extends TraceEvent
-  case class BeforeShutdownInstance(session: Session, injectee: Injectee)   extends TraceEvent
-  case class ShutdownInstance(session: Session, injectee: Injectee)         extends TraceEvent
+  case class InjectStart(session: Session, s: TypeShape)                      extends TraceEvent
+  case class InjectEnd(session: Session, s: TypeShape)                        extends TraceEvent
+  case class InitInstanceStart(session: Session, s: TypeShape, injectee: Any) extends TraceEvent
+  case class InitInstanceEnd(session: Session, s: TypeShape, injectee: Any)   extends TraceEvent
+  case class StartInstance(session: Session, injectee: Injectee)              extends TraceEvent
+  case class AfterStartInstance(session: Session, injectee: Injectee)         extends TraceEvent
+  case class BeforeShutdownInstance(session: Session, injectee: Injectee)     extends TraceEvent
+  case class ShutdownInstance(session: Session, injectee: Injectee)           extends TraceEvent
