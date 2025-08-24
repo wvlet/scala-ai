@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 
 /**
   * Design configs
@@ -78,8 +78,8 @@ object DesignOptions:
 
 case class LifeCycleHookDesign(
     lifeCycleHookType: LifeCycleHookType,
-    surface: Surface,
+    typeShape: TypeShape,
     hook: Any => Unit
 ):
   // Override toString to protect calling the hook accidentally
-  override def toString: String = s"LifeCycleHookDesign[${lifeCycleHookType}](${surface})"
+  override def toString: String = s"LifeCycleHookDesign[${lifeCycleHookType}](${typeShape})"
