@@ -14,7 +14,7 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import TraceEvent.*
 
 /**
@@ -28,19 +28,25 @@ trait Tracer extends LogSupport:
 
   private[design] def onSessionInitEnd(session: Session): Unit = report(SessionInitEnd(session))
 
-  private[design] def onInjectStart(session: Session, surface: Surface): Unit = report(
-    InjectStart(session, surface)
+  private[design] def onInjectStart(session: Session, typeShape: TypeShape): Unit = report(
+    InjectStart(session, typeShape)
   )
 
-  private[design] def onInjectEnd(session: Session, surface: Surface): Unit = report(
-    InjectEnd(session, surface)
+  private[design] def onInjectEnd(session: Session, typeShape: TypeShape): Unit = report(
+    InjectEnd(session, typeShape)
   )
 
-  private[design] def onInitInstanceStart(session: Session, surface: Surface, injectee: Any): Unit =
-    report(InitInstanceStart(session, surface, injectee))
+  private[design] def onInitInstanceStart(
+      session: Session,
+      typeShape: TypeShape,
+      injectee: Any
+  ): Unit = report(InitInstanceStart(session, typeShape, injectee))
 
-  private[design] def onInitInstanceEnd(session: Session, surface: Surface, injectee: Any): Unit =
-    report(InitInstanceEnd(session, surface, injectee))
+  private[design] def onInitInstanceEnd(
+      session: Session,
+      typeShape: TypeShape,
+      injectee: Any
+  ): Unit = report(InitInstanceEnd(session, typeShape, injectee))
 
   private[design] def onStartInstance(session: Session, injectee: Injectee): Unit = report(
     StartInstance(session, injectee)

@@ -14,7 +14,7 @@
 package wvlet.ai.core.util
 
 import wvlet.ai.core.util.Count.CountUnit
-import wvlet.ai.core.surface.{Surface, Zero}
+import wvlet.ai.core.typeshape.{TypeShape, Zero}
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -56,8 +56,8 @@ case class Count(value: Long, unit: CountUnit) extends Comparable[Count]:
   override def compareTo(o: Count): Int = value.compareTo(o.value)
 
 object Count:
-  Zero.register(Surface.of[CountUnit], ONE)
-  Zero.register(Surface.of[Count], Count(0))
+  Zero.register(TypeShape.of[CountUnit], ONE)
+  Zero.register(TypeShape.of[Count], Count(0))
 
   val units             = List(ONE, THOUSAND, MILLION, BILLION, TRILLION, QUADRILLION)
   private val unitTable = units.map(x => x.unitString -> x).toMap[String, CountUnit]
