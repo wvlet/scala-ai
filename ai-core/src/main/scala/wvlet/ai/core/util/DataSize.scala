@@ -14,7 +14,7 @@
 package wvlet.ai.core.util
 
 import wvlet.ai.core.util.DataSize.*
-import wvlet.ai.core.surface.{Surface, Zero}
+import wvlet.ai.core.typeshape.{TypeShape, Zero}
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -72,8 +72,8 @@ case class DataSize(value: Double, unit: DataSizeUnit) extends Comparable[DataSi
 end DataSize
 
 object DataSize:
-  Zero.register(Surface.of[DataSizeUnit], BYTE)
-  Zero.register(Surface.of[DataSize], DataSize(0, BYTE))
+  Zero.register(TypeShape.of[DataSizeUnit], BYTE)
+  Zero.register(TypeShape.of[DataSize], DataSize(0, BYTE))
 
   private def checkState(preCondition: Boolean, errorMessage: String): Unit =
     if !preCondition then

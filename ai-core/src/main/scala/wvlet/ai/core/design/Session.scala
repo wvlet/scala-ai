@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import wvlet.ai.core.util.SourceCode
 
 /**
@@ -43,7 +43,7 @@ trait Session extends AutoCloseable:
     * @tparam A
     * @return
     */
-  def get[A](surface: Surface)(using sourceCode: SourceCode): A
+  def get[A](typeShape: TypeShape)(using sourceCode: SourceCode): A
 
   /**
     * Internal method for building an instance of type A, or if no binding is found, use the given
@@ -52,14 +52,16 @@ trait Session extends AutoCloseable:
     * @tparam A
     * @return
     */
-  def getOrElse[A](surface: Surface, traitInstanceFactory: => A)(using sourceCode: SourceCode): A
-
-  private[design] def createNewInstanceOf[A](surface: Surface)(using sourceCode: SourceCode): A
-  private[design] def createNewInstanceOf[A](surface: Surface, traitInstanceFactory: => A)(using
+  def getOrElse[A](typeShape: TypeShape, traitInstanceFactory: => A)(using
       sourceCode: SourceCode
   ): A
 
-  def getInstanceOf(surface: Surface)(using sourceCode: SourceCode): Any
+  private[design] def createNewInstanceOf[A](typeShape: TypeShape)(using sourceCode: SourceCode): A
+  private[design] def createNewInstanceOf[A](typeShape: TypeShape, traitInstanceFactory: => A)(using
+      sourceCode: SourceCode
+  ): A
+
+  def getInstanceOf(typeShape: TypeShape)(using sourceCode: SourceCode): Any
 
   /**
     * Create a child session with an additional design. The created session shares the same
@@ -132,7 +134,7 @@ trait Session extends AutoCloseable:
     * @return
     *   object
     */
-  inline def build[A]: A = get[A](Surface.of[A])
+  inline def build[A]: A = get[A](TypeShape.of[A])
 
   /**
     * Register an instance to the session to control the life cycle of the object under this

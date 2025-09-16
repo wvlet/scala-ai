@@ -13,7 +13,7 @@
  */
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.typeshape.TypeShape
 import wvlet.ai.core.util.SourceCode
 
 enum DesignErrorCode:
@@ -33,13 +33,13 @@ case class DesignException(code: DesignErrorCode, message: String, cause: Throwa
   override def getMessage: String = s"[${code}] ${message}"
 
 object DesignException:
-  def cyclicDependency(deps: List[Surface], sourceCode: SourceCode): DesignException =
+  def cyclicDependency(deps: List[TypeShape], sourceCode: SourceCode): DesignException =
     DesignException(
       DesignErrorCode.CYCLIC_DEPENDENCY,
       s"${deps.reverse.mkString(" -> ")} at ${sourceCode}"
     )
 
-  def missingDependency(stack: List[Surface], sourceCode: SourceCode): DesignException =
+  def missingDependency(stack: List[TypeShape], sourceCode: SourceCode): DesignException =
     DesignException(
       DesignErrorCode.MISSING_DEPENDENCY,
       s"Binding for ${stack.head} at ${sourceCode} is not found: ${stack.mkString(" <- ")}"
