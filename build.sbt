@@ -45,7 +45,7 @@ val nativeBuildSettings = Seq[Setting[?]](
   libraryDependencies ++=
     Seq(
       // For using java.time libraries
-      "org.ekrich" %%% "sjavatime" % "1.4.0"
+      "org.ekrich" %%% "sjavatime" % "1.5.0"
     )
 )
 
