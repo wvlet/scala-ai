@@ -99,7 +99,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++=
       Seq(
         // For automatic log-rotation
-        "ch.qos.logback" % "logback-core" % "1.5.19"
+        "ch.qos.logback" % "logback-core" % "1.5.20"
       )
   )
   .jsSettings(
