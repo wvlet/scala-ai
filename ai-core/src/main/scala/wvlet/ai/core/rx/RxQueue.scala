@@ -15,7 +15,8 @@ package wvlet.ai.core.rx
 
 import wvlet.ai.core.log.LogSupport
 
-import scala.concurrent.{ExecutionContext, Promise}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Promise
 
 /**
   * JVM/JS compatible RxQueue implementation

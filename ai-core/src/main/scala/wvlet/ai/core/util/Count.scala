@@ -14,10 +14,13 @@
 package wvlet.ai.core.util
 
 import wvlet.ai.core.util.Count.CountUnit
-import wvlet.ai.core.surface.{Surface, Zero}
+import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.surface.Zero
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
   * A human-readable integer (non-decimal number) representation.

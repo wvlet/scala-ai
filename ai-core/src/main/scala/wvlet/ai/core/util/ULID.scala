@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.util
 
-import wvlet.ai.core.util.{SecureRandom, ThreadUtil}
+import wvlet.ai.core.util.SecureRandom
+import wvlet.ai.core.util.ThreadUtil
 
 import java.nio.ByteBuffer
 import java.time.Instant

@@ -16,7 +16,8 @@ package wvlet.ai.core.design
 import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.surface.Surface
 import LifeCycleHookType.*
-import wvlet.ai.core.util.{LazyF0, SourceCode}
+import wvlet.ai.core.util.LazyF0
+import wvlet.ai.core.util.SourceCode
 
 object Binder:
   sealed trait Binding extends Serializable:

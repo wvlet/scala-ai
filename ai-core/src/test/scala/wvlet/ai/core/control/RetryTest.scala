@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.control
 
-import wvlet.ai.core.control.Retry.{MaxRetryException, RetryContext}
+import wvlet.ai.core.control.Retry.MaxRetryException
+import wvlet.ai.core.control.Retry.RetryContext
 import wvlet.airspec.AirSpec
 
 import scala.concurrent.TimeoutException

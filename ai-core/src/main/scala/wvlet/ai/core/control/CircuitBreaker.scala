@@ -13,11 +13,18 @@
  */
 package wvlet.ai.core.control
 
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong, AtomicReference}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import wvlet.ai.core.log.LogSupport
-import wvlet.ai.core.control.Retry.{Jitter, RetryPolicy, RetryPolicyConfig, RetryableFailure}
+import wvlet.ai.core.control.Retry.Jitter
+import wvlet.ai.core.control.Retry.RetryPolicy
+import wvlet.ai.core.control.Retry.RetryPolicyConfig
+import wvlet.ai.core.control.Retry.RetryableFailure
 
 import scala.reflect.ClassTag
 

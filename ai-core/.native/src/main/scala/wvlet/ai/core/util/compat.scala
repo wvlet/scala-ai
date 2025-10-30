@@ -1,6 +1,7 @@
 package wvlet.ai.core.util
 
-import java.security.{NoSuchAlgorithmException, SecureRandom}
+import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import scala.util.Random
 
 object compat:

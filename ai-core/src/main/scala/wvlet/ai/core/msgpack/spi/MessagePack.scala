@@ -13,10 +13,14 @@
  */
 package wvlet.ai.core.msgpack.spi
 
-import java.io.{InputStream, OutputStream}
+import java.io.InputStream
+import java.io.OutputStream
 
-import wvlet.ai.core.json.{JSON, JSONScanner, JSONSource}
-import wvlet.ai.core.msgpack.json.{NestedMessagePackBuilder, StreamMessagePackBuilder}
+import wvlet.ai.core.json.JSON
+import wvlet.ai.core.json.JSONScanner
+import wvlet.ai.core.json.JSONSource
+import wvlet.ai.core.msgpack.json.NestedMessagePackBuilder
+import wvlet.ai.core.msgpack.json.StreamMessagePackBuilder
 
 /**
   */

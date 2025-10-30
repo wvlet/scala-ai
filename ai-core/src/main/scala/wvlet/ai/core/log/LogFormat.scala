@@ -13,11 +13,16 @@
  */
 package wvlet.ai.core.log
 
-import java.io.{PrintWriter, StringWriter}
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.logging.Formatter
 import java.util.regex.Pattern
 import java.util.logging as jl
-import LogLevel.{DEBUG, ERROR, INFO, TRACE, WARN}
+import LogLevel.DEBUG
+import LogLevel.ERROR
+import LogLevel.INFO
+import LogLevel.TRACE
+import LogLevel.WARN
 
 /**
   * To implement your own log formatter, implement this formatLog(r: LogRecord) method

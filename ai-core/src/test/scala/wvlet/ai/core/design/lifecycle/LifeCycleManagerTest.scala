@@ -13,10 +13,14 @@
  */
 package wvlet.ai.core.design.lifecycle
 
-import wvlet.ai.core.design.DesignErrorCode.{MISSING_DEPENDENCY, SHUTDOWN_FAILURE}
-import wvlet.ai.core.design.{Design, DesignException}
+import wvlet.ai.core.design.DesignErrorCode.MISSING_DEPENDENCY
+import wvlet.ai.core.design.DesignErrorCode.SHUTDOWN_FAILURE
+import wvlet.ai.core.design.Design
+import wvlet.ai.core.design.DesignException
 import wvlet.airspec.AirSpec
-import wvlet.ai.core.log.{LogLevel, LogSupport, Logger}
+import wvlet.ai.core.log.LogLevel
+import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.log.Logger
 
 import java.util.concurrent.atomic.AtomicInteger
 

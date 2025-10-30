@@ -1,6 +1,7 @@
 package wvlet.ai.agent
 
-import wvlet.ai.agent.chat.{ChatRequest, ToolSpec}
+import wvlet.ai.agent.chat.ChatRequest
+import wvlet.ai.agent.chat.ToolSpec
 
 /**
   * LLMAgent defines an LLM-powered agent with identity, description, model, prompt, tools, and

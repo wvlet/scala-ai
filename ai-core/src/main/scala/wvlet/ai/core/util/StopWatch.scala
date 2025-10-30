@@ -17,7 +17,9 @@
 package wvlet.ai.core.util
 
 import java.util
-import wvlet.ai.core.log.{LogLevel, LogRecord, Logger}
+import wvlet.ai.core.log.LogLevel
+import wvlet.ai.core.log.LogRecord
+import wvlet.ai.core.log.Logger
 import scala.collection.mutable.LinkedHashMap
 
 //--------------------------------------

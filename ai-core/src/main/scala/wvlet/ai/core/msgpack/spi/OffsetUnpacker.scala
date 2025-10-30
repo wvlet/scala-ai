@@ -17,7 +17,9 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import wvlet.ai.core.msgpack.spi.ErrorCode.{INVALID_EXT_FORMAT, INVALID_TYPE, NEVER_USED_FORMAT}
+import wvlet.ai.core.msgpack.spi.ErrorCode.INVALID_EXT_FORMAT
+import wvlet.ai.core.msgpack.spi.ErrorCode.INVALID_TYPE
+import wvlet.ai.core.msgpack.spi.ErrorCode.NEVER_USED_FORMAT
 import wvlet.ai.core.msgpack.spi.MessageException.*
 import wvlet.ai.core.msgpack.spi.MessageFormat.*
 import wvlet.ai.core.msgpack.spi.Value.*

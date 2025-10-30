@@ -17,9 +17,12 @@ import java.util.concurrent.TimeUnit
 import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.util.LazyF0
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.language.higherKinds
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
   * A common interface for Rx and RxOption operators

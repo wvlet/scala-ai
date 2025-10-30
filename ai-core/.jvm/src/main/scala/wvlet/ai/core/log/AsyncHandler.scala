@@ -5,7 +5,9 @@ import wvlet.ai.core.util.ThreadUtil
 import java.io.Flushable
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, ThreadFactory, TimeUnit}
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
 import java.util.logging as jl
 
 /**

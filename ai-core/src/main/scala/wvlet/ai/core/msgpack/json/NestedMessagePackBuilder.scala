@@ -13,11 +13,15 @@
  */
 package wvlet.ai.core.msgpack.json
 
-import wvlet.ai.core.json.{JSONContext, JSONScanner, JSONSource}
-import wvlet.ai.core.msgpack.spi.{MessagePack, MsgPack}
+import wvlet.ai.core.json.JSONContext
+import wvlet.ai.core.json.JSONScanner
+import wvlet.ai.core.json.JSONSource
+import wvlet.ai.core.msgpack.spi.MessagePack
+import wvlet.ai.core.msgpack.spi.MsgPack
 import wvlet.ai.core.log.LogSupport
 
-import scala.util.{Success, Try}
+import scala.util.Success
+import scala.util.Try
 
 object NestedMessagePackBuilder:
   def fromJSON(json: JSONSource): MsgPack =

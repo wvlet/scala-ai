@@ -15,7 +15,8 @@ package wvlet.ai.core.rx
 
 import wvlet.ai.core.log.LogSupport
 
-import scala.util.{Failure, Try}
+import scala.util.Failure
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**

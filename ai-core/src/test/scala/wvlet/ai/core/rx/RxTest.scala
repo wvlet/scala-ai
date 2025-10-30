@@ -16,9 +16,13 @@ package wvlet.ai.core.rx
 import wvlet.ai.core.design.Design
 import wvlet.airspec.AirSpec
 
-import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success, Try}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
   */

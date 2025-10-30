@@ -1,29 +1,26 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.services.bedrockruntime.model.{
-  ContentBlock,
-  ContentBlockDelta,
-  ContentBlockDeltaEvent,
-  ContentBlockStart,
-  ContentBlockStartEvent,
-  ContentBlockStopEvent,
-  ConverseOutput,
-  ConverseResponse,
-  ConverseStreamMetadataEvent,
-  Message,
-  MessageStartEvent,
-  MessageStopEvent,
-  ReasoningContentBlock,
-  ReasoningTextBlock,
-  ToolUseBlock
-}
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockDelta
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockDeltaEvent
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockStart
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockStartEvent
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockStopEvent
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseOutput
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamMetadataEvent
+import software.amazon.awssdk.services.bedrockruntime.model.Message
+import software.amazon.awssdk.services.bedrockruntime.model.MessageStartEvent
+import software.amazon.awssdk.services.bedrockruntime.model.MessageStopEvent
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningTextBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ToolUseBlock
 import software.amazon.eventstream.MessageBuilder
-import wvlet.ai.agent.chat.ChatEvent.{
-  PartialReasoningResponse,
-  PartialResponse,
-  PartialToolRequestResponse
-}
-import wvlet.ai.agent.chat.{ChatObserver, ChatResponse}
+import wvlet.ai.agent.chat.ChatEvent.PartialReasoningResponse
+import wvlet.ai.agent.chat.ChatEvent.PartialResponse
+import wvlet.ai.agent.chat.ChatEvent.PartialToolRequestResponse
+import wvlet.ai.agent.chat.ChatObserver
+import wvlet.ai.agent.chat.ChatResponse
 
 import scala.jdk.CollectionConverters.*
 import wvlet.ai.agent.core.ops.*

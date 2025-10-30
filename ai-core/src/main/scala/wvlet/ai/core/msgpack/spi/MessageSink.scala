@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.msgpack.spi
 
-import java.io.{Flushable, IOException}
+import java.io.Flushable
+import java.io.IOException
 
 /**
   * Provides a buffered output stream that writes sequence of [[WriteBuffer]] instances.

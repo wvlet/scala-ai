@@ -1,7 +1,9 @@
 package wvlet.ai.core.design
 
-import wvlet.ai.core.surface.{Primitive, Surface}
-import DesignErrorCode.{CYCLIC_DEPENDENCY, MISSING_DEPENDENCY}
+import wvlet.ai.core.surface.Primitive
+import wvlet.ai.core.surface.Surface
+import DesignErrorCode.CYCLIC_DEPENDENCY
+import DesignErrorCode.MISSING_DEPENDENCY
 import wvlet.airspec.AirSpec
 import wvlet.ai.core.log.LogSupport
 

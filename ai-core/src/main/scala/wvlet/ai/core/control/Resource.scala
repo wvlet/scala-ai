@@ -14,7 +14,8 @@
 package wvlet.ai.core.control
 
 import java.io.File
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
   * Resource that can be closed.

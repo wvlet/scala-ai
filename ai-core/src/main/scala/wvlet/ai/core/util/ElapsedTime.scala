@@ -3,7 +3,8 @@ package wvlet.ai.core.util
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-import wvlet.ai.core.surface.{Surface, Zero}
+import wvlet.ai.core.surface.Surface
+import wvlet.ai.core.surface.Zero
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.*

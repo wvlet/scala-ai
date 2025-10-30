@@ -15,7 +15,9 @@ package wvlet.ai.core.rx
 
 import wvlet.airspec.AirSpec
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 class RxTransformTest extends AirSpec:
 

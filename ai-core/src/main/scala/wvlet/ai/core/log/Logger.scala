@@ -17,9 +17,11 @@ import wvlet.ai.core
 import wvlet.ai.core.util.SourceCode
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Properties, logging as jl}
+import java.util.Properties
+import java.util.logging as jl
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.matching.Regex

@@ -16,7 +16,8 @@ package wvlet.ai.core.rx
 import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.AtomicInteger
-import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.util.Success
 
 class RxSingleTest extends AirSpec:
   test("Rx.single") {

@@ -1,7 +1,8 @@
 package wvlet.ai.core.design
 
 import wvlet.ai.core.surface.Surface
-import DesignTest.Alias.{HelloRef, StringHello}
+import DesignTest.Alias.HelloRef
+import DesignTest.Alias.StringHello
 import wvlet.airspec.AirSpec
 
 /**

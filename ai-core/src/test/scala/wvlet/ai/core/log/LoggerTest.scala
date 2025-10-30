@@ -1,10 +1,12 @@
 package wvlet.ai.core.log
 
-import wvlet.ai.core.log.{LogLevel, Logger}
+import wvlet.ai.core.log.LogLevel
+import wvlet.ai.core.log.Logger
 import wvlet.airspec.AirSpec
 
 import java.util.logging
-import java.util.logging.{Handler, Level}
+import java.util.logging.Handler
+import java.util.logging.Level
 
 class LoggerTest extends AirSpec:
   private val myHandler =

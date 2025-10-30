@@ -1,7 +1,10 @@
 package wvlet.ai.core.log
 
-import java.time.format.{DateTimeFormatterBuilder, SignStyle}
-import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.SignStyle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Locale
 
 /**

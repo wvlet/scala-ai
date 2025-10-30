@@ -1,10 +1,15 @@
 package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole
-import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolResultMessage, UserMessage}
-import wvlet.ai.agent.chat.{ChatMessage, ChatRole}
-import wvlet.ai.agent.core.{AIException, StatusCode}
-import wvlet.ai.agent.{LLM, LLMAgent}
+import wvlet.ai.agent.chat.ChatMessage.AIMessage
+import wvlet.ai.agent.chat.ChatMessage.ToolResultMessage
+import wvlet.ai.agent.chat.ChatMessage.UserMessage
+import wvlet.ai.agent.chat.ChatMessage
+import wvlet.ai.agent.chat.ChatRole
+import wvlet.ai.agent.core.AIException
+import wvlet.ai.agent.core.StatusCode
+import wvlet.ai.agent.LLM
+import wvlet.ai.agent.LLMAgent
 import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*

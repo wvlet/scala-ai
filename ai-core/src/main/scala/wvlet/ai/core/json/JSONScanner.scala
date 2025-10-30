@@ -15,7 +15,8 @@ package wvlet.ai.core.json
 
 import wvlet.ai.core.log.LogSupport
 
-import scala.annotation.{switch, tailrec}
+import scala.annotation.switch
+import scala.annotation.tailrec
 
 object JSONToken:
   @inline

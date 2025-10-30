@@ -2,8 +2,14 @@ package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.services.bedrockruntime.model.ToolChoice as BedrockToolChoice
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest
-import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, ToolChoice}
-import wvlet.ai.agent.chat.{ChatMessage, ChatRequest, ToolParameter, ToolSpec}
+import wvlet.ai.agent.LLM
+import wvlet.ai.agent.LLMAgent
+import wvlet.ai.agent.ModelConfig
+import wvlet.ai.agent.ToolChoice
+import wvlet.ai.agent.chat.ChatMessage
+import wvlet.ai.agent.chat.ChatRequest
+import wvlet.ai.agent.chat.ToolParameter
+import wvlet.ai.agent.chat.ToolSpec
 import wvlet.ai.agent.core.DataType
 import wvlet.airspec.AirSpec
 import wvlet.log.LogSupport
