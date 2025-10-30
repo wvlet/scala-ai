@@ -275,7 +275,7 @@ class RxRunner(
           case Some(v) =>
             val currentNanos         = ticker.currentNanos
             val nanosSinceLastUpdate = currentNanos - lastUpdatedNanos
-            val isExpired = cache
+            val isExpired            = cache
               .expirationAfterWriteNanos
               .map(expireNanos => expireNanos <= nanosSinceLastUpdate)
               .getOrElse(false)
@@ -452,7 +452,7 @@ class RxRunner(
       case RecoverWithOp(in, f) =>
         var toContinue: RxResult = RxResult.Continue
         var c1                   = Cancelable.empty
-        val c2 =
+        val c2                   =
           run(in) { ev =>
             ev match
               case OnError(e) if f.isDefinedAt(e) =>

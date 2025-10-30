@@ -28,10 +28,10 @@ object compat:
 
   def newTimer: Timer =
     new Timer:
-      private val t = new java.util.Timer(true)
+      private val t                                                 = new java.util.Timer(true)
       override def schedule[U](millis: Long)(body: Long => U): Unit = t.schedule(
         new TimerTask:
-          private var lastTime = System.currentTimeMillis()
+          private var lastTime     = System.currentTimeMillis()
           override def run(): Unit =
             val currentTime = System.currentTimeMillis()
             try body(currentTime - lastTime)

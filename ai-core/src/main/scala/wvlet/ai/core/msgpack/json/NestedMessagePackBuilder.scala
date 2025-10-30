@@ -43,19 +43,19 @@ class NestedMessagePackBuilder extends JSONContext[Seq[MsgPack]] with LogSupport
       result
 
   private var cachedResult: Option[Seq[MsgPack]] = None
-  override def result: Seq[MsgPack] = synchronized {
+  override def result: Seq[MsgPack]              = synchronized {
     if cachedResult.isEmpty then
       cachedResult = Some(Seq(packer.toByteArray))
     cachedResult.get
   }
 
-  override def isObjectContext: Boolean = false
+  override def isObjectContext: Boolean   = false
   override def add(v: Seq[MsgPack]): Unit = v.foreach { b =>
     packer.writePayload(b)
   }
 
-  override def closeContext(s: JSONSource, end: Int): Unit        = {}
-  override def addNull(s: JSONSource, start: Int, end: Int): Unit = packer.packNil
+  override def closeContext(s: JSONSource, end: Int): Unit          = {}
+  override def addNull(s: JSONSource, start: Int, end: Int): Unit   = packer.packNil
   override def addString(s: JSONSource, start: Int, end: Int): Unit = packer.packString(
     s.substring(start, end)
   )

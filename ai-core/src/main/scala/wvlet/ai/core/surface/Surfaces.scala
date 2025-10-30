@@ -248,7 +248,7 @@ class GenericSurface(
 
   override def name: String =
     val clsName = TypeName.sanitizeTypeName(getClassName)
-    val s =
+    val s       =
       if typeArgs.isEmpty then
         clsName
       else
@@ -257,7 +257,7 @@ class GenericSurface(
 
   override def fullName: String =
     val clsName = TypeName.sanitizeTypeName(rawType.getName)
-    val s =
+    val s       =
       if typeArgs.isEmpty then
         clsName
       else

@@ -48,7 +48,7 @@ case class TooLargeMessageException(size: Long)
     extends MessageException(ErrorCode.TOO_LARGE_MESSAGE, s"Too large message size: ${size}")
 
 object MessageException:
-  def overflowU8(u8: Byte) = new IntegerOverflowException(BigInteger.valueOf((u8 & 0xff).toLong))
+  def overflowU8(u8: Byte)    = new IntegerOverflowException(BigInteger.valueOf((u8 & 0xff).toLong))
   def overflowU16(u16: Short) =
     new IntegerOverflowException(BigInteger.valueOf((u16 & 0xffff).toLong))
 

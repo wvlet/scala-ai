@@ -418,7 +418,7 @@ class WeaverTest extends AirSpec:
         "empty"  -> scala.collection.immutable.ListMap.empty[String, Int]
       )
     val msgpack = ObjectWeaver.weave(v)
-    val v2 = ObjectWeaver.unweave[
+    val v2      = ObjectWeaver.unweave[
       scala.collection.immutable.ListMap[String, scala.collection.immutable.ListMap[String, Int]]
     ](msgpack)
     v shouldBe v2

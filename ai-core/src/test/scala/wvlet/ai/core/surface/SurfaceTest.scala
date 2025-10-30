@@ -198,7 +198,7 @@ class SurfaceTest extends SurfaceSpec:
   }
 
   test("generate concrete object factory") {
-    val d = check(Surface.of[D[String]], "D[String]")
+    val d  = check(Surface.of[D[String]], "D[String]")
     val d0 =
       d.objectFactory
         .map { f =>

@@ -83,14 +83,14 @@ class AirSpecTest extends AirSpec:
 
     users shouldMatch {
       case List(User(1, "Alice", None), User(2, "Bob", None)) => // matches
-      case _ =>
+      case _                                                  =>
         fail("Pattern should match")
     }
 
     val user = User(1, "Alice", Some("alice@example.com"))
     user shouldMatch {
       case User(_, "Alice", Some(_)) => // matches
-      case _ =>
+      case _                         =>
         fail("User pattern should match")
     }
   }

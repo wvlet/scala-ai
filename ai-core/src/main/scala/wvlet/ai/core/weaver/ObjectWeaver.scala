@@ -4,7 +4,7 @@ import wvlet.ai.core.msgpack.spi.{MessagePack, MsgPack, Packer, Unpacker}
 import wvlet.ai.core.weaver.codec.{JSONWeaver, PrimitiveWeaver}
 
 trait ObjectWeaver[A]:
-  def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack = toMsgPack(v, config)
+  def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack         = toMsgPack(v, config)
   def unweave(msgpack: MsgPack, config: WeaverConfig = WeaverConfig()): A =
     val unpacker = MessagePack.newUnpacker(msgpack)
     val context  = WeaverContext(config)

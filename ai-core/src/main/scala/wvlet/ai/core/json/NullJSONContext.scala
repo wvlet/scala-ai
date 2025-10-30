@@ -18,7 +18,7 @@ import wvlet.ai.core.log.LogSupport
 /**
   */
 class NullJSONContext(isObject: Boolean) extends JSONContext[Unit] with LogSupport:
-  override def isObjectContext: Boolean = isObject
+  override def isObjectContext: Boolean                                    = isObject
   override def objectContext(s: JSONSource, start: Int): JSONContext[Unit] =
     new NullJSONContext(true)
 
@@ -27,7 +27,7 @@ class NullJSONContext(isObject: Boolean) extends JSONContext[Unit] with LogSuppo
 
   override def closeContext(s: JSONSource, end: Int): Unit = {}
 
-  override def add(v: Unit): Unit = {}
+  override def add(v: Unit): Unit                                          = {}
   override def singleContext(s: JSONSource, start: Int): JSONContext[Unit] =
     new NullJSONContext(false)
 

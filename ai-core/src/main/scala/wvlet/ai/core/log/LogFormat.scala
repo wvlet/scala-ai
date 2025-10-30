@@ -62,7 +62,7 @@ object LogFormatter extends AnsiColorPalette:
         val trace = new StringWriter()
         e.printStackTrace(new PrintWriter(trace))
         val stackTraceLines = trace.toString.split("\n")
-        val filtered = stackTraceLines
+        val filtered        = stackTraceLines
           .filter(stackTraceFilter)
           .sliding(2)
           .collect {
@@ -132,7 +132,7 @@ object LogFormatter extends AnsiColorPalette:
   object AppLogFormatter extends LogFormatter:
     override def formatLog(r: LogRecord): String =
       val logTag = highlightLog(r.level, r.level.name)
-      val log =
+      val log    =
         f"${withColor(Console.BLUE, formatTimestamp(r.getMillis()))} ${logTag}%14s [${withColor(
             Console.WHITE,
             r.leafLoggerName
@@ -150,7 +150,7 @@ object LogFormatter extends AnsiColorPalette:
         .getOrElse("")
 
       val logTag = highlightLog(r.level, r.level.name)
-      val log =
+      val log    =
         f"${withColor(Console.BLUE, formatTimestamp(r.getMillis()))} ${logTag}%14s [${withColor(
             Console.WHITE,
             r.leafLoggerName
@@ -165,7 +165,7 @@ object LogFormatter extends AnsiColorPalette:
         .getOrElse("")
 
       val logTag = highlightLog(r.level, r.level.name)
-      val log =
+      val log    =
         f"${withColor(Console.BLUE, formatTimestamp(r.getMillis()))} [${withColor(
             BRIGHT_BLUE,
             currentThreadName

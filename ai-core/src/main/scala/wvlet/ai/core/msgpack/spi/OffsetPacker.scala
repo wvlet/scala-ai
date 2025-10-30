@@ -67,7 +67,7 @@ object OffsetPacker:
   )
 
   private[msgpack] def packFIXNUM(cursor: WriteCursor, v: Byte): Unit = cursor.writeByte(v)
-  private[msgpack] def packINT8(cursor: WriteCursor, v: Byte): Unit = cursor.writeByteAndByte(
+  private[msgpack] def packINT8(cursor: WriteCursor, v: Byte): Unit   = cursor.writeByteAndByte(
     INT8,
     v
   )
