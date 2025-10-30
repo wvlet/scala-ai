@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.util
 
-import wvlet.ai.core.util.{PrefixedULID, ULID}
+import wvlet.ai.core.util.PrefixedULID
+import wvlet.ai.core.util.ULID
 import wvlet.airspec.AirSpec
 import wvlet.airspec.spi.PropertyCheck
 

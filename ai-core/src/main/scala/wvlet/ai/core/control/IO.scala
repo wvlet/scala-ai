@@ -13,7 +13,9 @@
  */
 package wvlet.ai.core.control
 
-import java.io.{ByteArrayOutputStream, File, InputStream}
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
 import java.net.URL
 import java.nio.charset.StandardCharsets
 

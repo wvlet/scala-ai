@@ -16,7 +16,8 @@ package wvlet.ai.core.design.lifecycle
 import wvlet.ai.core.design.Design
 import wvlet.airspec.AirSpec
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
   */

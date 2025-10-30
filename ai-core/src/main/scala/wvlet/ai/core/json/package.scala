@@ -13,16 +13,14 @@
  */
 package wvlet.ai.core
 
-import wvlet.ai.core.json.JSON.{
-  JSONArray,
-  JSONBoolean,
-  JSONDouble,
-  JSONLong,
-  JSONNull,
-  JSONObject,
-  JSONString,
-  JSONValue
-}
+import wvlet.ai.core.json.JSON.JSONArray
+import wvlet.ai.core.json.JSON.JSONBoolean
+import wvlet.ai.core.json.JSON.JSONDouble
+import wvlet.ai.core.json.JSON.JSONLong
+import wvlet.ai.core.json.JSON.JSONNull
+import wvlet.ai.core.json.JSON.JSONObject
+import wvlet.ai.core.json.JSON.JSONString
+import wvlet.ai.core.json.JSON.JSONValue
 
 /**
   */

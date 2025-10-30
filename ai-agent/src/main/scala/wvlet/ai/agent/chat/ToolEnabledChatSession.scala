@@ -1,6 +1,8 @@
 package wvlet.ai.agent.chat
 
-import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolCallRequest, ToolResultMessage}
+import wvlet.ai.agent.chat.ChatMessage.AIMessage
+import wvlet.ai.agent.chat.ChatMessage.ToolCallRequest
+import wvlet.ai.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.ai.agent.tool.ToolExecutor
 import wvlet.airframe.rx.Rx
 import wvlet.log.LogSupport

@@ -1,6 +1,7 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.auth.credentials.{AwsCredentialsProvider, DefaultCredentialsProvider}
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClientBuilder
 

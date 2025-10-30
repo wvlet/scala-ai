@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.msgpack.spi
 
-import wvlet.airspec.spi.{AirSpecException, AssertionFailure}
+import wvlet.airspec.spi.AirSpecException
+import wvlet.airspec.spi.AssertionFailure
 import wvlet.airspec.AirSpec
 import wvlet.ai.core.log.LogLevel
 import wvlet.ai.core.util.Timer

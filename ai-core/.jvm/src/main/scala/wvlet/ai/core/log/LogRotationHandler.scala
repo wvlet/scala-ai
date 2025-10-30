@@ -15,20 +15,21 @@ package wvlet.ai.core.log
 
 import ch.qos.logback.core.ContextBase
 import ch.qos.logback.core.encoder.EncoderBase
-import ch.qos.logback.core.rolling.{
-  RollingFileAppender,
-  SizeAndTimeBasedFileNamingAndTriggeringPolicy,
-  TimeBasedRollingPolicy
-}
+import ch.qos.logback.core.rolling.RollingFileAppender
+import ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import wvlet.ai.core.log.LogFormatter
 import LogFormatter.AppLogFormatter
 
-import java.io.{File, Flushable}
+import java.io.File
+import java.io.Flushable
 import java.nio.charset.StandardCharsets
 import java.util.logging as jl
 import java.util.logging.ErrorManager
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 object LogRotationHandler:
 

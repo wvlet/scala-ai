@@ -6,7 +6,9 @@ import wvlet.ai.core.log.LogSupport
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
   * States for propagating the result of the downstream operators.

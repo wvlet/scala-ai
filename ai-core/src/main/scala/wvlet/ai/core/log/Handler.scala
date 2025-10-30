@@ -1,6 +1,7 @@
 package wvlet.ai.core.log
 
-import java.io.{PrintStream, PrintWriter}
+import java.io.PrintStream
+import java.io.PrintWriter
 import java.util.logging as jl
 
 /**

@@ -1,7 +1,11 @@
 package wvlet.ai.core.weaver.codec
 
-import wvlet.ai.core.msgpack.spi.{Packer, Unpacker, ValueType}
-import wvlet.ai.core.weaver.{ObjectWeaver, WeaverConfig, WeaverContext}
+import wvlet.ai.core.msgpack.spi.Packer
+import wvlet.ai.core.msgpack.spi.Unpacker
+import wvlet.ai.core.msgpack.spi.ValueType
+import wvlet.ai.core.weaver.ObjectWeaver
+import wvlet.ai.core.weaver.WeaverConfig
+import wvlet.ai.core.weaver.WeaverContext
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 

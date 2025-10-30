@@ -16,9 +16,11 @@ package wvlet.ai.core.rx
 import wvlet.ai.core.util.ThreadUtil
 import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Promise}
+import scala.concurrent.Await
+import scala.concurrent.Promise
 
 /**
   */

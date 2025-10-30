@@ -15,7 +15,8 @@ package wvlet.ai.core.rx
 
 import wvlet.airspec.AirSpec
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.util.Success
 
 class RxSideEffectTest extends AirSpec:
   test("Rx.tap(x)") {

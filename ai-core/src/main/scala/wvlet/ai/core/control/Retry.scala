@@ -19,8 +19,12 @@ import wvlet.ai.core.rx.Rx
 import wvlet.ai.core.util.ThreadUtil
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Random, Success, Try}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Random
+import scala.util.Success
+import scala.util.Try
 
 /**
   * Retry logic implementation helper

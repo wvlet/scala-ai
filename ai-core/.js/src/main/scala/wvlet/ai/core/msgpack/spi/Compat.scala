@@ -13,7 +13,9 @@
  */
 package wvlet.ai.core.msgpack.spi
 
-import wvlet.ai.core.msgpack.impl.{PureScalaBufferPacker, PureScalaBufferUnpacker, ByteArrayBuffer}
+import wvlet.ai.core.msgpack.impl.PureScalaBufferPacker
+import wvlet.ai.core.msgpack.impl.PureScalaBufferUnpacker
+import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
 
 /**
   * Compatibility layer for Scala.js

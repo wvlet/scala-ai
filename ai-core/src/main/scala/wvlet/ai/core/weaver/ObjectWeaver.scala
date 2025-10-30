@@ -1,7 +1,11 @@
 package wvlet.ai.core.weaver
 
-import wvlet.ai.core.msgpack.spi.{MessagePack, MsgPack, Packer, Unpacker}
-import wvlet.ai.core.weaver.codec.{JSONWeaver, PrimitiveWeaver}
+import wvlet.ai.core.msgpack.spi.MessagePack
+import wvlet.ai.core.msgpack.spi.MsgPack
+import wvlet.ai.core.msgpack.spi.Packer
+import wvlet.ai.core.msgpack.spi.Unpacker
+import wvlet.ai.core.weaver.codec.JSONWeaver
+import wvlet.ai.core.weaver.codec.PrimitiveWeaver
 
 trait ObjectWeaver[A]:
   def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack         = toMsgPack(v, config)

@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
   */

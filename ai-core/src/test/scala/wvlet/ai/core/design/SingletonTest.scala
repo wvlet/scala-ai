@@ -15,7 +15,9 @@ package wvlet.ai.core.design
 
 import wvlet.ai.core.surface.Surface
 import wvlet.airspec.AirSpec
-import wvlet.ai.core.log.{LogLevel, LogSupport, Logger}
+import wvlet.ai.core.log.LogLevel
+import wvlet.ai.core.log.LogSupport
+import wvlet.ai.core.log.Logger
 
 import java.util.concurrent.atomic.AtomicInteger
 

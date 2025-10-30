@@ -1,8 +1,13 @@
 package wvlet.ai.agent.chat.bedrock
 
-import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, ReasoningConfig}
-import wvlet.ai.agent.chat.{ChatMessage, ChatRequest}
-import wvlet.ai.agent.core.{AIException, StatusCode}
+import wvlet.ai.agent.LLM
+import wvlet.ai.agent.LLMAgent
+import wvlet.ai.agent.ModelConfig
+import wvlet.ai.agent.ReasoningConfig
+import wvlet.ai.agent.chat.ChatMessage
+import wvlet.ai.agent.chat.ChatRequest
+import wvlet.ai.agent.core.AIException
+import wvlet.ai.agent.core.StatusCode
 import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*

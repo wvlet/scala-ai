@@ -1,15 +1,11 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.auth.credentials.{
-  AwsBasicCredentials,
-  DefaultCredentialsProvider,
-  StaticCredentialsProvider
-}
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.bedrockruntime.{
-  BedrockRuntimeAsyncClient,
-  BedrockRuntimeAsyncClientBuilder
-}
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClientBuilder
 import wvlet.airspec.AirSpec
 
 class BedrockConfigTest extends AirSpec:

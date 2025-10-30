@@ -1,9 +1,11 @@
 package wvlet.ai.agent.bedrock
 
 import wvlet.ai.agent.chat.*
-import wvlet.ai.agent.chat.ChatMessage.{AIMessage, ToolResultMessage}
+import wvlet.ai.agent.chat.ChatMessage.AIMessage
+import wvlet.ai.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.ai.agent.chat.bedrock.BedrockRunner
-import wvlet.ai.agent.{LLM, LLMAgent}
+import wvlet.ai.agent.LLM
+import wvlet.ai.agent.LLMAgent
 import wvlet.ai.agent.core.DataType
 import wvlet.airspec.AirSpec
 

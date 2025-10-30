@@ -1,6 +1,7 @@
 package wvlet.ai.core.log
 
-import wvlet.ai.core.log.{LogLevel, LogRecord}
+import wvlet.ai.core.log.LogLevel
+import wvlet.ai.core.log.LogRecord
 
 import java.util.logging as jl
 import JSConsoleLogHandler.JSLogColorPalette

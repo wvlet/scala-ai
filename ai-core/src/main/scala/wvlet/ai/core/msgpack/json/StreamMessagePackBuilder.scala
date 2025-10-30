@@ -13,13 +13,20 @@
  */
 package wvlet.ai.core.msgpack.json
 
-import wvlet.ai.core.json.{JSONContext, JSONScanner, JSONSource}
+import wvlet.ai.core.json.JSONContext
+import wvlet.ai.core.json.JSONScanner
+import wvlet.ai.core.json.JSONSource
 import wvlet.ai.core.msgpack.impl.ByteArrayBuffer
-import wvlet.ai.core.msgpack.spi.{Code, MessagePack, MsgPack, OffsetPacker, WriteCursor}
+import wvlet.ai.core.msgpack.spi.Code
+import wvlet.ai.core.msgpack.spi.MessagePack
+import wvlet.ai.core.msgpack.spi.MsgPack
+import wvlet.ai.core.msgpack.spi.OffsetPacker
+import wvlet.ai.core.msgpack.spi.WriteCursor
 import wvlet.ai.core.log.LogSupport
 
 import scala.annotation.tailrec
-import scala.util.{Success, Try}
+import scala.util.Success
+import scala.util.Try
 
 object StreamMessagePackBuilder:
   def fromJSON(json: JSONSource): MsgPack =

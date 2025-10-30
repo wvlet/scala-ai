@@ -1,7 +1,13 @@
 package wvlet.ai.agent.chat.bedrock
 
-import wvlet.ai.agent.{LLM, LLMAgent, ModelConfig, SpecificTool}
-import wvlet.ai.agent.chat.{ChatMessage, ChatRequest, ToolParameter, ToolSpec}
+import wvlet.ai.agent.LLM
+import wvlet.ai.agent.LLMAgent
+import wvlet.ai.agent.ModelConfig
+import wvlet.ai.agent.SpecificTool
+import wvlet.ai.agent.chat.ChatMessage
+import wvlet.ai.agent.chat.ChatRequest
+import wvlet.ai.agent.chat.ToolParameter
+import wvlet.ai.agent.chat.ToolSpec
 import wvlet.ai.agent.core.DataType
 import wvlet.airspec.AirSpec
 

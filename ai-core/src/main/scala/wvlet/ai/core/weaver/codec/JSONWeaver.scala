@@ -13,11 +13,14 @@
  */
 package wvlet.ai.core.weaver.codec
 
-import wvlet.ai.core.json.{JSON, Json}
+import wvlet.ai.core.json.JSON
+import wvlet.ai.core.json.Json
 import wvlet.ai.core.json.JSON.*
 import wvlet.ai.core.msgpack.spi.*
 import wvlet.ai.core.msgpack.spi.Value.TimestampValue
-import wvlet.ai.core.weaver.{ObjectWeaver, WeaverConfig, WeaverContext}
+import wvlet.ai.core.weaver.ObjectWeaver
+import wvlet.ai.core.weaver.WeaverConfig
+import wvlet.ai.core.weaver.WeaverContext
 
 /**
   * Codec for JSON values. Internally, JSON String is converted to MessagePack

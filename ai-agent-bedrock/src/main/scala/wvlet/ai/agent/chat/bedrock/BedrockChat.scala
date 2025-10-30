@@ -1,56 +1,49 @@
 package wvlet.ai.agent.chat.bedrock
 
-import software.amazon.awssdk.auth.credentials.{AwsCredentialsProvider, DefaultCredentialsProvider}
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.bedrockruntime.model.{
-  AnyToolChoice,
-  AutoToolChoice,
-  ContentBlock,
-  ConversationRole,
-  ConverseOutput,
-  ConverseResponse,
-  ConverseStreamRequest,
-  ConverseStreamResponseHandler,
-  InferenceConfiguration,
-  Message,
-  ReasoningContentBlock,
-  ReasoningTextBlock,
-  SpecificToolChoice,
-  StopReason,
-  SystemContentBlock,
-  Tag,
-  Tool,
-  ToolChoice as BedrockToolChoice,
-  ToolConfiguration,
-  ToolInputSchema,
-  ToolResultBlock,
-  ToolResultContentBlock,
-  ToolSpecification
-}
-import software.amazon.awssdk.services.bedrockruntime.{
-  BedrockRuntimeAsyncClient,
-  BedrockRuntimeAsyncClientBuilder
-}
+import software.amazon.awssdk.services.bedrockruntime.model.AnyToolChoice
+import software.amazon.awssdk.services.bedrockruntime.model.AutoToolChoice
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseOutput
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler
+import software.amazon.awssdk.services.bedrockruntime.model.InferenceConfiguration
+import software.amazon.awssdk.services.bedrockruntime.model.Message
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningTextBlock
+import software.amazon.awssdk.services.bedrockruntime.model.SpecificToolChoice
+import software.amazon.awssdk.services.bedrockruntime.model.StopReason
+import software.amazon.awssdk.services.bedrockruntime.model.SystemContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.Tag
+import software.amazon.awssdk.services.bedrockruntime.model.Tool
+import software.amazon.awssdk.services.bedrockruntime.model.ToolChoice as BedrockToolChoice
+import software.amazon.awssdk.services.bedrockruntime.model.ToolConfiguration
+import software.amazon.awssdk.services.bedrockruntime.model.ToolInputSchema
+import software.amazon.awssdk.services.bedrockruntime.model.ToolResultBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ToolResultContentBlock
+import software.amazon.awssdk.services.bedrockruntime.model.ToolSpecification
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClientBuilder
 import wvlet.ai.agent.LLMAgent
-import wvlet.ai.agent.chat.ChatMessage.{
-  AIMessage,
-  AIReasoningMessage,
-  SystemMessage,
-  ToolCallRequest,
-  ToolResultMessage,
-  UserMessage
-}
-import wvlet.ai.agent.chat.{
-  ChatFinishReason,
-  ChatMessage,
-  ChatModel,
-  ChatObserver,
-  ChatRequest,
-  ChatResponse,
-  ChatRole,
-  ChatStats,
-  ToolSpec
-}
+import wvlet.ai.agent.chat.ChatMessage.AIMessage
+import wvlet.ai.agent.chat.ChatMessage.AIReasoningMessage
+import wvlet.ai.agent.chat.ChatMessage.SystemMessage
+import wvlet.ai.agent.chat.ChatMessage.ToolCallRequest
+import wvlet.ai.agent.chat.ChatMessage.ToolResultMessage
+import wvlet.ai.agent.chat.ChatMessage.UserMessage
+import wvlet.ai.agent.chat.ChatFinishReason
+import wvlet.ai.agent.chat.ChatMessage
+import wvlet.ai.agent.chat.ChatModel
+import wvlet.ai.agent.chat.ChatObserver
+import wvlet.ai.agent.chat.ChatRequest
+import wvlet.ai.agent.chat.ChatResponse
+import wvlet.ai.agent.chat.ChatRole
+import wvlet.ai.agent.chat.ChatStats
+import wvlet.ai.agent.chat.ToolSpec
 import wvlet.ai.agent.core.StatusCode
 import wvlet.log.LogSupport
 

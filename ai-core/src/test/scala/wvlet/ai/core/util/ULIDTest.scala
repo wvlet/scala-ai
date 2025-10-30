@@ -13,7 +13,8 @@
  */
 package wvlet.ai.core.util
 
-import wvlet.ai.core.util.{CrockfordBase32, ULID}
+import wvlet.ai.core.util.CrockfordBase32
+import wvlet.ai.core.util.ULID
 import wvlet.airspec.AirSpec
 import wvlet.airspec.spi.PropertyCheck
 

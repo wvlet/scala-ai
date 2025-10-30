@@ -17,9 +17,13 @@ import wvlet.ai.core.util.ThreadUtil
 import scala.util.Try
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Promise}
-import java.util.concurrent.{Executors, ThreadFactory, TimeUnit}
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import scala.concurrent.Await
+import scala.concurrent.Promise
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import scala.scalanative.posix.timer.timer_create
 import scala.scalanative.posix.time.*
 import scala.scalanative.posix.signal.*

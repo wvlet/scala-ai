@@ -1,11 +1,10 @@
 package wvlet.ai.agent.chat.bedrock
 
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient
-import software.amazon.awssdk.services.bedrockruntime.model.{
-  ConverseStreamRequest,
-  ConverseStreamResponseHandler
-}
-import wvlet.ai.agent.chat.{ChatObserver, ChatRequest}
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler
+import wvlet.ai.agent.chat.ChatObserver
+import wvlet.ai.agent.chat.ChatRequest
 
 import java.util.concurrent.CompletableFuture
 

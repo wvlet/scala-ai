@@ -13,21 +13,19 @@
  */
 package wvlet.ai.core.rx
 
-import wvlet.ai.core.rx.Rx.{
-  CacheOp,
-  FlatMapOp,
-  Join3Op,
-  Join4Op,
-  Join5Op,
-  JoinOp,
-  MapOp,
-  RecoverOp,
-  RecoverWithOp,
-  Zip3Op,
-  Zip4Op,
-  Zip5Op,
-  ZipOp
-}
+import wvlet.ai.core.rx.Rx.CacheOp
+import wvlet.ai.core.rx.Rx.FlatMapOp
+import wvlet.ai.core.rx.Rx.Join3Op
+import wvlet.ai.core.rx.Rx.Join4Op
+import wvlet.ai.core.rx.Rx.Join5Op
+import wvlet.ai.core.rx.Rx.JoinOp
+import wvlet.ai.core.rx.Rx.MapOp
+import wvlet.ai.core.rx.Rx.RecoverOp
+import wvlet.ai.core.rx.Rx.RecoverWithOp
+import wvlet.ai.core.rx.Rx.Zip3Op
+import wvlet.ai.core.rx.Rx.Zip4Op
+import wvlet.ai.core.rx.Rx.Zip5Op
+import wvlet.ai.core.rx.Rx.ZipOp
 
 import java.util.concurrent.TimeUnit
 
