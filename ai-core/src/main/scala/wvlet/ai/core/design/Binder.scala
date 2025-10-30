@@ -44,7 +44,7 @@ object Binder:
 
     private val objectId = new Object().hashCode()
 
-    override def hashCode(): Int = objectId
+    override def hashCode(): Int             = objectId
     override def equals(other: Any): Boolean =
       other match
         case that: ProviderBinding =>

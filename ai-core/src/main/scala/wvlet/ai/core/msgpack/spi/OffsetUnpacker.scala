@@ -42,7 +42,7 @@ object OffsetUnpacker:
       val mf = MessageFormat.of(b)
       mf match
         case POSFIXINT | NEGFIXINT | BOOLEAN | NIL =>
-        case FIXMAP =>
+        case FIXMAP                                =>
           val mapLen = b & 0x0f
           count += mapLen * 2
         case FIXARRAY =>
@@ -165,7 +165,8 @@ object OffsetUnpacker:
 
   def unpackNil(cursor: ReadCursor): Unit =
     cursor.readByte match
-      case Code.NIL => // OK
+      case Code
+            .NIL => // OK
       case other =>
         cursor.reverseCursor
         unexpected(ValueType.NIL, other)
@@ -466,11 +467,14 @@ object OffsetUnpacker:
 
   private def tryReadBinaryHeader(b: Byte, cursor: ReadCursor) =
     b match
-      case Code.BIN8 => // bin 8
+      case Code
+            .BIN8 => // bin 8
         readNextLength8(cursor)
-      case Code.BIN16 => // bin 16
+      case Code
+            .BIN16 => // bin 16
         readNextLength16(cursor)
-      case Code.BIN32 => // bin 32
+      case Code
+            .BIN32 => // bin 32
         readNextLength32(cursor)
       case _ =>
         -1

@@ -106,11 +106,11 @@ package object json:
     )
     def value: Any = jsonValues.head.getValue
 
-    def toStringValues: Seq[String]               = jsonValues.map(_.asInstanceOf[JSONString].v)
-    def toDoubleValues: Seq[Double]               = jsonValues.map(_.asInstanceOf[JSONDouble].v)
-    def toLongValues: Seq[Long]                   = jsonValues.map(_.asInstanceOf[JSONLong].v)
-    def toBooleanValues: Seq[Boolean]             = jsonValues.map(_.asInstanceOf[JSONBoolean].v)
-    def toArrayValues: Seq[IndexedSeq[JSONValue]] = jsonValues.map(_.asInstanceOf[JSONArray].v)
+    def toStringValues: Seq[String]                 = jsonValues.map(_.asInstanceOf[JSONString].v)
+    def toDoubleValues: Seq[Double]                 = jsonValues.map(_.asInstanceOf[JSONDouble].v)
+    def toLongValues: Seq[Long]                     = jsonValues.map(_.asInstanceOf[JSONLong].v)
+    def toBooleanValues: Seq[Boolean]               = jsonValues.map(_.asInstanceOf[JSONBoolean].v)
+    def toArrayValues: Seq[IndexedSeq[JSONValue]]   = jsonValues.map(_.asInstanceOf[JSONArray].v)
     def toObjectValues: Seq[Map[String, JSONValue]] = jsonValues.map(
       _.asInstanceOf[JSONObject].v.toMap
     )

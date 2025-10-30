@@ -24,7 +24,7 @@ case class LLM(
 object LLM:
   object Bedrock:
     // Amazon Titan Models
-    val TitanTextTG1Large = LLM("amazon.titan-tg1-large", "Titan Text Large")
+    val TitanTextTG1Large         = LLM("amazon.titan-tg1-large", "Titan Text Large")
     val TitanImageGeneratorG1V1_0 = LLM(
       "amazon.titan-image-generator-v1:0",
       "Titan Image Generator G1"
@@ -43,7 +43,7 @@ object LLM:
 
     val TitanTextG1LiteV1_0_4k = LLM("amazon.titan-text-lite-v1:0:4k", "Titan Text G1 - Lite")
 
-    val TitanTextG1LiteV1 = LLM("amazon.titan-text-lite-v1", "Titan Text G1 - Lite")
+    val TitanTextG1LiteV1         = LLM("amazon.titan-text-lite-v1", "Titan Text G1 - Lite")
     val TitanTextG1ExpressV1_0_8k = LLM(
       "amazon.titan-text-express-v1:0:8k",
       "Titan Text G1 - Express"
@@ -113,7 +113,7 @@ object LLM:
     val ClaudeV2_0_100k = LLM("anthropic.claude-v2:0:100k", "Claude")
     val ClaudeV2_1_18k  = LLM("anthropic.claude-v2:1:18k", "Claude")
     val ClaudeV2_1_200k = LLM("anthropic.claude-v2:1:200k", "Claude")
-    val ClaudeV2_1 = LLM(
+    val ClaudeV2_1      = LLM(
       "anthropic.claude-v2:1",
       "Claude 2.1"
     ) // Explicitly named 2.1 based on ID convention

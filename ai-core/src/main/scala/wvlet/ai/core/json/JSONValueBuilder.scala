@@ -40,7 +40,7 @@ class JSONValueBuilder extends JSONContext[JSONValue] with LogSupport:
       private val list                                         = Seq.newBuilder[(String, JSONValue)]
       override def closeContext(s: JSONSource, end: Int): Unit = self.add(result)
       override def isObjectContext: Boolean                    = true
-      override def add(v: JSONValue): Unit =
+      override def add(v: JSONValue): Unit                     =
         if key == null then
           key = v.toString
         else
@@ -56,14 +56,14 @@ class JSONValueBuilder extends JSONContext[JSONValue] with LogSupport:
       override def add(v: JSONValue): Unit                     = list += v
       override def result: JSONValue                           = JSONArray(list.result())
 
-  override def addNull(s: JSONSource, start: Int, end: Int): Unit = add(JSONNull)
+  override def addNull(s: JSONSource, start: Int, end: Int): Unit   = add(JSONNull)
   override def addString(s: JSONSource, start: Int, end: Int): Unit = add(
     JSONString(s.substring(start, end))
   )
 
   override def addUnescapedString(s: String): Unit = add(JSONString(s))
   override def addNumber(s: JSONSource, start: Int, end: Int, dotIndex: Int, expIndex: Int): Unit =
-    val v = s.substring(start, end)
+    val v               = s.substring(start, end)
     val num: JSONNumber =
       if dotIndex >= 0 || expIndex >= 0 then
         JSONDouble(v.toDouble)

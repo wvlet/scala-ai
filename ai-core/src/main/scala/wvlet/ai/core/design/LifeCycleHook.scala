@@ -17,7 +17,7 @@ import wvlet.ai.core.log.LogSupport
 import wvlet.ai.core.surface.Surface
 
 class Injectee(val surface: Surface, val injectee: Any):
-  infix def canEqual(other: Any): Boolean = other.isInstanceOf[Injectee]
+  infix def canEqual(other: Any): Boolean  = other.isInstanceOf[Injectee]
   override def equals(other: Any): Boolean =
     other match
       case that: Injectee =>

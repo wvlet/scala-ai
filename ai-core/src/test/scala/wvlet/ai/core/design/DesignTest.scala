@@ -69,7 +69,7 @@ object DesignTest extends AirSpec:
   test("remove binding") {
     val dd = d1.remove[Message]
 
-    def hasMessage(d: Design): Boolean = d.binding.exists(_.from == Surface.of[Message])
+    def hasMessage(d: Design): Boolean           = d.binding.exists(_.from == Surface.of[Message])
     def hasProductionMessage(d: Design): Boolean = d
       .binding
       .exists(_.from == Surface.of[ProductionMessage])
@@ -146,7 +146,7 @@ object DesignTest extends AirSpec:
   }
 
   test("support run") {
-    val d = Design.newSilentDesign.bindInstance[String]("hello")
+    val d   = Design.newSilentDesign.bindInstance[String]("hello")
     val ret = d.run { (s: String) =>
       s shouldBe "hello"
       100

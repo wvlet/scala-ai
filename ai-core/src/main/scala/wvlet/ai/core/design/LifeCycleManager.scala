@@ -360,7 +360,7 @@ end FILOLifeCycleHookExecutor
 
 class CloseHook(val injectee: Injectee) extends LifeCycleHook:
   override def toString: String = s"CloseHook for [${surface}]"
-  override def execute: Unit =
+  override def execute: Unit    =
     injectee.injectee match
       case c: AutoCloseable =>
         c.close()

@@ -120,7 +120,7 @@ object Value:
   private val LONG_MAX  = BigInteger.valueOf(Long.MaxValue.toLong)
 
   case class BigIntegerValue(v: BigInteger) extends IntegerValue:
-    override def toJson = v.toString
+    override def toJson                                           = v.toString
     private def within(min: BigInteger, max: BigInteger): Boolean =
       v.compareTo(min) >= 0 && v.compareTo(max) <= 0
 
@@ -187,8 +187,8 @@ object Value:
     @transient
     private var decodedStringCache: String = null
 
-    override def toUnquotedString: String = toRawString
-    override def valueType: ValueType     = ValueType.BINARY
+    override def toUnquotedString: String      = toRawString
+    override def valueType: ValueType          = ValueType.BINARY
     override def writeTo(packer: Packer): Unit =
       packer.packBinaryHeader(v.length)
       packer.writePayload(v)
@@ -216,7 +216,7 @@ object Value:
       val base64 = Base64.getEncoder.encodeToString(v)
       s"""[${extType.toInt},"${base64}"]"""
 
-    override def valueType: ValueType = ValueType.EXTENSION
+    override def valueType: ValueType          = ValueType.EXTENSION
     override def writeTo(packer: Packer): Unit =
       packer.packExtensionTypeHeader(extType, v.length)
       packer.writePayload(v)
@@ -250,8 +250,8 @@ object Value:
     def isEmpty: Boolean  = elems.isEmpty
     def nonEmpty: Boolean = elems.nonEmpty
 
-    override def toJson: String       = s"[${elems.map(_.toJson).mkString(",")}]"
-    override def valueType: ValueType = ValueType.ARRAY
+    override def toJson: String                = s"[${elems.map(_.toJson).mkString(",")}]"
+    override def valueType: ValueType          = ValueType.ARRAY
     override def writeTo(packer: Packer): Unit =
       packer.packArrayHeader(elems.length)
       elems.foreach(x => x.writeTo(packer))
@@ -261,8 +261,8 @@ object Value:
     def get(key: Value): Option[Value] = entries.get(key)
     def size: Int                      = entries.size
 
-    def isEmpty: Boolean  = entries.isEmpty
-    def nonEmpty: Boolean = entries.nonEmpty
+    def isEmpty: Boolean        = entries.isEmpty
+    def nonEmpty: Boolean       = entries.nonEmpty
     override def toJson: String = entries
       .map { kv =>
         // JSON requires Map key must be a quoted UTF-8 string
@@ -272,7 +272,7 @@ object Value:
       }
       .mkString("{", ",", "}")
 
-    override def valueType: ValueType = ValueType.MAP
+    override def valueType: ValueType          = ValueType.MAP
     override def writeTo(packer: Packer): Unit =
       packer.packMapHeader(entries.size)
       // Ensure using non-parallel collection

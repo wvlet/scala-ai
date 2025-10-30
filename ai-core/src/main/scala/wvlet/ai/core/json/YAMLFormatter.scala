@@ -40,7 +40,7 @@ object YAMLFormatter:
     private def indent(levelOffset: Int = 0): String =
       "  " * (contextStack.length - 1 + levelOffset)
 
-    private def emitKey(k: String): Unit = lines += s"${indent()}${quoteKey(k)}:"
+    private def emitKey(k: String): Unit                    = lines += s"${indent()}${quoteKey(k)}:"
     private def emitKeyValue(k: String, v: JSONValue): Unit =
       lines += s"${indent()}${quoteKey(k)}: ${quoteValue(v)}"
 
@@ -48,7 +48,7 @@ object YAMLFormatter:
       lines += s"${"  " * (contextStack.length - 2)}- ${quoteKey(k)}: ${quoteValue(v)}"
 
     private def emitArrayElement(v: JSONValue): Unit = lines += s"${indent()}- ${quoteValue(v)}"
-    private def quoteKey(k: String): String =
+    private def quoteKey(k: String): String          =
       def isNumber(k: String): Boolean = k.forall {
         case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           true
@@ -72,7 +72,7 @@ object YAMLFormatter:
       .mkString("\n")
 
     private def quoteValue(v: JSONValue): String =
-      val letterPattern = """[\w]+""".r
+      val letterPattern                = """[\w]+""".r
       def isLetter(s: String): Boolean =
         s match
           case letterPattern() =>
@@ -130,7 +130,7 @@ object YAMLFormatter:
     override def leaveKeyValue(k: String, v: JSON.JSONValue): Unit = {}
 
     override def visitArray(a: JSON.JSONArray): Unit = contextStack = ARRAY(0) :: contextStack
-    override def leaveArray(a: JSONArray): Unit =
+    override def leaveArray(a: JSONArray): Unit      =
       contextStack = contextStack.tail
       contextStack.headOption.map(_.getAndAdd)
 

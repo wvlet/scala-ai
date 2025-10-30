@@ -27,7 +27,7 @@ class PureScalaBufferPacker extends BufferPacker:
   override def toByteArray: Array[Byte]             = buf.toByteArray(0, cursor.lastWrittenBytes)
   override def clear: Unit                          = cursor = WriteCursor(buf, 0)
   override private[msgpack] def totalByteSize: Long = cursor.position + cursor.lastWrittenBytes
-  override def packNil: this.type =
+  override def packNil: this.type                   =
     OffsetPacker.packNil(cursor)
     this
 

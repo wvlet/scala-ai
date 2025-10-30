@@ -53,9 +53,9 @@ class PureScalaBufferUnpacker(buf: ReadBuffer) extends Unpacker:
     cursor
   )
 
-  override def unpackRawStringHeader: Int = OffsetUnpacker.unpackRawStringHeader(cursor)
-  override def unpackBinaryHeader: Int    = OffsetUnpacker.unpackBinaryHeader(cursor)
-  override def unpackValue: Value         = OffsetUnpacker.unpackValue(cursor)
+  override def unpackRawStringHeader: Int          = OffsetUnpacker.unpackRawStringHeader(cursor)
+  override def unpackBinaryHeader: Int             = OffsetUnpacker.unpackBinaryHeader(cursor)
+  override def unpackValue: Value                  = OffsetUnpacker.unpackValue(cursor)
   override def readPayload(dst: Array[Byte]): Unit = OffsetUnpacker.readPayload(
     cursor,
     dst.length,
@@ -67,7 +67,7 @@ class PureScalaBufferUnpacker(buf: ReadBuffer) extends Unpacker:
     .readPayload(cursor, length, dst, offset)
 
   override def readPayload(length: Int): Array[Byte] = OffsetUnpacker.readPayload(cursor, length)
-  override def close(): Unit = {
+  override def close(): Unit                         = {
     // buf.close
   }
 

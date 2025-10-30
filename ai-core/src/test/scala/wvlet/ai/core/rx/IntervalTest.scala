@@ -31,7 +31,7 @@ class IntervalTest extends AirSpec:
     pendingInScalaJSAndScalaNative
 
     val counter = new AtomicInteger(0)
-    val rx = Rx
+    val rx      = Rx
       .interval(3, TimeUnit.MILLISECONDS)
       .take(3)
       .map { interval =>
@@ -56,7 +56,7 @@ class IntervalTest extends AirSpec:
   test("timer/delay") {
     pendingInScalaJSAndScalaNative
     val counter = new AtomicInteger(0)
-    val rx = Rx
+    val rx      = Rx
       .delay(1, TimeUnit.MILLISECONDS)
       .map { interval =>
         interval
@@ -82,7 +82,7 @@ class IntervalTest extends AirSpec:
 
     val counter = new AtomicInteger(0)
     val s       = Seq.newBuilder[Long]
-    val c = rx.run { x =>
+    val c       = rx.run { x =>
       counter.incrementAndGet()
       s += x
     }
@@ -99,7 +99,7 @@ class IntervalTest extends AirSpec:
       val rx      = Rx.sequence(1, 2, 3).throttleLast(500, TimeUnit.MILLISECONDS)
       val counter = new AtomicInteger(0)
       val s       = Seq.newBuilder[Long]
-      val c = rx.run { x =>
+      val c       = rx.run { x =>
         counter.incrementAndGet()
         s += x
       }
@@ -112,7 +112,7 @@ class IntervalTest extends AirSpec:
   test("throttleLast of empty seq") {
     pendingInScalaJSAndScalaNative
     val rx = Rx.fromSeq(Seq.empty[Int]).throttleLast(1, TimeUnit.MILLISECONDS)
-    val c = rx.run { x =>
+    val c  = rx.run { x =>
     }
     compat.scheduleOnce(100) {
       c.cancel

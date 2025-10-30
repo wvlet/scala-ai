@@ -24,7 +24,7 @@ class CancelableTest extends AirSpec:
     val m1 = Cancelable.merge(Cancelable.empty, Cancelable.empty)
     m1.cancel
 
-    var x = 0
+    var x  = 0
     val m2 = Cancelable.merge(
       Cancelable.empty,
       Cancelable { () =>
@@ -34,8 +34,8 @@ class CancelableTest extends AirSpec:
     m2.cancel
     x shouldBe 1
 
-    var y = 0
-    var z = 0
+    var y  = 0
+    var z  = 0
     val m3 = Cancelable.merge(
       Cancelable { () =>
         y += 1
@@ -48,7 +48,7 @@ class CancelableTest extends AirSpec:
     y shouldBe 1
     z shouldBe 1
 
-    var a = 0
+    var a  = 0
     val m4 = Cancelable.merge(
       Cancelable { () =>
         a += 1

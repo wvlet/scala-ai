@@ -308,7 +308,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       val inner    = extractSymbol(t)
       val name     = Expr(alias.name)
       val fullName = Expr(fullTypeNameOf(t))
-      val expr =
+      val expr     =
         '{
           Alias(
             ${
@@ -349,7 +349,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       val fullName = fullTypeNameOf(h)
       val inner    = surfaceOf(h.resType)
 
-      val len = h.paramNames.size
+      val len    = h.paramNames.size
       val params = (0 until len).map { i =>
         h.param(i)
       }
@@ -561,7 +561,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
 
   // Build a table for resolving type parameters, e.g., class MyClass[A, B]  -> Map("A" -> TypeRepr, "B" -> TypeRepr)
   private def typeMappingTable(t: TypeRepr, method: Symbol): Map[String, TypeRepr] =
-    val classTypeParams = t.typeSymbol.typeMembers.filter(_.isTypeParam)
+    val classTypeParams               = t.typeSymbol.typeMembers.filter(_.isTypeParam)
     val classTypeArgs: List[TypeRepr] =
       t match
         case a: AppliedType =>
@@ -609,14 +609,14 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     else
       getResolvedConstructorOf(targetType).map { cstr =>
         val argListList = methodArgsOf(targetType, ts.primaryConstructor)
-        val newClassFn = Lambda(
+        val newClassFn  = Lambda(
           owner = Symbol.spliceOwner,
           tpe = MethodType(List("args"))(_ => List(TypeRepr.of[Seq[Any]]), _ => TypeRepr.of[Any]),
           rhsFn =
             (sym: Symbol, paramRefs: List[Tree]) =>
               val args  = paramRefs.head.asExprOf[Seq[Any]].asTerm
               var index = 0
-              val fn =
+              val fn    =
                 argListList.foldLeft[Term](cstr) { (prev, argList) =>
                   val argExtractors = argList.map { a =>
                     // args(i+1)
@@ -699,7 +699,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
         * Build a code for finding Enum instance from an input string value: {{ (cl: Class[?], s:
         * String) => Try(EnumType.valueOf(s)).toOption }}
         */
-      val enumType = t.typeSymbol.companionModule
+      val enumType      = t.typeSymbol.companionModule
       val valueOfMethod =
         enumType.methodMember("valueOf").headOption match
           case Some(m) =>
@@ -715,7 +715,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
           ),
         rhsFn =
           (sym: Symbol, paramRefs: List[Tree]) =>
-            val strVarRef = paramRefs(1).asExprOf[String].asTerm
+            val strVarRef  = paramRefs(1).asExprOf[String].asTerm
             val expr: Term = Select
               .unique(
                 Apply(Select.unique(Ref(t.typeSymbol.companionModule), "valueOf"), List(strVarRef)),
@@ -753,7 +753,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       // EnumSurface(classOf[t], { (cl: Class[?], s: String) => (companion object).unapply(s).asInstanceOf[Option[Any]] }
       val unapplyMethod = getStringUnapply(t).get
       val m             = Ref(t.typeSymbol.companionModule).select(unapplyMethod)
-      val newFn = Lambda(
+      val newFn         = Lambda(
         owner = Symbol.spliceOwner,
         tpe =
           MethodType(List("cl", "s"))(
@@ -763,7 +763,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
         rhsFn =
           (sym: Symbol, paramRefs: List[Tree]) =>
             val strVarRef = paramRefs(1).asExprOf[String].asTerm
-            val expr = Select
+            val expr      = Select
               .unique(Apply(m, List(strVarRef)), "asInstanceOf")
               .appliedToType(TypeRepr.of[Option[Any]])
             expr.changeOwner(sym)
@@ -929,7 +929,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     val argClasses = methodArgs.map { arg =>
       clsOf(arg.tpe.dealias)
     }
-    val isConstructor = t.typeSymbol.primaryConstructor == method
+    val isConstructor                   = t.typeSymbol.primaryConstructor == method
     val constructorRef: Expr[MethodRef] =
       '{
         MethodRef(
@@ -1204,7 +1204,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       sys.error(s"recursive method found in: ${targetType.typeSymbol.fullName}")
     else
       seenMethodParent += targetType
-      val localMethods = localMethodsOf(targetType).distinct.sortBy(_.name)
+      val localMethods   = localMethodsOf(targetType).distinct.sortBy(_.name)
       val methodSurfaces = localMethods
         .map(m => (m, m.tree))
         .collect { case (m, df: DefDef) =>
@@ -1285,7 +1285,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
           val args = params(1).asInstanceOf[Term]
           val expr = clsCast(x, objectType).select(m)
 
-          var index = 0
+          var index                     = 0
           val argList: List[List[Term]] = methodArgss.map { lst =>
             lst.collect {
               // If the arg is implicit, no need to explicitly bind it
@@ -1376,12 +1376,12 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     mod
 
   def surfaceFromClass(cl: Class[?]): Expr[Surface] =
-    val name         = cl.getName
-    val rawType      = Class.forName(name)
-    val constructors = rawType.getConstructors
+    val name               = cl.getName
+    val rawType            = Class.forName(name)
+    val constructors       = rawType.getConstructors
     val (typeArgs, params) =
       if constructors.nonEmpty then
-        val primaryConstructor = constructors(0)
+        val primaryConstructor                = constructors(0)
         val paramSurfaces: Seq[Expr[Surface]] =
           primaryConstructor
             .getParameterTypes

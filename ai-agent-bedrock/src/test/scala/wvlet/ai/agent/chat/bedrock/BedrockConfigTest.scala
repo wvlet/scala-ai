@@ -35,7 +35,7 @@ class BedrockConfigTest extends AirSpec:
 
   test("withCredentials") {
     val config = BedrockConfig()
-    val creds = StaticCredentialsProvider.create(
+    val creds  = StaticCredentialsProvider.create(
       AwsBasicCredentials.create("test-key", "test-secret")
     )
     val newConfig = config.withCredentials(creds)
@@ -46,7 +46,7 @@ class BedrockConfigTest extends AirSpec:
   }
 
   test("withAsyncClientConfig") {
-    val config = BedrockConfig()
+    val config     = BedrockConfig()
     val customizer =
       (builder: BedrockRuntimeAsyncClientBuilder) =>
         // Apply some custom configuration, e.g., endpoint override (just for testing the function call)

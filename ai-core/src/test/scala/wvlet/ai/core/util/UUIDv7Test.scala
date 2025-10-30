@@ -86,7 +86,7 @@ class UUIDv7Test extends AirSpec:
     val msbV4Obj = (randomMsbForV4Obj & ~0x000000000000f000L) | (4L << 12) // Set version to 4
     val lsbV4Obj =
       (randomLsbForV4Obj & ~0xc000000000000000L) | (2L << 62) // Set variant to RFC4122 (10xx)
-    val uuidV4 = new UUID(msbV4Obj, lsbV4Obj)
+    val uuidV4   = new UUID(msbV4Obj, lsbV4Obj)
 
     val ex = intercept[IllegalArgumentException] {
       UUIDv7.fromUUID(uuidV4)

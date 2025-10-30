@@ -19,9 +19,9 @@ import java.io.PrintStream
 import wvlet.ai.core.log.LogFormatter.SourceCodeLogFormatter
 
 private[log] object LogEnv extends LogEnvBase:
-  override def isScalaJS: Boolean        = false
-  override def isScalaNative: Boolean    = true
-  override def defaultLogLevel: LogLevel = LogLevel.INFO
+  override def isScalaJS: Boolean                        = false
+  override def isScalaNative: Boolean                    = true
+  override def defaultLogLevel: LogLevel                 = LogLevel.INFO
   override def defaultHandler: java.util.logging.Handler =
     new ConsoleLogHandler(SourceCodeLogFormatter)
 

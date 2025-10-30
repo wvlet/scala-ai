@@ -5,7 +5,7 @@ import wvlet.airspec.AirSpec
 class LLMAgentTest extends AirSpec:
 
   // Use a concrete LLM instance instead of a mock
-  private val testLLM = LLM.Bedrock.TitanTextG1LiteV1
+  private val testLLM   = LLM.Bedrock.TitanTextG1LiteV1
   private val baseAgent = LLMAgent(
     name = "test-agent",
     description = "Test agent description",

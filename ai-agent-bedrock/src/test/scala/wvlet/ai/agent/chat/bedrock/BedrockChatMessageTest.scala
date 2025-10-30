@@ -155,7 +155,7 @@ class BedrockChatMessageTest extends AirSpec:
     case class UnsupportedMessage(text: String) extends ChatMessage(ChatRole.SYSTEM)
 
     val messages = Seq(UserMessage("Hello"), UnsupportedMessage("Invalid"))
-    val e = intercept[AIException] {
+    val e        = intercept[AIException] {
       BedrockChat.extractBedrockChatMessages(messages)
     }
     e.statusCode shouldBe StatusCode.INVALID_MESSAGE_TYPE

@@ -62,11 +62,11 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
   import BedrockChat.*
   import wvlet.ai.agent.core.ops.*
 
-  override def chat(request: ChatRequest): Unit = ???
+  override def chat(request: ChatRequest): Unit                                       = ???
   override def chatStream(request: ChatRequest, observer: ChatObserver): ChatResponse =
     val converseRequest = newConverseRequest(request)
 
-    val converseResponseBuilder = BedrockConverseResponseBuilder(observer)
+    val converseResponseBuilder   = BedrockConverseResponseBuilder(observer)
     val chatStreamResponseHandler = ConverseStreamResponseHandler
       .builder()
       .subscriber(
@@ -204,7 +204,7 @@ end BedrockChat
 object BedrockChat extends LogSupport:
   private[bedrock] def buildChatResponseFrom(converseResponse: ConverseResponse): ChatResponse =
     val finishReason: ChatFinishReason = fromBedrockStopReason(converseResponse.stopReason())
-    val chatStats: ChatStats = ChatStats(
+    val chatStats: ChatStats           = ChatStats(
       latencyMs = converseResponse.metrics().latencyMs(),
       inputTokens = converseResponse.usage().inputTokens(),
       outputTokens = converseResponse.usage().outputTokens(),
