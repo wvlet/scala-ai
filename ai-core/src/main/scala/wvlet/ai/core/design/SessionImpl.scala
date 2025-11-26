@@ -368,15 +368,15 @@ private[design] class SessionImpl(
 
                 def buildWithProvider: Any =
                   val dependencies =
-                    for (d <- factory.dependencyTypes)
-                      yield contextSession.getInstance(
-                        d,
-                        d,
-                        sourceCode,
-                        contextSession,
-                        false,
-                        tpe :: seen
-                      )
+                    for d <- factory.dependencyTypes
+                    yield contextSession.getInstance(
+                      d,
+                      d,
+                      sourceCode,
+                      contextSession,
+                      false,
+                      tpe :: seen
+                    )
                   factory.create(dependencies)
 
                 if provideSingleton then
@@ -455,20 +455,20 @@ private[design] class SessionImpl(
         case Some(factory) =>
           trace(s"Using the default constructor for building ${surface} at ${sourceCode}")
           val args =
-            for (p <- surface.params)
-              yield
-                // When using the default constructor, we should disable singleton registration for p unless p has SingletonBinding
-                // For example, when building A(p1:Long=10, p2:Long=20, ...), we should not register p1, p2 long values as singleton.
-                contextSession.getInstance(
-                  p.surface,
-                  p.surface,
-                  sourceCode,
-                  contextSession,
-                  // If the default value for the parameter is given, do not register the instance as a singleton
-                  create = p.getDefaultValue.nonEmpty,
-                  seen,
-                  p.getDefaultValue.map(x => () => x)
-                )
+            for p <- surface.params
+            yield
+              // When using the default constructor, we should disable singleton registration for p unless p has SingletonBinding
+              // For example, when building A(p1:Long=10, p2:Long=20, ...), we should not register p1, p2 long values as singleton.
+              contextSession.getInstance(
+                p.surface,
+                p.surface,
+                sourceCode,
+                contextSession,
+                // If the default value for the parameter is given, do not register the instance as a singleton
+                create = p.getDefaultValue.nonEmpty,
+                seen,
+                p.getDefaultValue.map(x => () => x)
+              )
           val obj = factory.newInstance(args)
           obj
         case None =>
