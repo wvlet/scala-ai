@@ -85,7 +85,7 @@ class NestedMessagePackBuilder extends JSONContext[Seq[MsgPack]] with LogSupport
 
   override def objectContext(s: JSONSource, start: Int): JSONContext[Seq[MsgPack]] =
     new LocalStructureContext:
-      override def isObjectContext: Boolean = true
+      override def isObjectContext: Boolean                    = true
       override def closeContext(s: JSONSource, end: Int): Unit =
         // Add msgpack data to the parent
         parent.add(result)

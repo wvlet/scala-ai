@@ -112,10 +112,10 @@ object JSONValueWeaver extends ObjectWeaver[JSONValue]:
       case ValueType.MAP =>
         val len = u.unpackMapHeader
         val b   = Seq.newBuilder[(String, JSONValue)]
-        for (i <- 0 until len)
-          yield
-            val key = u.unpackString
-            b += key -> unpackJson(u)
+        for i <- 0 until len
+        yield
+          val key = u.unpackString
+          b += key -> unpackJson(u)
         JSONObject(b.result())
 
   override def unpack(u: Unpacker, context: WeaverContext): Unit =

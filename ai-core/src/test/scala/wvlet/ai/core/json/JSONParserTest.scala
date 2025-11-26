@@ -33,8 +33,8 @@ class JSONParserTest extends AirSpec:
   test("parse large array of objects") {
     val json =
       (
-        for (_ <- 0 to 10000)
-          yield "{}"
+        for _ <- 0 to 10000
+        yield "{}"
       ).mkString("[", ",", "]")
     parse(json)
   }

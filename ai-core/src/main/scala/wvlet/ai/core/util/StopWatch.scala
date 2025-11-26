@@ -262,8 +262,8 @@ trait TimeReport extends Ordered[TimeReport]:
   def report: String =
     def indent(level: Int, s: String): String =
       (
-        for (i <- 0 until level * 2)
-          yield ' '
+        for i <- 0 until level * 2
+        yield ' '
       ).mkString + s
 
     val lines = Seq.newBuilder[String]

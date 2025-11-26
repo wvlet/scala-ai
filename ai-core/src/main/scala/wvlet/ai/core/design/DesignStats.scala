@@ -83,15 +83,15 @@ class DesignStats extends LogSupport with Serializable:
     var bindingCount     = 0
     var usedBindingCount = 0
     val unusedBindings   = Seq.newBuilder[Surface]
-    for (b <- design.binding)
-      yield
-        bindingCount += 1
-        val surface     = b.from
-        val injectCount = getInjectCount(surface)
-        if injectCount > 0 then
-          usedBindingCount += 1
-        else
-          unusedBindings += surface
+    for b <- design.binding
+    yield
+      bindingCount += 1
+      val surface     = b.from
+      val injectCount = getInjectCount(surface)
+      if injectCount > 0 then
+        usedBindingCount += 1
+      else
+        unusedBindings += surface
     val coverage =
       if bindingCount == 0 then
         1.0

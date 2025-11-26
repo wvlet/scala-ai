@@ -955,169 +955,169 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     // println(s"======= ${t.typeSymbol.memberMethods}")
 
     val paramExprs =
-      for ((field, i) <- methodArgs.zipWithIndex)
-        yield
-          val paramType = field.tpe
-          val paramName = field.name
+      for (field, i) <- methodArgs.zipWithIndex
+      yield
+        val paramType = field.tpe
+        val paramName = field.name
 
-          // Related example:
-          // https://github.com/lampepfl/dotty-macro-examples/blob/aed51833db652f67741089721765ad5a349f7383/defaultParamsInference/src/macro.scala
-          val defaultValue: Expr[Option[Any]] =
-            field.defaultValueGetter match
-              case Some(m) =>
-                val companion = Ref(t.typeSymbol.companionModule)
-                // Populate method type parameters with Any type
-                val dummyTypeList: List[TypeRepr] =
-                  m.paramSymss
-                    .flatten
-                    .map { tp =>
-                      TypeRepr.of[Any]
-                    }
-                    .toList
-                val dv: Term = companion.select(m).appliedToTypes(dummyTypeList)
-                '{
-                  Some(
-                    ${
-                      dv.asExprOf[Any]
-                    }
-                  )
-                }
-              case _ =>
-                '{
-                  None
-                }
-
-          // Generate a field accessor { (x:Any) => x.asInstanceOf[A].(field name) }
-          val paramIsAccessible =
-            t.typeSymbol.fieldMember(paramName) match
-              case nt if nt == Symbol.noSymbol =>
-                false
-              case m if m.flags.is(Flags.Private) =>
-                false
-              case m if m.flags.is(Flags.Protected) =>
-                false
-              case m if m.flags.is(Flags.Artifact) =>
-                false
-              case m if m.privateWithin.nonEmpty =>
-                false
-              case _ =>
-                true
-          // println(s"${paramName} ${paramIsAccessible}")
-
-          val accessor: Expr[Option[Any => Any]] =
-            if method.isClassConstructor && paramIsAccessible then
-              // MethodParameter.accessor[(owner type), (parameter type]]
-              val accessorMethod: Symbol =
-                TypeRepr.of[MethodParameter.type].typeSymbol.methodMember("accessor").head
-              val objRef = Ref(TypeRepr.of[MethodParameter].typeSymbol.companionModule)
-
-              def resolveType(tpe: TypeRepr): TypeRepr =
-                tpe match
-                  case b: TypeBounds =>
+        // Related example:
+        // https://github.com/lampepfl/dotty-macro-examples/blob/aed51833db652f67741089721765ad5a349f7383/defaultParamsInference/src/macro.scala
+        val defaultValue: Expr[Option[Any]] =
+          field.defaultValueGetter match
+            case Some(m) =>
+              val companion = Ref(t.typeSymbol.companionModule)
+              // Populate method type parameters with Any type
+              val dummyTypeList: List[TypeRepr] =
+                m.paramSymss
+                  .flatten
+                  .map { tp =>
                     TypeRepr.of[Any]
-                  case _ =>
-                    tpe
-
-              val t1 = resolveType(t)
-              val t2 = resolveType(paramType)
-
-              val typedAccessor = objRef.select(accessorMethod).appliedToTypes(List(t1, t2))
-              val methodCall    = typedAccessor.appliedToArgs(List(Literal(ClassOfConstant(t1))))
-
-              val lambda = Lambda(
-                owner = Symbol.spliceOwner,
-                tpe = MethodType(List("x"))(_ => List(t1), _ => t2),
-                rhsFn =
-                  (sym, params) =>
-                    val x    = params.head.asInstanceOf[Term]
-                    val expr = Select.unique(x, paramName)
-                    expr.changeOwner(sym)
-              )
-              val accMethod = methodCall.appliedToArgs(List(lambda))
-              // println(s"=== ${accMethod.show}")
-
-              // Generate code like :
-              // {{{
-              //   MethodParameter.accessor[t1, t2](classOf[t1]){(x:t1) => x.(field name) }
-              // }}}
+                  }
+                  .toList
+              val dv: Term = companion.select(m).appliedToTypes(dummyTypeList)
               '{
                 Some(
                   ${
-                    accMethod.asExprOf[Any => Any]
+                    dv.asExprOf[Any]
                   }
                 )
               }
-            else
+            case _ =>
               '{
                 None
               }
 
-          val methodArgAccessor: Expr[Option[Any => Any]] =
-            field.defaultMethodArgGetter match
-              case None =>
-                '{
-                  None
-                }
-              case Some(m) =>
-                val lambda = Lambda(
-                  owner = Symbol.spliceOwner,
-                  tpe = MethodType(List("x"))(_ => List(TypeRepr.of[Any]), _ => TypeRepr.of[Any]),
-                  rhsFn =
-                    (sym, params) =>
-                      val x    = params.head.asInstanceOf[Term]
-                      val expr = clsCast(x, t).select(m)
-                      expr.changeOwner(sym)
-                )
-                '{
-                  Some(
-                    ${
-                      lambda.asExprOf[Any => Any]
-                    }
-                  )
-                }
+        // Generate a field accessor { (x:Any) => x.asInstanceOf[A].(field name) }
+        val paramIsAccessible =
+          t.typeSymbol.fieldMember(paramName) match
+            case nt if nt == Symbol.noSymbol =>
+              false
+            case m if m.flags.is(Flags.Private) =>
+              false
+            case m if m.flags.is(Flags.Protected) =>
+              false
+            case m if m.flags.is(Flags.Artifact) =>
+              false
+            case m if m.privateWithin.nonEmpty =>
+              false
+            case _ =>
+              true
+        // println(s"${paramName} ${paramIsAccessible}")
 
-          // Using StaticMethodParameter when supportin Scala.js in Scala 3.
-          // TODO: Deprecate RuntimeMethodParameter
-          '{
-            StaticMethodParameter(
-              method =
-                ${
-                  constructorRef
-                },
-              index =
-                ${
-                  Expr(i)
-                },
-              name =
-                ${
-                  Expr(paramName)
-                },
-              isRequired =
-                ${
-                  Expr(field.isRequired)
-                },
-              isSecret =
-                ${
-                  Expr(field.isSecret)
-                },
-              surface =
-                ${
-                  surfaceOf(paramType)
-                },
-              defaultValue =
-                ${
-                  defaultValue
-                },
-              accessor =
-                ${
-                  accessor
-                },
-              methodArgAccessor =
-                ${
-                  methodArgAccessor
-                }
+        val accessor: Expr[Option[Any => Any]] =
+          if method.isClassConstructor && paramIsAccessible then
+            // MethodParameter.accessor[(owner type), (parameter type]]
+            val accessorMethod: Symbol =
+              TypeRepr.of[MethodParameter.type].typeSymbol.methodMember("accessor").head
+            val objRef = Ref(TypeRepr.of[MethodParameter].typeSymbol.companionModule)
+
+            def resolveType(tpe: TypeRepr): TypeRepr =
+              tpe match
+                case b: TypeBounds =>
+                  TypeRepr.of[Any]
+                case _ =>
+                  tpe
+
+            val t1 = resolveType(t)
+            val t2 = resolveType(paramType)
+
+            val typedAccessor = objRef.select(accessorMethod).appliedToTypes(List(t1, t2))
+            val methodCall    = typedAccessor.appliedToArgs(List(Literal(ClassOfConstant(t1))))
+
+            val lambda = Lambda(
+              owner = Symbol.spliceOwner,
+              tpe = MethodType(List("x"))(_ => List(t1), _ => t2),
+              rhsFn =
+                (sym, params) =>
+                  val x    = params.head.asInstanceOf[Term]
+                  val expr = Select.unique(x, paramName)
+                  expr.changeOwner(sym)
             )
-          }
+            val accMethod = methodCall.appliedToArgs(List(lambda))
+            // println(s"=== ${accMethod.show}")
+
+            // Generate code like :
+            // {{{
+            //   MethodParameter.accessor[t1, t2](classOf[t1]){(x:t1) => x.(field name) }
+            // }}}
+            '{
+              Some(
+                ${
+                  accMethod.asExprOf[Any => Any]
+                }
+              )
+            }
+          else
+            '{
+              None
+            }
+
+        val methodArgAccessor: Expr[Option[Any => Any]] =
+          field.defaultMethodArgGetter match
+            case None =>
+              '{
+                None
+              }
+            case Some(m) =>
+              val lambda = Lambda(
+                owner = Symbol.spliceOwner,
+                tpe = MethodType(List("x"))(_ => List(TypeRepr.of[Any]), _ => TypeRepr.of[Any]),
+                rhsFn =
+                  (sym, params) =>
+                    val x    = params.head.asInstanceOf[Term]
+                    val expr = clsCast(x, t).select(m)
+                    expr.changeOwner(sym)
+              )
+              '{
+                Some(
+                  ${
+                    lambda.asExprOf[Any => Any]
+                  }
+                )
+              }
+
+        // Using StaticMethodParameter when supportin Scala.js in Scala 3.
+        // TODO: Deprecate RuntimeMethodParameter
+        '{
+          StaticMethodParameter(
+            method =
+              ${
+                constructorRef
+              },
+            index =
+              ${
+                Expr(i)
+              },
+            name =
+              ${
+                Expr(paramName)
+              },
+            isRequired =
+              ${
+                Expr(field.isRequired)
+              },
+            isSecret =
+              ${
+                Expr(field.isSecret)
+              },
+            surface =
+              ${
+                surfaceOf(paramType)
+              },
+            defaultValue =
+              ${
+                defaultValue
+              },
+            accessor =
+              ${
+                accessor
+              },
+            methodArgAccessor =
+              ${
+                methodArgAccessor
+              }
+          )
+        }
     Expr.ofSeq(paramExprs)
 
   end methodParametersOf

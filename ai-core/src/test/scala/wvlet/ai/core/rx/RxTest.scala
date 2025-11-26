@@ -185,19 +185,17 @@ object RxTest extends AirSpec:
 
   test("for-comprehension") {
     val v =
-      for (
+      for
         x <- Rx.const(1)
         if x == 1
-      )
-        yield x
+      yield x
     v.run(x => x shouldBe 1)
 
     val n =
-      for (
+      for
         x <- Rx.const(1)
         if x != 1
-      )
-        yield x
+      yield x
     n.run(x => fail("cannot reach here"))
   }
 

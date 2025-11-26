@@ -50,8 +50,8 @@ class RxOptionTest extends AirSpec:
 
   test("for-comprehension") {
     val a =
-      for (x <- Rx.option(Some("hello")))
-        yield x + " world"
+      for x <- Rx.option(Some("hello"))
+      yield x + " world"
     a.run(_ shouldBe Some("hello world"))
   }
 

@@ -714,11 +714,11 @@ class RxRunner(
     override protected def nextValue: Option[Seq[Any]] =
       if lastValueBuffer.forall(_.nonEmpty) then
         val values =
-          for (i <- 0 until lastValueBuffer.size)
-            yield
-              val (v, newQueue) = lastValueBuffer(i).dequeue
-              lastValueBuffer(i) = newQueue
-              v
+          for i <- 0 until lastValueBuffer.size
+          yield
+            val (v, newQueue) = lastValueBuffer(i).dequeue
+            lastValueBuffer(i) = newQueue
+            v
         Some(values)
       else
         None
@@ -737,8 +737,8 @@ class RxRunner(
     override protected def nextValue: Option[Seq[Any]] =
       if lastValue.forall(_.nonEmpty) then
         val values =
-          for (i <- 0 until lastValue.size)
-            yield lastValue(i).get
+          for i <- 0 until lastValue.size
+          yield lastValue(i).get
         Some(values)
       else
         None
