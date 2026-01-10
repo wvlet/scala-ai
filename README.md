@@ -1,8 +1,9 @@
-# wvlet/scala-ai: Scala 3 for AI-Driven Coding & Agentic Systems
+# wvlet.ai (藍)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**`wvlet/scala-ai` empowers Scala 3 for modern AI coding and building AI agent applications.** It provides robust core utilities and tools for seamless LLM integration and agent orchestration.
+`wvlet/scala-ai` is a collection of lightweight utility libraries for empowering Scala 3. Here, **ai** stands for **藍 (indigo)** —  
+a traditional Japanese color symbolizing clarity, depth, and refinement.
 
 This is achieved through two primary modules:
 
@@ -36,8 +37,5 @@ libraryDependencies ++= Seq(
   // Core utilities for Scala 3 development
   "org.wvlet.ai" %% "ai-core" % scalaAIVersion,
   // High-level AI-agent interfaces (includes ai-core)
-  "org.wvlet.ai" %% "ai-agent" % scalaAIVersion,
-  // Optional: Choose AI service integrations
-  "org.wvlet.ai" %% "ai-agent-bedrock" % scalaAIVersion,
-  // "org.wvlet.ai" %% "ai-agent-vertexai" % scalaAIVersion,
+  "org.wvlet.ai" %% "ai-agent" % scalaAIVersion
 )
