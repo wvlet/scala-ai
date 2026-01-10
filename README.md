@@ -2,8 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-`wvlet/scala-ai` is a collection of lightweight utility libraries for empowering Scala 3. Here, **ai** stands for **藍 (indigo)** —  
-a traditional Japanese color symbolizing clarity, depth, and refinement.
+`wvlet/scala-ai` is a collection of lightweight utility libraries for empowering Scala 3. Here, **ai** stands for **藍 (indigo)** — a traditional Japanese color symbolizing clarity, depth, and refinement.
 
 This is achieved through two primary modules:
 
