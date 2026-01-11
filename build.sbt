@@ -3,7 +3,7 @@ import sbtide.Keys.ideSkipProject
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3                 = "3.7.3"
-val AIRFRAME_VERSION        = "2025.1.19"
+val AIRFRAME_VERSION        = "2025.1.26"
 val AWS_SDK_VERSION         = "2.41.5"
 val JS_JAVA_LOGGING_VERSION = "1.0.0"
 
@@ -45,7 +45,7 @@ val nativeBuildSettings = Seq[Setting[?]](
   libraryDependencies ++=
     Seq(
       // For using java.time libraries
-      "org.ekrich" %%% "sjavatime" % "1.4.0"
+      "org.ekrich" %%% "sjavatime" % "1.5.0"
     )
 )
 
