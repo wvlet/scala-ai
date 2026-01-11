@@ -10,7 +10,7 @@ val JS_JAVA_LOGGING_VERSION = "1.0.0"
 // Common build settings
 val buildSettings = Seq[Setting[?]](
   organization             := "org.wvlet",
-  description              := "Scala 3 library for building AI (LLM) applications",
+  description              := "Scala 3 unified utility library",
   scalaVersion             := SCALA_3,
   crossScalaVersions       := List(SCALA_3),
   crossPaths               := true,
@@ -71,7 +71,7 @@ Global / excludeLintKeys ++= Set(ideSkipProject)
 // Root project aggregating others
 lazy val root = project
   .in(file("."))
-  .settings(buildSettings, name := "ai", publish / skip := true)
+  .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
 lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, agent, bedrock)
@@ -93,8 +93,8 @@ lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _
 // core library for Scala JVM, Scala.js and Scala Native
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
-  .in(file("ai-core"))
-  .settings(buildSettings, name := "ai-core", description := "Scala core library for AI")
+  .in(file("uni-core"))
+  .settings(buildSettings, name := "uni-core", description := "Scala unified core library")
   .jvmSettings(
     libraryDependencies ++=
       Seq(
@@ -114,11 +114,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .nativeSettings(nativeBuildSettings)
 
 lazy val agent = project
-  .in(file("ai-agent"))
+  .in(file("uni-agent"))
   .settings(
     buildSettings,
-    name        := "ai-agent",
-    description := "Core interface for AI (LLM) applications",
+    name        := "uni-agent",
+    description := "Core interface for agent applications",
     libraryDependencies ++=
       Seq(
         "org.wvlet.airframe" %% "airframe"       % AIRFRAME_VERSION,
@@ -127,10 +127,10 @@ lazy val agent = project
   )
 
 lazy val bedrock = project
-  .in(file("ai-agent-bedrock"))
+  .in(file("uni-agent-bedrock"))
   .settings(
     buildSettings,
-    name        := "ai-bedrock",
+    name        := "uni-bedrock",
     description := "AWS Bedrock integration",
     libraryDependencies ++=
       Seq(
@@ -145,12 +145,12 @@ lazy val bedrock = project
   .dependsOn(agent)
 
 lazy val integrationTest = project
-  .in(file("ai-integration-test"))
+  .in(file("uni-integration-test"))
   .settings(
     buildSettings,
     noPublish,
-    name           := "ai-integration-test",
-    description    := "Integration test for AI (LLM) applications",
+    name           := "uni-integration-test",
+    description    := "Integration test for agent applications",
     ideSkipProject := false
   )
   .dependsOn(bedrock)
