@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package wvlet.ai.core.surface;
+package wvlet.uni.core.surface;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
