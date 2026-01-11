@@ -4,17 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**wvlet/scala-ai** is a Scala 3 library for building AI-driven applications and agentic systems. It consists of two main components:
+**wvlet/uni** is a Scala 3 unified utility library. It consists of two main components:
 
-- **ai-core**: Foundational utilities adapted from wvlet/airframe, including logging, dependency injection, serialization (JSON/MessagePack), RPC/HTTP framework, and testing
-- **ai-agent**: High-level AI agent interfaces providing unified LLM APIs, agent orchestration, and tool integration
-- **ai-agent-bedrock**: AWS Bedrock integration for the ai-agent module
+- **uni-core**: Foundational utilities adapted from wvlet/airframe, including logging, dependency injection, serialization (JSON/MessagePack), RPC/HTTP framework, and testing
+- **uni-agent**: Agent interfaces providing unified APIs, agent orchestration, and tool integration
+- **uni-agent-bedrock**: AWS Bedrock integration for the uni-agent module
 
 ## Key Architecture Concepts
 
-### LLM Agent Architecture
-- `LLMAgent` is the core abstraction for AI agents with identity, model, system prompt, tools, and configuration
-- `ChatModel` trait defines the interface for LLM providers (e.g., BedrockChat)
+### Agent Architecture
+- `LLMAgent` is the core abstraction for agents with identity, model, system prompt, tools, and configuration
+- `ChatModel` trait defines the interface for providers (e.g., BedrockChat)
 - `ChatSession` manages conversation history and state
 - Tool integration through `ToolSpec` for function calling capabilities
 
@@ -78,7 +78,7 @@ sbt integrationTest/test
 
 - Uses AirSpec testing framework (lightweight alternative to ScalaTest)
 - Test files end with `Test.scala` or `Spec.scala`
-- Integration tests are in separate `ai-integration-test` module
+- Integration tests are in separate `uni-integration-test` module
 - Avoid using mock as it increases maintenance cost and creates brittle tests that break when internal implementation changes
 - Ensure tests cover new functionality and bug fixes with good test coverage
 - Test names should be concise and descriptive, written in plain English
@@ -103,15 +103,15 @@ sbt integrationTest/test
 
 ## Module Structure
 
-- `ai-core/`: Cross-platform core utilities (logging, DI, JSON, MessagePack, etc.)
-- `ai-agent/`: Core LLM agent interfaces and chat abstractions
-- `ai-agent-bedrock/`: AWS Bedrock-specific implementation
-- `ai-integration-test/`: Integration tests requiring real LLM services
+- `uni-core/`: Cross-platform core utilities (logging, DI, JSON, MessagePack, etc.)
+- `uni-agent/`: Core agent interfaces and chat abstractions
+- `uni-agent-bedrock/`: AWS Bedrock-specific implementation
+- `uni-integration-test/`: Integration tests requiring real services
 
 ## Coding Style Guidelines
 
 - Use Scala 3 syntax throughout the codebase (no Scala 2 support needed)
-- For ai-core cross-platform development, use .jvm, .js, and .native folders for platform-specific code
+- For uni-core cross-platform development, use .jvm, .js, and .native folders for platform-specific code
 - Omit `new` for object instantiation (e.g., `StringBuilder()` instead of `new StringBuilder()`)
 - Always enclose expressions in string interpolation with brackets: `${...}`
 - Document public APIs (classes, methods, objects) with [Scaladoc comments](https://docs.scala-lang.org/style/scaladoc.html)
@@ -150,6 +150,6 @@ sbt integrationTest/test
 - BedrockChat implements streaming responses using AWS SDK's ConverseStream API
 - Tool calling uses JSON Schema for parameter validation
 - Reasoning support for models like Claude-3.5-Sonnet with thinking capabilities
-- Circuit breaker and retry logic available in ai-core for resilience
+- Circuit breaker and retry logic available in uni-core for resilience
 - Dependency injection design allows for easy testing and configuration
-- ai-core designed with minimal dependencies - avoid libraries not in core module
+- uni-core designed with minimal dependencies - avoid libraries not in core module
