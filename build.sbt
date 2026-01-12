@@ -120,7 +120,7 @@ lazy val log = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .nativeSettings(nativeBuildSettings)
 
-// core library for Scala JVM, Scala.js and Scala Native
+// The 'uni' library for Scala JVM, Scala.js and Scala Native
 lazy val uni = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("uni"))
