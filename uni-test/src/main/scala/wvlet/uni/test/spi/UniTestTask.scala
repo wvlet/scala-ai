@@ -21,74 +21,53 @@ import wvlet.uni.test.TestPending
 import wvlet.uni.test.TestCancelled
 import wvlet.uni.test.TestIgnored
 import wvlet.uni.test.UniTest
+import wvlet.uni.test.compat
 
-import java.lang.reflect.InvocationTargetException
+import scala.concurrent.Await
+import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
 
 /**
   * sbt test task that executes tests for a single test class
   */
-class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig)
-    extends Task:
+class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig) extends Task:
+
+  def taskDef(): TaskDef = _taskDef
 
   override def tags(): Array[String] = Array.empty
 
+  /**
+    * Synchronous execute method for JVM. Delegates to the async version using Promise/Await.
+    */
   override def execute(
       eventHandler: EventHandler,
       loggers: Array[sbt.testing.Logger]
   ): Array[Task] =
-    val className = taskDef.fullyQualifiedName()
+    val p = Promise[Unit]()
+    execute(eventHandler, loggers, _ => p.success(()))
+    Await.result(p.future, Duration.Inf)
+    Array.empty
+
+  /**
+    * Asynchronous execute method for Scala.js. This is the main implementation that both sync and
+    * async paths use.
+    */
+  def execute(
+      eventHandler: EventHandler,
+      loggers: Array[sbt.testing.Logger],
+      continuation: Array[Task] => Unit
+  ): Unit =
+    implicit val ec = compat.executionContext
+    val className   = taskDef().fullyQualifiedName()
 
     try
-      // Load the test class
-      val testClass    = testClassLoader.loadClass(className)
-      val testInstance = testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
-
-      // Get initial tests and apply filter if specified
-      val allTests      = testInstance.registeredTests
-      val filteredTests =
-        config.testFilter match
-          case Some(filter) =>
-            allTests.filter(_.fullName.contains(filter))
-          case None =>
-            allTests
-
-      if filteredTests.isEmpty then
-        // No tests registered via test() DSL, log info
-        loggers.foreach(_.info(s"No tests found in ${className}"))
-      else
-        // Use queue-based approach to handle dynamically registered nested tests
-        val testQueue     = scala.collection.mutable.Queue.from(filteredTests)
-        val executedTests = scala.collection.mutable.Set.empty[String]
-
-        while testQueue.nonEmpty do
-          val testDef = testQueue.dequeue()
-          if !executedTests.contains(testDef.fullName) then
-            executedTests.add(testDef.fullName)
-
-            val beforeCount = testInstance.registeredTests.size
-            val result      = testInstance.executeTest(testDef)
-            val isContainer = testInstance.registeredTests.size > beforeCount
-
-            // Report failing containers or any leaf test
-            if result.isFailure || !isContainer then
-              val event = createEvent(testDef.fullName, result)
-              eventHandler.handle(event)
-              logResult(result, loggers)
-
-            // Queue nested tests for execution (if container didn't fail)
-            if !result.isFailure && isContainer then
-              testInstance
-                .registeredTests
-                .foreach { t =>
-                  if !executedTests.contains(t.fullName) then
-                    testQueue.enqueue(t)
-                }
-      end if
-
+      // Load the test class using platform-specific reflection
+      val testInstance = compat.newInstance(className, testClassLoader)
+      runTests(testInstance, className, eventHandler, loggers)
     catch
       case e: Throwable =>
-        // Unwrap InvocationTargetException to get the actual cause
-        val cause           = findCause(e)
+        // Unwrap exception to get the actual cause
+        val cause           = compat.findCause(e)
         val (event, logMsg) = classifySpecLevelException(className, cause)
         eventHandler.handle(event)
         loggers.foreach(_.info(logMsg))
@@ -98,12 +77,61 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
           // Don't trace for expected test control flow exceptions
           case _ =>
             loggers.foreach(_.trace(cause))
+    finally
+      continuation(Array.empty)
     end try
 
-    // No nested tasks
-    Array.empty
-
   end execute
+
+  private def runTests(
+      testInstance: UniTest,
+      className: String,
+      eventHandler: EventHandler,
+      loggers: Array[sbt.testing.Logger]
+  ): Unit =
+    // Get initial tests and apply filter if specified
+    val allTests      = testInstance.registeredTests
+    val filteredTests =
+      config.testFilter match
+        case Some(filter) =>
+          allTests.filter(_.fullName.contains(filter))
+        case None =>
+          allTests
+
+    if filteredTests.isEmpty then
+      // No tests registered via test() DSL, log info
+      loggers.foreach(_.info(s"No tests found in ${className}"))
+    else
+      // Use queue-based approach to handle dynamically registered nested tests
+      val testQueue     = scala.collection.mutable.Queue.from(filteredTests)
+      val executedTests = scala.collection.mutable.Set.empty[String]
+
+      while testQueue.nonEmpty do
+        val testDef = testQueue.dequeue()
+        if !executedTests.contains(testDef.fullName) then
+          executedTests.add(testDef.fullName)
+
+          val beforeCount = testInstance.registeredTests.size
+          val result      = testInstance.executeTest(testDef)
+          val isContainer = testInstance.registeredTests.size > beforeCount
+
+          // Report failing containers or any leaf test
+          if result.isFailure || !isContainer then
+            val event = createEvent(testDef.fullName, result)
+            eventHandler.handle(event)
+            logResult(result, loggers)
+
+          // Queue nested tests for execution (if container didn't fail)
+          if !result.isFailure && isContainer then
+            testInstance
+              .registeredTests
+              .foreach { t =>
+                if !executedTests.contains(t.fullName) then
+                  testQueue.enqueue(t)
+              }
+    end if
+
+  end runTests
 
   private def logResult(result: TestResult, loggers: Array[sbt.testing.Logger]): Unit =
     result match
@@ -152,8 +180,8 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
           new OptionalThrowable()
 
     UniTestEvent(
-      taskDef.fullyQualifiedName(),
-      taskDef.fingerprint(),
+      taskDef().fullyQualifiedName(),
+      taskDef().fingerprint(),
       selector,
       status,
       throwable,
@@ -164,22 +192,12 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
 
   private def createErrorEvent(className: String, e: Throwable): Event = UniTestEvent(
     className,
-    taskDef.fingerprint(),
+    taskDef().fingerprint(),
     new SuiteSelector(),
     Status.Error,
     new OptionalThrowable(e),
     0L
   )
-
-  /**
-    * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause
-    */
-  private def findCause(e: Throwable): Throwable =
-    e match
-      case ite: InvocationTargetException if ite.getCause != null =>
-        findCause(ite.getCause)
-      case _ =>
-        e
 
   /**
     * Classify an exception thrown at the spec level (during class construction) and create an
@@ -191,7 +209,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       case ts: TestSkipped =>
         val event = UniTestEvent(
           className,
-          taskDef.fingerprint(),
+          taskDef().fingerprint(),
           new SuiteSelector(),
           Status.Skipped,
           new OptionalThrowable(ts),
@@ -201,7 +219,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       case tp: TestPending =>
         val event = UniTestEvent(
           className,
-          taskDef.fingerprint(),
+          taskDef().fingerprint(),
           new SuiteSelector(),
           Status.Pending,
           new OptionalThrowable(tp),
@@ -211,7 +229,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       case tc: TestCancelled =>
         val event = UniTestEvent(
           className,
-          taskDef.fingerprint(),
+          taskDef().fingerprint(),
           new SuiteSelector(),
           Status.Canceled,
           new OptionalThrowable(tc),
@@ -221,7 +239,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       case ti: TestIgnored =>
         val event = UniTestEvent(
           className,
-          taskDef.fingerprint(),
+          taskDef().fingerprint(),
           new SuiteSelector(),
           Status.Ignored,
           new OptionalThrowable(ti),
@@ -231,7 +249,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       case _ =>
         val event = UniTestEvent(
           className,
-          taskDef.fingerprint(),
+          taskDef().fingerprint(),
           new SuiteSelector(),
           Status.Error,
           new OptionalThrowable(e),

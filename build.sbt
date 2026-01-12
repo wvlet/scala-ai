@@ -2,14 +2,15 @@ import sbtide.Keys.ideSkipProject
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val SCALA_3                    = "3.7.3"
-val AIRFRAME_VERSION           = "2025.1.27"
-val AWS_SDK_VERSION            = "2.41.5"
-val JS_JAVA_LOGGING_VERSION    = "1.0.0"
-val JUNIT_PLATFORM_VERSION     = "6.0.2"
-val LOGBACK_VERSION            = "1.5.24"
-val SBT_TEST_INTERFACE_VERSION = "1.0"
-val SCALACHECK_VERSION         = "1.19.0"
+val SCALA_3                           = "3.7.3"
+val AIRFRAME_VERSION                  = "2025.1.27"
+val AWS_SDK_VERSION                   = "2.41.5"
+val JS_JAVA_LOGGING_VERSION           = "1.0.0"
+val JUNIT_PLATFORM_VERSION            = "6.0.2"
+val LOGBACK_VERSION                   = "1.5.24"
+val SCALA_NATIVE_TEST_INTERFACE_VERSION = "0.5.8"
+val SBT_TEST_INTERFACE_VERSION        = "1.0"
+val SCALACHECK_VERSION                = "1.19.0"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
@@ -144,7 +145,6 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
     libraryDependencies ++=
       Seq(
-        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION,
         // ScalaCheck for property-based testing
         "org.scalacheck" %%% "scalacheck" % SCALACHECK_VERSION
       )
@@ -152,12 +152,28 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     libraryDependencies ++=
       Seq(
+        // JVM uses sbt test-interface
+        "org.scala-sbt"      % "test-interface"          % SBT_TEST_INTERFACE_VERSION,
         "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Provided,
         "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Provided
       )
   )
-  .jsSettings(jsBuildSettings)
-  .nativeSettings(nativeBuildSettings)
+  .jsSettings(
+    jsBuildSettings,
+    libraryDependencies ++=
+      Seq(
+        // Scala.js uses scalajs-test-interface for proper test discovery
+        ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).cross(CrossVersion.for3Use2_13)
+      )
+  )
+  .nativeSettings(
+    nativeBuildSettings,
+    libraryDependencies ++=
+      Seq(
+        // Scala Native uses native test-interface
+        "org.scala-native" %%% "test-interface" % SCALA_NATIVE_TEST_INTERFACE_VERSION
+      )
+  )
   .dependsOn(log)
 
 lazy val agent = project

@@ -30,3 +30,14 @@ class UniTestFramework extends Framework:
       remoteArgs: Array[String],
       testClassLoader: ClassLoader
   ): Runner = UniTestRunner(args, remoteArgs, testClassLoader)
+
+  /**
+    * Scala.js slave runner - used for remote test execution. For now, we just create a standard
+    * runner since we don't support distributed testing.
+    */
+  def slaveRunner(
+      args: Array[String],
+      remoteArgs: Array[String],
+      testClassLoader: ClassLoader,
+      send: String => Unit
+  ): Runner = UniTestRunner(args, remoteArgs, testClassLoader)

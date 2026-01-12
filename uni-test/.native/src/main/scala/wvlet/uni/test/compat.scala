@@ -13,17 +13,37 @@
  */
 package wvlet.uni.test
 
+import scala.concurrent.ExecutionContext
+import scala.scalanative.reflect.Reflect
+
 /**
   * Scala Native specific compatibility layer for uni-test
   */
 private[test] object compat:
 
   /**
-    * Platform-specific equality check. Returns Some(result) if the comparison was handled, None if
-    * the default comparison should be used.
-    *
-    * On Native, there's no special handling needed, so we always return None.
+    * Platform-specific matcher for equality checks. On Native, there's no special handling needed,
+    * so we return an empty PartialFunction.
     */
-  def platformSpecificEquals(a: Any, b: Any): Option[Boolean] = None
+  def platformSpecificMatcher: PartialFunction[(Any, Any), MatchResult] = PartialFunction.empty
+
+  /**
+    * Execution context for async operations
+    */
+  val executionContext: ExecutionContext = ExecutionContext.global
+
+  /**
+    * Create a new instance of the test class using Scala Native reflection. Throws exception if
+    * class cannot be found or instantiated.
+    */
+  def newInstance(className: String, classLoader: ClassLoader): UniTest = Reflect
+    .lookupInstantiatableClass(className)
+    .map(_.newInstance().asInstanceOf[UniTest])
+    .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
+
+  /**
+    * Find the root cause of an exception.
+    */
+  def findCause(e: Throwable): Throwable = e
 
 end compat
