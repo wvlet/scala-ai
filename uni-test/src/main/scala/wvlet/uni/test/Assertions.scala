@@ -234,25 +234,6 @@ trait Assertions:
     if !cond then
       throw AssertionFailure(message, source)
 
-  /**
-    * Mark a block of test code as flaky. All failures inside this block will be reported as skipped
-    * instead of failures. This is useful for tests that depend on external resources or timing.
-    */
-  inline def flaky[U](body: => U)(using source: SourceCode): U =
-    try
-      body
-    catch
-      case e: TestSkipped =>
-        throw e
-      case e: TestPending =>
-        throw e
-      case e: TestCancelled =>
-        throw e
-      case e: TestIgnored =>
-        throw e
-      case e: Throwable =>
-        throw TestSkipped(s"Flaky test failed: ${e.getMessage}", source)
-
 end Assertions
 
 object Assertions:
@@ -260,33 +241,39 @@ object Assertions:
     * Deep equality check that handles arrays, options, and collections
     */
   def deepEquals(a: Any, b: Any): Boolean =
-    (a, b) match
-      case (null, null) =>
-        true
-      case (null, _) =>
-        false
-      case (_, null) =>
-        false
-      case (a1: Array[?], a2: Array[?]) =>
-        a1.length == a2.length && a1.zip(a2).forall((x, y) => deepEquals(x, y))
-      case (o1: Option[?], o2: Option[?]) =>
-        (o1, o2) match
-          case (Some(v1), Some(v2)) =>
-            deepEquals(v1, v2)
-          case (None, None) =>
+    // First check platform-specific equality (e.g., js.Object in Scala.js)
+    compat.platformSpecificEquals(a, b) match
+      case Some(result) =>
+        result
+      case None =>
+        // Fall back to standard deep equality
+        (a, b) match
+          case (null, null) =>
             true
-          case _ =>
+          case (null, _) =>
             false
-      case (s1: Seq[?], s2: Seq[?]) =>
-        s1.length == s2.length && s1.zip(s2).forall((x, y) => deepEquals(x, y))
-      case (s1: Set[?], s2: Set[?]) =>
-        s1.size == s2.size && s1.forall(x => s2.exists(y => deepEquals(x, y)))
-      case (m1: Map[?, ?], m2: Map[?, ?]) =>
-        m1.size == m2.size &&
-        m1.forall { case (k, v) =>
-          m2.asInstanceOf[Map[Any, Any]].get(k).exists(v2 => deepEquals(v, v2))
-        }
-      case _ =>
-        a == b
+          case (_, null) =>
+            false
+          case (a1: Array[?], a2: Array[?]) =>
+            a1.length == a2.length && a1.zip(a2).forall((x, y) => deepEquals(x, y))
+          case (o1: Option[?], o2: Option[?]) =>
+            (o1, o2) match
+              case (Some(v1), Some(v2)) =>
+                deepEquals(v1, v2)
+              case (None, None) =>
+                true
+              case _ =>
+                false
+          case (s1: Seq[?], s2: Seq[?]) =>
+            s1.length == s2.length && s1.zip(s2).forall((x, y) => deepEquals(x, y))
+          case (s1: Set[?], s2: Set[?]) =>
+            s1.size == s2.size && s1.forall(x => s2.exists(y => deepEquals(x, y)))
+          case (m1: Map[?, ?], m2: Map[?, ?]) =>
+            m1.size == m2.size &&
+            m1.forall { case (k, v) =>
+              m2.asInstanceOf[Map[Any, Any]].get(k).exists(v2 => deepEquals(v, v2))
+            }
+          case _ =>
+            a == b
 
 end Assertions
