@@ -2,14 +2,15 @@ import sbtide.Keys.ideSkipProject
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val SCALA_3                    = "3.7.3"
-val AIRFRAME_VERSION           = "2025.1.27"
-val AWS_SDK_VERSION            = "2.41.5"
-val JS_JAVA_LOGGING_VERSION    = "1.0.0"
-val JUNIT_PLATFORM_VERSION     = "6.0.2"
-val LOGBACK_VERSION            = "1.5.24"
-val SBT_TEST_INTERFACE_VERSION = "1.0"
-val SCALACHECK_VERSION         = "1.19.0"
+val SCALA_3                           = "3.7.3"
+val AIRFRAME_VERSION                  = "2025.1.27"
+val AWS_SDK_VERSION                   = "2.41.5"
+val JS_JAVA_LOGGING_VERSION           = "1.0.0"
+val JUNIT_PLATFORM_VERSION            = "6.0.2"
+val LOGBACK_VERSION                   = "1.5.24"
+val SCALA_NATIVE_TEST_INTERFACE_VERSION = "0.5.8"
+val SBT_TEST_INTERFACE_VERSION        = "1.0"
+val SCALACHECK_VERSION                = "1.19.0"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
@@ -170,7 +171,7 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++=
       Seq(
         // Scala Native uses native test-interface
-        "org.scala-native" %%% "test-interface" % "0.5.8"
+        "org.scala-native" %%% "test-interface" % SCALA_NATIVE_TEST_INTERFACE_VERSION
       )
   )
   .dependsOn(log)
