@@ -106,4 +106,70 @@ class UniTestSelfTest extends UniTest:
     1 shouldBe 1
   }
 
+  test("assert condition") {
+    assert(1 + 1 == 2)
+    assert(true)
+    assert("hello".nonEmpty)
+  }
+
+  test("assert with message") {
+    assert(1 + 1 == 2, "Math should work")
+    assert(true, "True should be true")
+  }
+
+  test("assert failure shows message") {
+    val e = intercept[AssertionFailure] {
+      assert(false, "Custom failure message")
+    }
+    e.getMessage shouldContain "Custom failure message"
+  }
+
+  test("flaky passes on success") {
+    val result = flaky {
+      42
+    }
+    result shouldBe 42
+  }
+
+  test("flaky converts failure to skip") {
+    val e = intercept[TestSkipped] {
+      flaky {
+        throw RuntimeException("Flaky failure")
+      }
+    }
+    e.getMessage shouldContain "Flaky test failed"
+  }
+
+  test("flaky propagates skip/pending") {
+    // TestSkipped should pass through unchanged
+    intercept[TestSkipped] {
+      flaky {
+        skip("Intentional skip")
+      }
+    }
+
+    // TestPending should pass through unchanged
+    intercept[TestPending] {
+      flaky {
+        pending("Intentional pending")
+      }
+    }
+  }
+
+  test("shouldNotBe defined for collections") {
+    val emptyList: List[Int] = Nil
+    val nonEmptyList = List(1, 2, 3)
+
+    emptyList shouldNotBe defined
+    nonEmptyList shouldNotBe empty
+  }
+
+  test("shouldNotBe empty for strings") {
+    val str = "hello"
+    val emptyStr = ""
+
+    str shouldNotBe empty
+    emptyStr shouldBe empty
+  }
+
 end UniTestSelfTest

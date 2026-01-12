@@ -112,6 +112,42 @@ trait Assertions:
       if !pf.isDefinedAt(actual) then
         throw AssertionFailure(s"Value <${actual}> did not match the expected pattern", source)
 
+    /**
+      * Assert that option/collection is not defined (is empty)
+      */
+    inline infix def shouldNotBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =
+      val isDefined =
+        actual match
+          case opt: Option[?] =>
+            opt.isDefined
+          case seq: Iterable[?] =>
+            seq.nonEmpty
+          case null =>
+            false
+          case _ =>
+            true
+      if isDefined then
+        throw AssertionFailure(s"Expected not defined but got <${actual}>", source)
+
+    /**
+      * Assert that option/collection is not empty
+      */
+    inline infix def shouldNotBe(matcher: EmptyMatcher)(using source: SourceCode): Unit =
+      val isEmpty =
+        actual match
+          case opt: Option[?] =>
+            opt.isEmpty
+          case seq: Iterable[?] =>
+            seq.isEmpty
+          case str: String =>
+            str.isEmpty
+          case null =>
+            true
+          case _ =>
+            false
+      if !isEmpty then
+        throw AssertionFailure(s"Expected not empty but got <${actual}>", source)
+
   end extension
 
   extension [A](actual: Iterable[A])
@@ -183,6 +219,39 @@ trait Assertions:
   ): Unit =
     if Math.abs(actual - expected) > delta then
       throw AssertionFailure(s"Expected <${expected}> +/- ${delta} but got <${actual}>", source)
+
+  /**
+    * Assert that a condition is true
+    */
+  inline def assert(cond: => Boolean)(using source: SourceCode): Unit =
+    if !cond then
+      throw AssertionFailure("Assertion failed", source)
+
+  /**
+    * Assert that a condition is true with a custom message
+    */
+  inline def assert(cond: => Boolean, message: => String)(using source: SourceCode): Unit =
+    if !cond then
+      throw AssertionFailure(message, source)
+
+  /**
+    * Mark a block of test code as flaky. All failures inside this block will be reported as skipped
+    * instead of failures. This is useful for tests that depend on external resources or timing.
+    */
+  inline def flaky[U](body: => U)(using source: SourceCode): U =
+    try
+      body
+    catch
+      case e: TestSkipped =>
+        throw e
+      case e: TestPending =>
+        throw e
+      case e: TestCancelled =>
+        throw e
+      case e: TestIgnored =>
+        throw e
+      case e: Throwable =>
+        throw TestSkipped(s"Flaky test failed: ${e.getMessage}", source)
 
 end Assertions
 
