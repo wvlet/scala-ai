@@ -8,11 +8,12 @@ import wvlet.uni.agent.chat.ChatMessage
 import wvlet.uni.agent.chat.ChatRequest
 import wvlet.uni.agent.core.AIException
 import wvlet.uni.agent.core.StatusCode
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
 
 import scala.jdk.CollectionConverters.*
 
-class BedrockChatTest extends AirSpec:
+class BedrockChatTest extends UniTest:
 
   private def createAgent(modelConfig: ModelConfig = ModelConfig()): LLMAgent = LLMAgent(
     name = "test-agent",

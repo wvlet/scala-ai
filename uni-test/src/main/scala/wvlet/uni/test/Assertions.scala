@@ -56,6 +56,20 @@ trait Assertions:
         throw AssertionFailure(s"Expected not <${expected}> but got the same value", source)
 
     /**
+      * Assert that value is null (using literal null)
+      */
+    inline infix def shouldBe(expected: Null)(using source: SourceCode): Unit =
+      if actual != null then
+        throw AssertionFailure(s"Expected null but got <${actual}>", source)
+
+    /**
+      * Assert that value is not null (using literal null)
+      */
+    inline infix def shouldNotBe(expected: Null)(using source: SourceCode): Unit =
+      if actual == null then
+        throw AssertionFailure("Expected not null but got null", source)
+
+    /**
       * Assert that option/collection is defined (non-empty)
       */
     inline infix def shouldBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =

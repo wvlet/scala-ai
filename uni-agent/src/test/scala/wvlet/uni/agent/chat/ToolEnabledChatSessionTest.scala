@@ -6,10 +6,10 @@ import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.uni.agent.tool.LocalToolExecutor
 import wvlet.uni.agent.tool.ToolExecutor
 import wvlet.uni.agent.core.DataType
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 import wvlet.airframe.rx.Rx
 
-class ToolEnabledChatSessionTest extends AirSpec:
+class ToolEnabledChatSessionTest extends UniTest:
 
   // Mock chat session for testing
   class MockChatSession extends ChatSession:

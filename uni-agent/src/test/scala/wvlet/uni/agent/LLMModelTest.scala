@@ -1,8 +1,8 @@
 package wvlet.uni.agent
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class LLMModelTest extends AirSpec:
+class LLMModelTest extends UniTest:
 
   test("LLMModel should hold id and name") {
     val model = LLM("test-id", "Test Model")

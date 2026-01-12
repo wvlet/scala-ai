@@ -1,8 +1,8 @@
 package wvlet.uni.agent.core
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class DataTypeSpec extends AirSpec:
+class DataTypeSpec extends UniTest:
 
   test("primitive types should be distinct") {
     DataType.BooleanType shouldBe DataType.BooleanType
