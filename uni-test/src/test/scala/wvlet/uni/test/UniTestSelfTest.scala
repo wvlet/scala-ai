@@ -1,0 +1,109 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.test
+
+/**
+  * Self-test for UniTest framework
+  */
+class UniTestSelfTest extends UniTest:
+
+  test("basic shouldBe assertion") {
+    1 + 1 shouldBe 2
+    "hello" shouldBe "hello"
+    true shouldBe true
+  }
+
+  test("shouldNotBe assertion") {
+    1 shouldNotBe 2
+    "hello" shouldNotBe "world"
+  }
+
+  test("collection assertions") {
+    val list = List(1, 2, 3)
+
+    list shouldBe List(1, 2, 3)
+    list shouldNotBe List(1, 2)
+    list shouldContain 2
+    list shouldNotContain 5
+  }
+
+  test("option assertions") {
+    val some: Option[Int] = Some(42)
+    val none: Option[Int] = None
+
+    some shouldBe defined
+    some shouldNotBe empty
+    none shouldBe empty
+    none shouldNotBe defined
+  }
+
+  test("string containment") {
+    val str = "Hello, UniTest!"
+
+    str shouldContain "UniTest"
+    str shouldNotContain "AirSpec"
+  }
+
+  test("pattern matching") {
+    val result: Any = ("hello", 42)
+
+    result shouldMatch { case (s: String, n: Int) =>
+    }
+  }
+
+  test("instance equality") {
+    val a = "hello"
+    val b = a
+    val c = String("hello")
+
+    a shouldBeTheSameInstanceAs b
+    // Note: String interning may make a and c the same instance
+  }
+
+  test("floating point comparison") {
+    assertEquals(0.1 + 0.2, 0.3, 0.0001)
+    assertEquals(3.14f, 3.14f, 0.001f)
+  }
+
+  test("intercept exception") {
+    val e = intercept[IllegalArgumentException] {
+      throw IllegalArgumentException("test error")
+    }
+    e.getMessage shouldContain "test error"
+  }
+
+  test("nested tests") {
+    val data = List(1, 2, 3)
+
+    test("first element") {
+      data.head shouldBe 1
+    }
+
+    test("last element") {
+      data.last shouldBe 3
+    }
+
+    test("size") {
+      data.size shouldBe 3
+    }
+  }
+
+  test("logging works") {
+    debug("This is a debug message")
+    trace("This is a trace message")
+    info("This is an info message")
+    1 shouldBe 1
+  }
+
+end UniTestSelfTest
