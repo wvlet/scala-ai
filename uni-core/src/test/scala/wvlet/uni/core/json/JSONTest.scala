@@ -14,7 +14,7 @@
 package wvlet.uni.core.json
 
 import wvlet.uni.core.json.JSON.*
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

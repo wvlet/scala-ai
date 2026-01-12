@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.surface
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 object MultipleConstructorArgsTest extends AirSpec:
   case class MultiC(a: Int)(implicit val s: String):

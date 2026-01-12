@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.surface
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 import scala.jdk.CollectionConverters.*
 
 object Scala3EnumTest extends AirSpec:

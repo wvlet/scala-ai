@@ -1,7 +1,7 @@
 package wvlet.uni.core.util
 
 import wvlet.uni.core.util.SourceCode
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class SourceCodeTest extends AirSpec:
   test("embed the source code name and location") {

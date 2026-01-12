@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.rx
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.util.Failure
 import scala.util.Success

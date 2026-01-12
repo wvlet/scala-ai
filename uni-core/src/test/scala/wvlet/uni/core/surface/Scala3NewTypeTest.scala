@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.surface
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 object Scala3NewTypeTest extends AirSpec:
   trait Label1

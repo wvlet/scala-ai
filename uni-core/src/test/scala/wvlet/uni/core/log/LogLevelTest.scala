@@ -1,7 +1,7 @@
 package wvlet.uni.core.log
 
 import wvlet.uni.core.log.LogLevel
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import java.util.logging.Level as JLevel
 

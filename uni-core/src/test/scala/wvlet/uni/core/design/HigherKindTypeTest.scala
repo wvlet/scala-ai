@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.design
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.language.higherKinds
 

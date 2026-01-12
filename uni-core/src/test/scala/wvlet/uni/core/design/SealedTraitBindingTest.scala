@@ -14,7 +14,7 @@
 package wvlet.uni.core.design
 
 import example.SealedTrait.Adt
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

@@ -1,6 +1,6 @@
 package wvlet.uni.agent
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class LLMAgentTest extends AirSpec:
 

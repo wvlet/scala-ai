@@ -3,7 +3,7 @@ package wvlet.uni.core.design
 import wvlet.uni.core.surface.Surface
 import DesignTest.Alias.HelloRef
 import DesignTest.Alias.StringHello
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

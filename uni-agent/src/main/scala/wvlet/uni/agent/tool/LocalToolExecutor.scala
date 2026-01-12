@@ -4,9 +4,9 @@ import wvlet.uni.agent.chat.ChatMessage
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.chat.ChatMessage.ToolCallRequest
 import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
-import wvlet.unirframe.rx.Rx
-import wvlet.unirframe.codec.MessageCodec
-import wvlet.log.LogSupport
+import wvlet.airframe.rx.Rx
+import wvlet.airframe.codec.MessageCodec
+import wvlet.uni.core.log.LogSupport
 
 /**
   * A local tool executor that executes tools in-memory using registered functions. This is useful

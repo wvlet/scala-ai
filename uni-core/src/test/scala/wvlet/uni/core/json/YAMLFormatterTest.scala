@@ -1,6 +1,6 @@
 package wvlet.uni.core.json
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 case class Test(json: String, yaml: String)
 

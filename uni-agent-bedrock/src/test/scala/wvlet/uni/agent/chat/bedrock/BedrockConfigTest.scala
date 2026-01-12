@@ -6,7 +6,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClientBuilder
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class BedrockConfigTest extends AirSpec:
 

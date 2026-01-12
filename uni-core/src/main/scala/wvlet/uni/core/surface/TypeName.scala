@@ -15,7 +15,7 @@ package wvlet.uni.core.surface
 
 /**
   */
-private[ai] object TypeName:
+private[uni] object TypeName:
   def sanitizeTypeName(s: String): String = s
     .stripSuffix("$")
     .replaceAll("\\.package\\$", ".")

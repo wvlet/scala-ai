@@ -17,7 +17,7 @@ import wvlet.uni.core.design.DesignErrorCode.MISSING_DEPENDENCY
 import wvlet.uni.core.design.DesignErrorCode.SHUTDOWN_FAILURE
 import wvlet.uni.core.design.Design
 import wvlet.uni.core.design.DesignException
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 import wvlet.uni.core.log.LogLevel
 import wvlet.uni.core.log.LogSupport
 import wvlet.uni.core.log.Logger
@@ -200,7 +200,7 @@ object LifeCycleManagerTest extends AirSpec:
         // Just show debug logs
       }
 
-    val l       = Logger("wvlet.unirframe")
+    val l       = Logger("wvlet.airframe")
     val current = l.getLogLevel
     try
       l.setLogLevel(LogLevel.DEBUG)

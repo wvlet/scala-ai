@@ -20,8 +20,8 @@ import org.scalacheck.Gen
 import wvlet.uni.core.msgpack.impl.ByteArrayBuffer
 import wvlet.uni.core.msgpack.spi.Value.*
 import wvlet.uni.core.msgpack.spi.ValueFactory.*
-import wvlet.unirspec.spi.PropertyCheck
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.spi.PropertyCheck
+import wvlet.airspec.AirSpec
 
 /**
   */

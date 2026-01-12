@@ -15,8 +15,8 @@ package wvlet.uni.core.util
 
 import wvlet.uni.core.util.CrockfordBase32
 import wvlet.uni.core.util.ULID
-import wvlet.unirspec.AirSpec
-import wvlet.unirspec.spi.PropertyCheck
+import wvlet.airspec.AirSpec
+import wvlet.airspec.spi.PropertyCheck
 
 /**
   */

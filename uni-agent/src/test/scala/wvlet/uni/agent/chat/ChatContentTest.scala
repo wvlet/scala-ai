@@ -1,7 +1,7 @@
 package wvlet.uni.agent.chat
 
 import ChatMessage.SystemMessage
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class ChatContentTest extends AirSpec:
   // Test for ChatContent

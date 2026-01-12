@@ -11,15 +11,14 @@ import wvlet.uni.agent.chat.ChatRequest
 import wvlet.uni.agent.chat.ToolParameter
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.core.DataType
-import wvlet.unirspec.AirSpec
-import wvlet.log.LogSupport
+import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*
 
 /**
   * Tests for the tool choice functionality in Bedrock integration
   */
-class BedrockToolChoiceTest extends AirSpec with LogSupport:
+class BedrockToolChoiceTest extends AirSpec:
 
   private def createAgent(modelConfig: ModelConfig = ModelConfig()): LLMAgent = LLMAgent(
     name = "test-agent",

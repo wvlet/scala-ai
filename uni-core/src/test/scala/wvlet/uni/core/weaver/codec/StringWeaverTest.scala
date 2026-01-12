@@ -2,7 +2,7 @@ package wvlet.uni.core.weaver.codec
 
 import wvlet.uni.core.msgpack.spi.MessagePack
 import wvlet.uni.core.weaver.ObjectWeaver
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class StringWeaverTest extends AirSpec:
 

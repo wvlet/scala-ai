@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.rx
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class RxOpsTest extends AirSpec:
 

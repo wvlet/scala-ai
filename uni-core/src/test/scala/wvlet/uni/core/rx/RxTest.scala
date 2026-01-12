@@ -14,7 +14,7 @@
 package wvlet.uni.core.rx
 
 import wvlet.uni.core.design.Design
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference

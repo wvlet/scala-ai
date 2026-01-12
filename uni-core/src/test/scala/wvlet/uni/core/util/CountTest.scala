@@ -14,7 +14,7 @@
 package wvlet.uni.core.util
 
 import wvlet.uni.core.util.Count.CountUnit
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

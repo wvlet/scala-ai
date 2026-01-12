@@ -1,6 +1,6 @@
 package wvlet.uni.core.rx
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 import java.util.concurrent.TimeUnit
 
 object RxRunnerTest extends AirSpec:

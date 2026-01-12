@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.surface
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class CNameTest extends AirSpec:
   test("convert to snakeCase") {

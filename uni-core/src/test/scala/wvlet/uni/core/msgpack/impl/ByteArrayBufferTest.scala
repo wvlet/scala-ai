@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.msgpack.impl
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

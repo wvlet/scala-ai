@@ -15,7 +15,7 @@
 package wvlet.uni.core.surface
 
 import scala.language.implicitConversions
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 trait SurfaceSpec extends AirSpec:
   protected def check(body: => Surface, expectedName: String): Surface =

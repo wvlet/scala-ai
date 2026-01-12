@@ -1,7 +1,7 @@
 package wvlet.uni.core
 
 import wvlet.uni.agent.core.DataType
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class DataTypeSpec extends AirSpec:
 

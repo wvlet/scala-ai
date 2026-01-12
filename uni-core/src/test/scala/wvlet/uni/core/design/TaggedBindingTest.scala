@@ -15,7 +15,7 @@ package wvlet.uni.core.design
 
 import wvlet.uni.core.surface.Surface
 import wvlet.uni.core.surface.tag.*
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 /**
   */

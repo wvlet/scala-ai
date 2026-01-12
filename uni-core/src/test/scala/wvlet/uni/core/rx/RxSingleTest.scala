@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.rx
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.Failure

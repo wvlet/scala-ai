@@ -1,6 +1,6 @@
 package wvlet.uni.agent.chat
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class ChatSessionSpec extends AirSpec:
   // Mock implementation for testing

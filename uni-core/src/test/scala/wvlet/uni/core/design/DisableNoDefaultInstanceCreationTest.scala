@@ -14,7 +14,7 @@
 package wvlet.uni.core.design
 
 import DesignErrorCode.MISSING_DEPENDENCY
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 object DisableNoDefaultInstanceCreationTest:
   case class Component(config: Config)

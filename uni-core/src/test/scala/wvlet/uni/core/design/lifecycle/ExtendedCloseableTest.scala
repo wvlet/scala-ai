@@ -14,7 +14,7 @@
 package wvlet.uni.core.design.lifecycle
 
 import wvlet.uni.core.design.Design
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger

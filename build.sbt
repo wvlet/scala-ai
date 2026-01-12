@@ -125,6 +125,7 @@ lazy val agent = project
         "org.wvlet.airframe" %% "airframe-codec" % AIRFRAME_VERSION
       )
   )
+  .dependsOn(core.jvm)
 
 lazy val bedrock = project
   .in(file("uni-agent-bedrock"))

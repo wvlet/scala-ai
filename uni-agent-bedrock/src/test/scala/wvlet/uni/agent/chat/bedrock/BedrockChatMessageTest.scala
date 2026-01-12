@@ -10,7 +10,7 @@ import wvlet.uni.agent.core.AIException
 import wvlet.uni.agent.core.StatusCode
 import wvlet.uni.agent.LLM
 import wvlet.uni.agent.LLMAgent
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*
 

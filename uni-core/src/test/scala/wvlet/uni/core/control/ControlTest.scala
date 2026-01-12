@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.control
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 object ControlTest:
   class A extends AutoCloseable:

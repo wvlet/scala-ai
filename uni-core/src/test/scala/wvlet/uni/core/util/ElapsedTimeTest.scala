@@ -13,7 +13,7 @@
  */
 package wvlet.uni.core.util
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.duration.*

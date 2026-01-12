@@ -1,6 +1,6 @@
 package example
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 // Example data classes for testing
 case class User(id: Int, name: String, email: Option[String] = None):

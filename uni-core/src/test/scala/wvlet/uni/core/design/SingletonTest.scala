@@ -14,7 +14,7 @@
 package wvlet.uni.core.design
 
 import wvlet.uni.core.surface.Surface
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 import wvlet.uni.core.log.LogLevel
 import wvlet.uni.core.log.LogSupport
 import wvlet.uni.core.log.Logger

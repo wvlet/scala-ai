@@ -8,7 +8,7 @@ import wvlet.uni.agent.chat.ChatMessage
 import wvlet.uni.agent.chat.ChatRequest
 import wvlet.uni.agent.core.AIException
 import wvlet.uni.agent.core.StatusCode
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*
 

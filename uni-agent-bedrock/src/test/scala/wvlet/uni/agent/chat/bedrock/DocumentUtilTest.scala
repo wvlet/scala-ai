@@ -2,7 +2,7 @@ package wvlet.uni.agent.chat.bedrock
 
 import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.jdk.CollectionConverters.*
 

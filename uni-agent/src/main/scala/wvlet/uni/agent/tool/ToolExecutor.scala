@@ -4,7 +4,7 @@ import wvlet.uni.agent.chat.ChatMessage
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.chat.ChatMessage.ToolCallRequest
 import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
-import wvlet.unirframe.rx.Rx
+import wvlet.airframe.rx.Rx
 
 /**
   * Trait for executing tool calls. Implementations of this trait handle the actual invocation of

@@ -20,8 +20,8 @@ import java.time.Instant
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import wvlet.uni.core.msgpack.impl.ByteArrayBuffer
-import wvlet.unirspec.spi.PropertyCheck
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.spi.PropertyCheck
+import wvlet.airspec.AirSpec
 
 /**
   */

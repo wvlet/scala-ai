@@ -13,9 +13,9 @@
  */
 package wvlet.uni.core.msgpack.spi
 
-import wvlet.unirspec.spi.AirSpecException
-import wvlet.unirspec.spi.AssertionFailure
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.spi.AirSpecException
+import wvlet.airspec.spi.AssertionFailure
+import wvlet.airspec.AirSpec
 import wvlet.uni.core.log.LogLevel
 import wvlet.uni.core.util.Timer
 

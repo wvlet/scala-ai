@@ -1,6 +1,6 @@
 package wvlet.uni.core.util
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import java.util.UUID // For serialization test
 

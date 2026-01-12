@@ -1,6 +1,6 @@
 package wvlet.uni.core.weaver
 
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 import scala.jdk.CollectionConverters.*
 
 class WeaverTest extends AirSpec:

@@ -1,6 +1,6 @@
 package wvlet.uni.core.control
 
-import wvlet.unirspec.*
+import wvlet.airspec.*
 import java.util.concurrent.TimeoutException
 
 class CircuitBreakerTest extends AirSpec:

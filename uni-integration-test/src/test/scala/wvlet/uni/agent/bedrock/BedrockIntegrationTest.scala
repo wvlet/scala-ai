@@ -7,7 +7,7 @@ import wvlet.uni.agent.chat.bedrock.BedrockRunner
 import wvlet.uni.agent.LLM
 import wvlet.uni.agent.LLMAgent
 import wvlet.uni.agent.core.DataType
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 class BedrockIntegrationTest extends AirSpec:
   if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then

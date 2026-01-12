@@ -4,8 +4,8 @@ import wvlet.uni.agent.chat.ChatMessage.AIMessage
 import wvlet.uni.agent.chat.ChatMessage.ToolCallRequest
 import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.uni.agent.tool.ToolExecutor
-import wvlet.unirframe.rx.Rx
-import wvlet.log.LogSupport
+import wvlet.airframe.rx.Rx
+import wvlet.uni.core.log.LogSupport
 
 /**
   * A chat session that can automatically execute tool calls using a ToolExecutor. This trait

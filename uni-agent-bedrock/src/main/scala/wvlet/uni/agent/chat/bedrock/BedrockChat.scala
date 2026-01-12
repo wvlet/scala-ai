@@ -45,7 +45,7 @@ import wvlet.uni.agent.chat.ChatRole
 import wvlet.uni.agent.chat.ChatStats
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.core.StatusCode
-import wvlet.log.LogSupport
+import wvlet.uni.core.log.LogSupport
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.immutable.ListMap

@@ -15,7 +15,7 @@ package wvlet.uni.core.control
 
 import wvlet.uni.core.control.Retry.MaxRetryException
 import wvlet.uni.core.control.Retry.RetryContext
-import wvlet.unirspec.AirSpec
+import wvlet.airspec.AirSpec
 
 import scala.concurrent.TimeoutException
 
