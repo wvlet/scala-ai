@@ -60,6 +60,7 @@ See `.github/instructions/airspec.instructions.md` for more.
 - Create branch FIRST: `git switch -c <prefix>/<description>`
 - Prefixes: `feature/`, `fix/`, `chore/`, `deps/`, `docs/`, `test/`, `breaking/`
 - Use `gh` for PR management
+- Merge with: `gh pr merge --squash --auto` (branch protection requires `--auto`)
 - Never enable auto-merge without user approval
 
 ### Commits
