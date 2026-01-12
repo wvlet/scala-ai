@@ -13,6 +13,7 @@
  */
 package wvlet.uni.cli
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -49,8 +50,8 @@ private class DisabledProgressBar(config: ProgressBar) extends RunningProgressBa
   * Native-specific running progress bar with rendering.
   */
 private class NativeRunningProgressBar(config: ProgressBar) extends RunningProgressBar:
-  private val currentValue      = new AtomicLong(0)
-  private var finished: Boolean = false
+  private val currentValue = new AtomicLong(0)
+  private val finished     = new AtomicBoolean(false)
 
   // Start
   init()
@@ -61,7 +62,7 @@ private class NativeRunningProgressBar(config: ProgressBar) extends RunningProgr
     render()
 
   private def render(): Unit =
-    if finished then
+    if finished.get() then
       return
 
     val value       = currentValue.get()
@@ -102,14 +103,14 @@ private class NativeRunningProgressBar(config: ProgressBar) extends RunningProgr
   override def finish(): Unit =
     currentValue.set(config.total)
     render()
-    finished = true
+    finished.set(true)
     if config.hideCursor then
       Terminal.showCursor(config.stream)
     config.stream.println()
     config.stream.flush()
 
   override def fail(): Unit =
-    finished = true
+    finished.set(true)
     if config.hideCursor then
       Terminal.showCursor(config.stream)
     config.stream.println()

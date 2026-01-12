@@ -36,22 +36,22 @@ private[cli] object RunningSpinnerImpl:
   * Disabled spinner that just logs text without animation.
   */
 private class DisabledSpinner(config: Spinner) extends RunningSpinner:
-  private var currentText: String = config.text
-  private val running             = new AtomicBoolean(true)
+  private val currentText = new AtomicReference[String](config.text)
+  private val running     = new AtomicBoolean(true)
 
   // Print initial text if any
-  if currentText.nonEmpty then
-    config.stream.println(currentText)
+  if currentText.get().nonEmpty then
+    config.stream.println(currentText.get())
 
-  override def text: String                  = currentText
-  override def text_=(newText: String): Unit = currentText = newText
+  override def text: String                  = currentText.get()
+  override def text_=(newText: String): Unit = currentText.set(newText)
 
   override def succeed(text: String): Unit =
     val finalText =
       if text.nonEmpty then
         text
       else
-        currentText
+        currentText.get()
     config.stream.println(s"${Symbols.successColored} ${finalText}")
     running.set(false)
 
@@ -60,7 +60,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
       if text.nonEmpty then
         text
       else
-        currentText
+        currentText.get()
     config.stream.println(s"${Symbols.errorColored} ${finalText}")
     running.set(false)
 
@@ -69,7 +69,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
       if text.nonEmpty then
         text
       else
-        currentText
+        currentText.get()
     config.stream.println(s"${Symbols.warningColored} ${finalText}")
     running.set(false)
 
@@ -78,7 +78,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
       if text.nonEmpty then
         text
       else
-        currentText
+        currentText.get()
     config.stream.println(s"${Symbols.infoColored} ${finalText}")
     running.set(false)
 

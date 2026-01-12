@@ -37,7 +37,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
 
   // Print initial text if any
   if currentText.nonEmpty then
-    println(currentText)
+    config.stream.println(currentText)
 
   override def text: String                  = currentText
   override def text_=(newText: String): Unit = currentText = newText
@@ -48,7 +48,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
         text
       else
         currentText
-    println(s"${Symbols.successColored} ${finalText}")
+    config.stream.println(s"${Symbols.successColored} ${finalText}")
     running = false
 
   override def fail(text: String): Unit =
@@ -57,7 +57,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
         text
       else
         currentText
-    println(s"${Symbols.errorColored} ${finalText}")
+    config.stream.println(s"${Symbols.errorColored} ${finalText}")
     running = false
 
   override def warn(text: String): Unit =
@@ -66,7 +66,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
         text
       else
         currentText
-    println(s"${Symbols.warningColored} ${finalText}")
+    config.stream.println(s"${Symbols.warningColored} ${finalText}")
     running = false
 
   override def info(text: String): Unit =
@@ -75,7 +75,7 @@ private class DisabledSpinner(config: Spinner) extends RunningSpinner:
         text
       else
         currentText
-    println(s"${Symbols.infoColored} ${finalText}")
+    config.stream.println(s"${Symbols.infoColored} ${finalText}")
     running = false
 
   override def stop(): Unit        = running = false
