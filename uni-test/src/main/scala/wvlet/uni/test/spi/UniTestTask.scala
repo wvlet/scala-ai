@@ -14,8 +14,15 @@
 package wvlet.uni.test.spi
 
 import sbt.testing.*
+import wvlet.uni.test.TestException
 import wvlet.uni.test.TestResult
+import wvlet.uni.test.TestSkipped
+import wvlet.uni.test.TestPending
+import wvlet.uni.test.TestCancelled
+import wvlet.uni.test.TestIgnored
 import wvlet.uni.test.UniTest
+
+import java.lang.reflect.InvocationTargetException
 
 /**
   * sbt test task that executes tests for a single test class
@@ -80,10 +87,17 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
 
     catch
       case e: Throwable =>
-        val event = createErrorEvent(className, e)
+        // Unwrap InvocationTargetException to get the actual cause
+        val cause = findCause(e)
+        val (event, logMsg) = classifySpecLevelException(className, cause)
         eventHandler.handle(event)
-        loggers.foreach(_.error(s"Failed to run tests in ${className}: ${e.getMessage}"))
-        loggers.foreach(_.trace(e))
+        loggers.foreach(_.info(logMsg))
+        // Only trace for actual errors, not for skipped/pending/cancelled tests
+        cause match
+          case _: TestSkipped | _: TestPending | _: TestCancelled | _: TestIgnored =>
+          // Don't trace for expected test control flow exceptions
+          case _ =>
+            loggers.foreach(_.trace(cause))
     end try
 
     // No nested tasks
@@ -156,6 +170,73 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
     new OptionalThrowable(e),
     0L
   )
+
+  /**
+    * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause
+    */
+  private def findCause(e: Throwable): Throwable =
+    e match
+      case ite: InvocationTargetException if ite.getCause != null =>
+        findCause(ite.getCause)
+      case _ =>
+        e
+
+  /**
+    * Classify an exception thrown at the spec level (during class construction) and create an appropriate event
+    */
+  private def classifySpecLevelException(className: String, e: Throwable): (Event, String) =
+    val leafName = className.split('.').last
+    e match
+      case ts: TestSkipped =>
+        val event = UniTestEvent(
+          className,
+          taskDef.fingerprint(),
+          new SuiteSelector(),
+          Status.Skipped,
+          new OptionalThrowable(ts),
+          0L
+        )
+        (event, s"  ~ ${leafName}: skipped - ${ts.getMessage}")
+      case tp: TestPending =>
+        val event = UniTestEvent(
+          className,
+          taskDef.fingerprint(),
+          new SuiteSelector(),
+          Status.Pending,
+          new OptionalThrowable(tp),
+          0L
+        )
+        (event, s"  ? ${leafName}: pending - ${tp.getMessage}")
+      case tc: TestCancelled =>
+        val event = UniTestEvent(
+          className,
+          taskDef.fingerprint(),
+          new SuiteSelector(),
+          Status.Canceled,
+          new OptionalThrowable(tc),
+          0L
+        )
+        (event, s"  ! ${leafName}: cancelled - ${tc.getMessage}")
+      case ti: TestIgnored =>
+        val event = UniTestEvent(
+          className,
+          taskDef.fingerprint(),
+          new SuiteSelector(),
+          Status.Ignored,
+          new OptionalThrowable(ti),
+          0L
+        )
+        (event, s"  - ${leafName}: ignored - ${ti.getMessage}")
+      case _ =>
+        val event = UniTestEvent(
+          className,
+          taskDef.fingerprint(),
+          new SuiteSelector(),
+          Status.Error,
+          new OptionalThrowable(e),
+          0L
+        )
+        (event, s"  x ${leafName}: error - ${e.getMessage}")
 
 end UniTestTask
 

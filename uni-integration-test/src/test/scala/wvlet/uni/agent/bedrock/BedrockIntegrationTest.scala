@@ -10,10 +10,8 @@ import wvlet.uni.agent.core.DataType
 import wvlet.uni.test.UniTest
 
 class BedrockIntegrationTest extends UniTest:
-
-  private def requireAWSCredentials(): Unit =
-    if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
-      skip("AWS environment variables are not set. Skip this test")
+  if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
+    skip("AWS environment variables are not set. Skip this test")
 
   private val testAgent = LLMAgent(
     name = "test-agent",
@@ -24,7 +22,6 @@ class BedrockIntegrationTest extends UniTest:
   private def createRunner: BedrockRunner = BedrockRunner(testAgent)
 
   test("bedrock agent") {
-    requireAWSCredentials()
     val runner = createRunner
     val resp = runner.chat(
       "Hello agent",
@@ -56,7 +53,6 @@ class BedrockIntegrationTest extends UniTest:
   }
 
   test("bedrock agent with chat history") {
-    requireAWSCredentials()
     val runner  = createRunner
     val session = runner.newChatSession
 
@@ -98,7 +94,6 @@ class BedrockIntegrationTest extends UniTest:
   }
 
   test("bedrock agent with tool calling") {
-    requireAWSCredentials()
     val runner = createRunner
     // Define test tools
     val weatherTool = ToolSpec(
@@ -229,7 +224,6 @@ class BedrockIntegrationTest extends UniTest:
   }
 
   test("bedrock tool calling with streaming") {
-    requireAWSCredentials()
     val runner     = createRunner
     val searchTool = ToolSpec(
       name = "web_search",
