@@ -215,7 +215,8 @@ end Assertions
 object Assertions:
 
   /**
-    * Check if a value is considered "defined" (non-empty for Option/Iterable, non-null otherwise)
+    * Check if a value is considered "defined" (non-empty for Option/Iterable/String, non-null
+    * otherwise)
     */
   def isDefinedValue(value: Any): Boolean =
     value match
@@ -223,6 +224,8 @@ object Assertions:
         opt.isDefined
       case seq: Iterable[?] =>
         seq.nonEmpty
+      case str: String =>
+        str.nonEmpty
       case null =>
         false
       case _ =>

@@ -66,16 +66,13 @@ private[test] object compat:
         val jsVal1 = v1.asInstanceOf[js.Dynamic].selectDynamic(key)
         val jsVal2 = v2.asInstanceOf[js.Dynamic].selectDynamic(key)
         // Note: In JavaScript, typeof null === "object", so we must check null first
-        val isNull1 = jsVal1 == null
-        val isNull2 = jsVal2 == null
-        if isNull1 && isNull2 then
-          true
-        else if isNull1 || isNull2 then
-          false
-        else if js.typeOf(jsVal1) == "object" && js.typeOf(jsVal2) == "object" then
-          jsObjectEquals(jsVal1.asInstanceOf[js.Object], jsVal2.asInstanceOf[js.Object])
-        else
-          jsVal1 == jsVal2
+        (jsVal1, jsVal2) match
+          case (j1, j2) if j1 == null || j2 == null =>
+            j1 == j2 // true only if both are null
+          case (o1, o2) if js.typeOf(o1) == "object" && js.typeOf(o2) == "object" =>
+            jsObjectEquals(o1.asInstanceOf[js.Object], o2.asInstanceOf[js.Object])
+          case (p1, p2) =>
+            p1 == p2
       }
 
     end if
