@@ -29,6 +29,12 @@ sealed trait EmptyMatcher
 object empty extends EmptyMatcher
 
 /**
+  * Marker object for `shouldBe null` check
+  */
+sealed trait NullMatcher
+object `null` extends NullMatcher
+
+/**
   * Provides assertion methods for testing. Import or mix in this trait to use shouldBe,
   * shouldNotBe, etc.
   */
@@ -53,37 +59,29 @@ trait Assertions:
       * Assert that option/collection is defined (non-empty)
       */
     inline infix def shouldBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =
-      val isDefined =
-        actual match
-          case opt: Option[?] =>
-            opt.isDefined
-          case seq: Iterable[?] =>
-            seq.nonEmpty
-          case null =>
-            false
-          case _ =>
-            true
-      if !isDefined then
+      if !Assertions.isDefinedValue(actual) then
         throw AssertionFailure(s"Expected defined but got <${actual}>", source)
 
     /**
       * Assert that option/collection is empty
       */
     inline infix def shouldBe(matcher: EmptyMatcher)(using source: SourceCode): Unit =
-      val isEmpty =
-        actual match
-          case opt: Option[?] =>
-            opt.isEmpty
-          case seq: Iterable[?] =>
-            seq.isEmpty
-          case str: String =>
-            str.isEmpty
-          case null =>
-            true
-          case _ =>
-            false
-      if !isEmpty then
+      if !Assertions.isEmptyValue(actual) then
         throw AssertionFailure(s"Expected empty but got <${actual}>", source)
+
+    /**
+      * Assert that value is null
+      */
+    inline infix def shouldBe(matcher: NullMatcher)(using source: SourceCode): Unit =
+      if actual != null then
+        throw AssertionFailure(s"Expected null but got <${actual}>", source)
+
+    /**
+      * Assert that value is not null
+      */
+    inline infix def shouldNotBe(matcher: NullMatcher)(using source: SourceCode): Unit =
+      if actual == null then
+        throw AssertionFailure("Expected not null but got null", source)
 
     /**
       * Assert that actual is the same instance as expected (reference equality)
@@ -111,6 +109,20 @@ trait Assertions:
     inline infix def shouldMatch(pf: PartialFunction[A, Any])(using source: SourceCode): Unit =
       if !pf.isDefinedAt(actual) then
         throw AssertionFailure(s"Value <${actual}> did not match the expected pattern", source)
+
+    /**
+      * Assert that option/collection is not defined (is empty)
+      */
+    inline infix def shouldNotBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =
+      if Assertions.isDefinedValue(actual) then
+        throw AssertionFailure(s"Expected not defined but got <${actual}>", source)
+
+    /**
+      * Assert that option/collection is not empty
+      */
+    inline infix def shouldNotBe(matcher: EmptyMatcher)(using source: SourceCode): Unit =
+      if Assertions.isEmptyValue(actual) then
+        throw AssertionFailure(s"Expected not empty but got <${actual}>", source)
 
   end extension
 
@@ -184,40 +196,94 @@ trait Assertions:
     if Math.abs(actual - expected) > delta then
       throw AssertionFailure(s"Expected <${expected}> +/- ${delta} but got <${actual}>", source)
 
+  /**
+    * Assert that a condition is true
+    */
+  inline def assert(cond: => Boolean)(using source: SourceCode): Unit =
+    if !cond then
+      throw AssertionFailure("Assertion failed", source)
+
+  /**
+    * Assert that a condition is true with a custom message
+    */
+  inline def assert(cond: => Boolean, message: => String)(using source: SourceCode): Unit =
+    if !cond then
+      throw AssertionFailure(message, source)
+
 end Assertions
 
 object Assertions:
+
+  /**
+    * Check if a value is considered "defined" (non-empty for Option/Iterable/String, non-null
+    * otherwise)
+    */
+  def isDefinedValue(value: Any): Boolean =
+    value match
+      case opt: Option[?] =>
+        opt.isDefined
+      case seq: Iterable[?] =>
+        seq.nonEmpty
+      case str: String =>
+        str.nonEmpty
+      case null =>
+        false
+      case _ =>
+        true
+
+  /**
+    * Check if a value is considered "empty" (empty for Option/Iterable/String, null)
+    */
+  def isEmptyValue(value: Any): Boolean =
+    value match
+      case opt: Option[?] =>
+        opt.isEmpty
+      case seq: Iterable[?] =>
+        seq.isEmpty
+      case str: String =>
+        str.isEmpty
+      case null =>
+        true
+      case _ =>
+        false
+
   /**
     * Deep equality check that handles arrays, options, and collections
     */
   def deepEquals(a: Any, b: Any): Boolean =
-    (a, b) match
-      case (null, null) =>
-        true
-      case (null, _) =>
-        false
-      case (_, null) =>
-        false
-      case (a1: Array[?], a2: Array[?]) =>
-        a1.length == a2.length && a1.zip(a2).forall((x, y) => deepEquals(x, y))
-      case (o1: Option[?], o2: Option[?]) =>
-        (o1, o2) match
-          case (Some(v1), Some(v2)) =>
-            deepEquals(v1, v2)
-          case (None, None) =>
+    // First check platform-specific equality (e.g., js.Object in Scala.js)
+    compat.platformSpecificEquals(a, b) match
+      case Some(result) =>
+        result
+      case None =>
+        // Fall back to standard deep equality
+        (a, b) match
+          case (null, null) =>
             true
-          case _ =>
+          case (null, _) =>
             false
-      case (s1: Seq[?], s2: Seq[?]) =>
-        s1.length == s2.length && s1.zip(s2).forall((x, y) => deepEquals(x, y))
-      case (s1: Set[?], s2: Set[?]) =>
-        s1.size == s2.size && s1.forall(x => s2.exists(y => deepEquals(x, y)))
-      case (m1: Map[?, ?], m2: Map[?, ?]) =>
-        m1.size == m2.size &&
-        m1.forall { case (k, v) =>
-          m2.asInstanceOf[Map[Any, Any]].get(k).exists(v2 => deepEquals(v, v2))
-        }
-      case _ =>
-        a == b
+          case (_, null) =>
+            false
+          case (a1: Array[?], a2: Array[?]) =>
+            a1.length == a2.length && a1.zip(a2).forall((x, y) => deepEquals(x, y))
+          case (o1: Option[?], o2: Option[?]) =>
+            (o1, o2) match
+              case (Some(v1), Some(v2)) =>
+                deepEquals(v1, v2)
+              case (None, None) =>
+                true
+              case _ =>
+                false
+          case (s1: Seq[?], s2: Seq[?]) =>
+            s1.length == s2.length && s1.zip(s2).forall((x, y) => deepEquals(x, y))
+          case (s1: Set[?], s2: Set[?]) =>
+            s1.size == s2.size && s1.forall(x => s2.exists(y => deepEquals(x, y)))
+          case (m1: Map[?, ?], m2: Map[?, ?]) =>
+            m1.size == m2.size &&
+            m1.forall { case (k, v) =>
+              m2.asInstanceOf[Map[Any, Any]].get(k).exists(v2 => deepEquals(v, v2))
+            }
+          case _ =>
+            a == b
 
 end Assertions

@@ -20,7 +20,12 @@ import scala.collection.mutable.ListBuffer
 /**
   * Test definition representing a single test case
   */
-case class TestDef(name: String, body: () => Any, parent: List[String] = Nil):
+case class TestDef(
+    name: String,
+    body: () => Any,
+    parent: List[String] = Nil,
+    isFlaky: Boolean = false
+):
   /**
     * Full test name including parent context
     */
@@ -62,9 +67,16 @@ trait UniTest extends LogSupport with Assertions with TestControl:
 
   /**
     * Register a test case with the given name and body
+    *
+    * @param name
+    *   the test name
+    * @param flaky
+    *   if true, test failures will be reported as skipped instead of failures
+    * @param body
+    *   the test body
     */
-  protected def test(name: String)(body: => Any): Unit =
-    _tests += TestDef(name, () => body, _context)
+  protected def test(name: String, flaky: Boolean = false)(body: => Any): Unit =
+    _tests += TestDef(name, () => body, _context, isFlaky = flaky)
 
   /**
     * Get all registered tests. Used by the test framework.
@@ -98,10 +110,15 @@ trait UniTest extends LogSupport with Assertions with TestControl:
         TestResult.Cancelled(testDef.fullName, e.getMessage)
       case e: TestIgnored =>
         TestResult.Ignored(testDef.fullName, e.getMessage)
-      case e: AssertionFailure =>
-        TestResult.Failure(testDef.fullName, e.getMessage, Some(e))
       case e: Throwable =>
-        TestResult.Error(testDef.fullName, e.getMessage, e)
+        if testDef.isFlaky then
+          TestResult.Skipped(testDef.fullName, s"[flaky] ${e.getMessage}")
+        else
+          e match
+            case af: AssertionFailure =>
+              TestResult.Failure(testDef.fullName, af.getMessage, Some(af))
+            case _ =>
+              TestResult.Error(testDef.fullName, e.getMessage, e)
 
 end UniTest
 
