@@ -154,9 +154,9 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       Seq(
         // JVM uses sbt test-interface
         "org.scala-sbt"      % "test-interface"          % SBT_TEST_INTERFACE_VERSION,
-        // JUnit Platform for IDE integration (IntelliJ, VS Code)
-        // junit-platform-commons contains @Testable annotation for IDE source-level discovery
-        "org.junit.platform" % "junit-platform-commons"  % JUNIT_PLATFORM_VERSION,
+        // JUnit for IDE integration (IntelliJ, VS Code)
+        // @RunWith annotation enables reliable IDE test discovery and execution
+        "junit"              % "junit"                   % "4.13.2",
         "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Provided,
         "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Provided
       )

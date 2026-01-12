@@ -13,13 +13,15 @@
  */
 package wvlet.uni.test
 
-import org.junit.platform.commons.annotation.Testable
+import org.junit.runner.RunWith
+import wvlet.uni.test.spi.UniTestJUnitRunner
 
 /**
   * JVM platform-specific base trait for UniTest.
   *
-  * The @Testable annotation enables IDE source-level discovery (IntelliJ, VS Code) so that test
-  * classes extending UniTest are recognized as runnable tests before compilation.
+  * The @RunWith annotation enables reliable IDE integration (IntelliJ, VS Code) by telling JUnit to
+  * use UniTestJUnitRunner for executing tests. This approach is used by munit and other modern test
+  * frameworks for maximum IDE compatibility.
   */
-@Testable
+@RunWith(classOf[UniTestJUnitRunner])
 private[test] trait PlatformUniTest
