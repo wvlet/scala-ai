@@ -34,8 +34,8 @@
 
 set -o pipefail
 
-declare -r sbt_release_version="1.10.11"
-declare -r sbt_unreleased_version="1.10.11"
+declare -r sbt_release_version="1.11.5"
+declare -r sbt_unreleased_version="1.11.5"
 
 declare -r latest_213="2.13.16"
 declare -r latest_212="2.12.20"
@@ -253,7 +253,9 @@ is_apple_silicon() { [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]
 # MaxPermSize critical on pre-8 JVMs but incurs noisy warning on 8+
 default_jvm_opts() {
   local -r v="$(java_version)"
-  if [[ $v -ge 17 ]]; then
+  if [[ $v -ge 24 ]]; then
+    echo "$default_jvm_opts_common  --sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+  elif [[ $v -ge 17 ]]; then
     echo "$default_jvm_opts_common"
   elif [[ $v -ge 10 ]]; then
     if is_apple_silicon; then
