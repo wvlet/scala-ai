@@ -1,7 +1,7 @@
 package wvlet.uni.agent.chat
 
 import wvlet.uni.agent.core.StatusCode
-import wvlet.uni.core.log.LogSupport
+import wvlet.uni.log.LogSupport
 
 trait ChatModel:
   def chat(request: ChatRequest): Unit
