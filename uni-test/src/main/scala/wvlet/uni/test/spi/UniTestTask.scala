@@ -36,35 +36,47 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
       val testClass    = testClassLoader.loadClass(className)
       val testInstance = testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
 
-      // Run all registered tests
-      val tests = testInstance.registeredTests
+      // Get initial tests and apply filter if specified
+      val allTests      = testInstance.registeredTests
+      val filteredTests =
+        config.testFilter match
+          case Some(filter) =>
+            allTests.filter(_.fullName.contains(filter))
+          case None =>
+            allTests
 
-      if tests.isEmpty then
+      if filteredTests.isEmpty then
         // No tests registered via test() DSL, log info
         loggers.foreach(_.info(s"No tests found in ${className}"))
       else
-        for testDef <- tests do
-          val result = testInstance.executeTest(testDef)
-          val event  = createEvent(testDef.fullName, result)
-          eventHandler.handle(event)
+        // Use queue-based approach to handle dynamically registered nested tests
+        val testQueue     = scala.collection.mutable.Queue.from(filteredTests)
+        val executedTests = scala.collection.mutable.Set.empty[String]
 
-          // Log the result
-          result match
-            case TestResult.Success(name) =>
-              loggers.foreach(_.info(s"  + ${name}"))
-            case TestResult.Failure(name, msg, _) =>
-              loggers.foreach(_.error(s"  - ${name}: ${msg}"))
-            case TestResult.Error(name, msg, cause) =>
-              loggers.foreach(_.error(s"  x ${name}: ${msg}"))
-              loggers.foreach(_.trace(cause))
-            case TestResult.Skipped(name, reason) =>
-              loggers.foreach(_.info(s"  ~ ${name}: skipped - ${reason}"))
-            case TestResult.Pending(name, reason) =>
-              loggers.foreach(_.info(s"  ? ${name}: pending - ${reason}"))
-            case TestResult.Cancelled(name, reason) =>
-              loggers.foreach(_.info(s"  ! ${name}: cancelled - ${reason}"))
-            case TestResult.Ignored(name, reason) =>
-              loggers.foreach(_.info(s"  - ${name}: ignored - ${reason}"))
+        while testQueue.nonEmpty do
+          val testDef = testQueue.dequeue()
+          if !executedTests.contains(testDef.fullName) then
+            executedTests.add(testDef.fullName)
+
+            val beforeCount = testInstance.registeredTests.size
+            val result      = testInstance.executeTest(testDef)
+            val isContainer = testInstance.registeredTests.size > beforeCount
+
+            // Report failing containers or any leaf test
+            if result.isFailure || !isContainer then
+              val event = createEvent(testDef.fullName, result)
+              eventHandler.handle(event)
+              logResult(result, loggers)
+
+            // Queue nested tests for execution (if container didn't fail)
+            if !result.isFailure && isContainer then
+              testInstance
+                .registeredTests
+                .foreach { t =>
+                  if !executedTests.contains(t.fullName) then
+                    testQueue.enqueue(t)
+                }
+      end if
 
     catch
       case e: Throwable =>
@@ -78,6 +90,24 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
     Array.empty
 
   end execute
+
+  private def logResult(result: TestResult, loggers: Array[sbt.testing.Logger]): Unit =
+    result match
+      case TestResult.Success(name) =>
+        loggers.foreach(_.info(s"  + ${name}"))
+      case TestResult.Failure(name, msg, _) =>
+        loggers.foreach(_.error(s"  - ${name}: ${msg}"))
+      case TestResult.Error(name, msg, cause) =>
+        loggers.foreach(_.error(s"  x ${name}: ${msg}"))
+        loggers.foreach(_.trace(cause))
+      case TestResult.Skipped(name, reason) =>
+        loggers.foreach(_.info(s"  ~ ${name}: skipped - ${reason}"))
+      case TestResult.Pending(name, reason) =>
+        loggers.foreach(_.info(s"  ? ${name}: pending - ${reason}"))
+      case TestResult.Cancelled(name, reason) =>
+        loggers.foreach(_.info(s"  ! ${name}: cancelled - ${reason}"))
+      case TestResult.Ignored(name, reason) =>
+        loggers.foreach(_.info(s"  - ${name}: ignored - ${reason}"))
 
   private def createEvent(testName: String, result: TestResult): Event =
     val selector = new TestSelector(testName)

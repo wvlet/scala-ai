@@ -101,20 +101,60 @@ class UniTestEngine extends TestEngine:
         try
           val instance = classDesc.testClass.getDeclaredConstructor().newInstance()
 
-          classDesc
-            .getChildren
-            .asScala
-            .foreach { child =>
-              child match
-                case methodDesc: UniTestMethodDescriptor =>
-                  executeMethodDescriptor(methodDesc, instance, listener)
-                case _ =>
-            }
+          // Use queue-based approach to handle dynamically registered nested tests
+          val testQueue     = scala.collection.mutable.Queue.from(instance.registeredTests)
+          val executedTests = scala.collection.mutable.Set.empty[String]
+
+          while testQueue.nonEmpty do
+            val testDef = testQueue.dequeue()
+            if !executedTests.contains(testDef.fullName) then
+              executedTests.add(testDef.fullName)
+
+              val beforeCount = instance.registeredTests.size
+              val result      = instance.executeTest(testDef)
+              val isContainer = instance.registeredTests.size > beforeCount
+
+              // Report failing containers or any leaf test
+              if result.isFailure || !isContainer then
+                // Find or create descriptor for this test
+                val testDescriptor = classDesc
+                  .getChildren
+                  .asScala
+                  .collectFirst {
+                    case m: UniTestMethodDescriptor if m.testName == testDef.fullName =>
+                      m
+                  }
+                  .getOrElse {
+                    val testId  = classDesc.getUniqueId.append("test", testDef.fullName)
+                    val newDesc = UniTestMethodDescriptor(
+                      testId,
+                      testDef.fullName,
+                      classDesc.testClass
+                    )
+                    classDesc.addChild(newDesc)
+                    listener.dynamicTestRegistered(newDesc)
+                    newDesc
+                  }
+
+                listener.executionStarted(testDescriptor)
+                reportResult(testDescriptor, result, listener)
+
+              // Queue nested tests for execution (if container didn't fail)
+              if !result.isFailure && isContainer then
+                instance
+                  .registeredTests
+                  .foreach { t =>
+                    if !executedTests.contains(t.fullName) then
+                      testQueue.enqueue(t)
+                  }
+            end if
+          end while
 
           listener.executionFinished(classDesc, TestExecutionResult.successful())
         catch
           case e: Throwable =>
             listener.executionFinished(classDesc, TestExecutionResult.failed(e))
+        end try
 
       case _ =>
         descriptor
@@ -124,43 +164,27 @@ class UniTestEngine extends TestEngine:
             executeClassDescriptor(child, listener)
           }
 
-  private def executeMethodDescriptor(
-      descriptor: UniTestMethodDescriptor,
-      instance: UniTest,
+  private def reportResult(
+      descriptor: TestDescriptor,
+      result: TestResult,
       listener: EngineExecutionListener
   ): Unit =
-    listener.executionStarted(descriptor)
-
-    // Find the test definition by name
-    val testDefOpt = instance.registeredTests.find(_.fullName == descriptor.testName)
-
-    testDefOpt match
-      case Some(testDef) =>
-        val result = instance.executeTest(testDef)
-        result match
-          case TestResult.Success(_) =>
-            listener.executionFinished(descriptor, TestExecutionResult.successful())
-          case TestResult.Failure(_, msg, causeOpt) =>
-            val throwable = causeOpt.getOrElse(AssertionError(msg))
-            listener.executionFinished(descriptor, TestExecutionResult.failed(throwable))
-          case TestResult.Error(_, _, cause) =>
-            listener.executionFinished(descriptor, TestExecutionResult.failed(cause))
-          case TestResult.Skipped(_, reason) =>
-            listener.executionSkipped(descriptor, reason)
-          case TestResult.Pending(_, reason) =>
-            listener.executionSkipped(descriptor, s"Pending: ${reason}")
-          case TestResult.Cancelled(_, reason) =>
-            listener.executionSkipped(descriptor, s"Cancelled: ${reason}")
-          case TestResult.Ignored(_, reason) =>
-            listener.executionSkipped(descriptor, s"Ignored: ${reason}")
-
-      case None =>
-        listener.executionFinished(
-          descriptor,
-          TestExecutionResult.failed(RuntimeException(s"Test not found: ${descriptor.testName}"))
-        )
-
-  end executeMethodDescriptor
+    result match
+      case TestResult.Success(_) =>
+        listener.executionFinished(descriptor, TestExecutionResult.successful())
+      case TestResult.Failure(_, msg, causeOpt) =>
+        val throwable = causeOpt.getOrElse(AssertionError(msg))
+        listener.executionFinished(descriptor, TestExecutionResult.failed(throwable))
+      case TestResult.Error(_, _, cause) =>
+        listener.executionFinished(descriptor, TestExecutionResult.failed(cause))
+      case TestResult.Skipped(_, reason) =>
+        listener.executionSkipped(descriptor, reason)
+      case TestResult.Pending(_, reason) =>
+        listener.executionSkipped(descriptor, s"Pending: ${reason}")
+      case TestResult.Cancelled(_, reason) =>
+        listener.executionSkipped(descriptor, s"Cancelled: ${reason}")
+      case TestResult.Ignored(_, reason) =>
+        listener.executionSkipped(descriptor, s"Ignored: ${reason}")
 
 end UniTestEngine
 
