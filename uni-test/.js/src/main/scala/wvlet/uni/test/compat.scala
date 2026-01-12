@@ -57,9 +57,14 @@ private[test] object compat:
       sortedKeys.forall { key =>
         val jsVal1 = v1.asInstanceOf[js.Dynamic].selectDynamic(key)
         val jsVal2 = v2.asInstanceOf[js.Dynamic].selectDynamic(key)
-        if js.typeOf(jsVal1) == "object" && js.typeOf(jsVal2) == "object" &&
-           jsVal1 != null && jsVal2 != null
-        then
+        // Note: In JavaScript, typeof null === "object", so we must check null first
+        val isNull1 = jsVal1 == null
+        val isNull2 = jsVal2 == null
+        if isNull1 && isNull2 then
+          true
+        else if isNull1 || isNull2 then
+          false
+        else if js.typeOf(jsVal1) == "object" && js.typeOf(jsVal2) == "object" then
           jsObjectEquals(jsVal1.asInstanceOf[js.Object], jsVal2.asInstanceOf[js.Object])
         else
           jsVal1 == jsVal2

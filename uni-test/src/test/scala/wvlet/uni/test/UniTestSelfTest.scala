@@ -129,10 +129,18 @@ class UniTestSelfTest extends UniTest:
     1 + 1 shouldBe 2
   }
 
-  // Note: We can't easily test flaky behavior here because we'd need to
-  // verify that failures are converted to skipped, which requires
-  // running the test framework itself. The flaky flag is tested
-  // through the framework execution in executeTest method.
+  test("flaky test converts failure to skipped") {
+    // Create a flaky test that always fails
+    val flakyTest = TestDef("failing-flaky", () => throw RuntimeException("intentional"), Nil, isFlaky = true)
+    val result = executeTest(flakyTest)
+    result shouldMatch { case TestResult.Skipped(_, msg) if msg.contains("[flaky]") => }
+  }
+
+  test("non-flaky test reports failure") {
+    val normalTest = TestDef("failing-normal", () => throw RuntimeException("intentional"), Nil, isFlaky = false)
+    val result = executeTest(normalTest)
+    result shouldMatch { case TestResult.Error(_, _, _) => }
+  }
 
   test("shouldNotBe defined for collections") {
     val emptyList: List[Int] = Nil
@@ -148,6 +156,27 @@ class UniTestSelfTest extends UniTest:
 
     str shouldNotBe empty
     emptyStr shouldBe empty
+  }
+
+  test("null matchers") {
+    val nullValue: String = null
+    val nonNullValue: String = "hello"
+
+    nullValue shouldBe `null`
+    nonNullValue shouldNotBe `null`
+  }
+
+  test("null matcher failure messages") {
+    val e1 = intercept[AssertionFailure] {
+      "hello" shouldBe `null`
+    }
+    e1.getMessage shouldContain "Expected null"
+
+    val e2 = intercept[AssertionFailure] {
+      val x: String = null
+      x shouldNotBe `null`
+    }
+    e2.getMessage shouldContain "Expected not null"
   }
 
 end UniTestSelfTest

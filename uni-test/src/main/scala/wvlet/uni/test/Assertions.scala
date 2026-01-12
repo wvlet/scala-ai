@@ -29,6 +29,12 @@ sealed trait EmptyMatcher
 object empty extends EmptyMatcher
 
 /**
+  * Marker object for `shouldBe null` check
+  */
+sealed trait NullMatcher
+object `null` extends NullMatcher
+
+/**
   * Provides assertion methods for testing. Import or mix in this trait to use shouldBe,
   * shouldNotBe, etc.
   */
@@ -53,37 +59,29 @@ trait Assertions:
       * Assert that option/collection is defined (non-empty)
       */
     inline infix def shouldBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =
-      val isDefined =
-        actual match
-          case opt: Option[?] =>
-            opt.isDefined
-          case seq: Iterable[?] =>
-            seq.nonEmpty
-          case null =>
-            false
-          case _ =>
-            true
-      if !isDefined then
+      if !Assertions.isDefinedValue(actual) then
         throw AssertionFailure(s"Expected defined but got <${actual}>", source)
 
     /**
       * Assert that option/collection is empty
       */
     inline infix def shouldBe(matcher: EmptyMatcher)(using source: SourceCode): Unit =
-      val isEmpty =
-        actual match
-          case opt: Option[?] =>
-            opt.isEmpty
-          case seq: Iterable[?] =>
-            seq.isEmpty
-          case str: String =>
-            str.isEmpty
-          case null =>
-            true
-          case _ =>
-            false
-      if !isEmpty then
+      if !Assertions.isEmptyValue(actual) then
         throw AssertionFailure(s"Expected empty but got <${actual}>", source)
+
+    /**
+      * Assert that value is null
+      */
+    inline infix def shouldBe(matcher: NullMatcher)(using source: SourceCode): Unit =
+      if actual != null then
+        throw AssertionFailure(s"Expected null but got <${actual}>", source)
+
+    /**
+      * Assert that value is not null
+      */
+    inline infix def shouldNotBe(matcher: NullMatcher)(using source: SourceCode): Unit =
+      if actual == null then
+        throw AssertionFailure("Expected not null but got null", source)
 
     /**
       * Assert that actual is the same instance as expected (reference equality)
@@ -116,36 +114,14 @@ trait Assertions:
       * Assert that option/collection is not defined (is empty)
       */
     inline infix def shouldNotBe(matcher: DefinedMatcher)(using source: SourceCode): Unit =
-      val isDefined =
-        actual match
-          case opt: Option[?] =>
-            opt.isDefined
-          case seq: Iterable[?] =>
-            seq.nonEmpty
-          case null =>
-            false
-          case _ =>
-            true
-      if isDefined then
+      if Assertions.isDefinedValue(actual) then
         throw AssertionFailure(s"Expected not defined but got <${actual}>", source)
 
     /**
       * Assert that option/collection is not empty
       */
     inline infix def shouldNotBe(matcher: EmptyMatcher)(using source: SourceCode): Unit =
-      val isEmpty =
-        actual match
-          case opt: Option[?] =>
-            opt.isEmpty
-          case seq: Iterable[?] =>
-            seq.isEmpty
-          case str: String =>
-            str.isEmpty
-          case null =>
-            true
-          case _ =>
-            false
-      if isEmpty then
+      if Assertions.isEmptyValue(actual) then
         throw AssertionFailure(s"Expected not empty but got <${actual}>", source)
 
   end extension
@@ -237,6 +213,28 @@ trait Assertions:
 end Assertions
 
 object Assertions:
+
+  /**
+    * Check if a value is considered "defined" (non-empty for Option/Iterable, non-null otherwise)
+    */
+  def isDefinedValue(value: Any): Boolean =
+    value match
+      case opt: Option[?]   => opt.isDefined
+      case seq: Iterable[?] => seq.nonEmpty
+      case null             => false
+      case _                => true
+
+  /**
+    * Check if a value is considered "empty" (empty for Option/Iterable/String, null)
+    */
+  def isEmptyValue(value: Any): Boolean =
+    value match
+      case opt: Option[?]   => opt.isEmpty
+      case seq: Iterable[?] => seq.isEmpty
+      case str: String      => str.isEmpty
+      case null             => true
+      case _                => false
+
   /**
     * Deep equality check that handles arrays, options, and collections
     */
