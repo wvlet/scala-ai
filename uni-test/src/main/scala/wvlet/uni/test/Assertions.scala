@@ -34,25 +34,97 @@ sealed trait NullMatcher
 object `null` extends NullMatcher
 
 /**
+  * Test result type used by matchers
+  */
+private[test] sealed trait MatchResult
+private[test] case object Ok     extends MatchResult
+private[test] case object Failed extends MatchResult
+
+private[test] object MatchResult:
+  def check(cond: Boolean): MatchResult =
+    if cond then
+      Ok
+    else
+      Failed
+
+/**
   * Provides assertion methods for testing. Import or mix in this trait to use shouldBe,
   * shouldNotBe, etc.
   */
 trait Assertions:
 
+  import MatchResult.check
+
+  /**
+    * PartialFunction matcher for arrays, Iterable, and Product. Based on airspec's
+    * arrayDeepEqualMatcher.
+    */
+  private def arrayDeepEqualMatcher: PartialFunction[(Any, Any), MatchResult] =
+    case (a: Array[Int], b: Array[Int]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Short], b: Array[Short]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Byte], b: Array[Byte]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Char], b: Array[Char]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Long], b: Array[Long]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Boolean], b: Array[Boolean]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Float], b: Array[Float]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[Double], b: Array[Double]) =>
+      check(java.util.Arrays.equals(a, b))
+    case (a: Array[AnyRef], b: Array[AnyRef]) =>
+      check(
+        java
+          .util
+          .Arrays
+          .deepEquals(
+            a.asInstanceOf[Array[java.lang.Object]],
+            b.asInstanceOf[Array[java.lang.Object]]
+          )
+      )
+    case (a: Iterable[?], b: Iterable[?]) =>
+      check(a == b)
+    case (a: Product, b: Product) =>
+      check(a == b)
+
+  end arrayDeepEqualMatcher
+
+  /**
+    * Test equality using PartialFunction chaining (like airspec). Order: 1. arrayDeepEqualMatcher
+    * (arrays, Iterable, Product) 2. platformSpecificMatcher (js.Object on Scala.js) 3. Default
+    * fallback (value == expected)
+    */
+  private def test(value: Any, expected: Any): MatchResult = arrayDeepEqualMatcher
+    .orElse(compat.platformSpecificMatcher)
+    .orElse[(Any, Any), MatchResult] { case _ =>
+      check(value == expected)
+    }
+    .apply((value, expected))
+
   extension [A](actual: A)
     /**
-      * Assert that actual equals expected
+      * Assert that actual equals expected. Uses Any type for expected to match airspec behavior.
       */
-    inline infix def shouldBe(expected: A)(using source: TestSource): Unit =
-      if !Assertions.deepEquals(actual, expected) then
-        throw AssertionFailure(s"Expected <${expected}> but got <${actual}>", source)
+    inline infix def shouldBe(expected: Any)(using source: TestSource): Unit =
+      test(actual, expected) match
+        case Ok =>
+          ()
+        case Failed =>
+          throw AssertionFailure(s"Expected <${expected}> but got <${actual}>", source)
 
     /**
       * Assert that actual does not equal expected
       */
-    inline infix def shouldNotBe(expected: A)(using source: TestSource): Unit =
-      if Assertions.deepEquals(actual, expected) then
-        throw AssertionFailure(s"Expected not <${expected}> but got the same value", source)
+    inline infix def shouldNotBe(expected: Any)(using source: TestSource): Unit =
+      test(actual, expected) match
+        case Ok =>
+          throw AssertionFailure(s"Expected not <${expected}> but got the same value", source)
+        case Failed =>
+          ()
 
     /**
       * Assert that value is null (using literal null)
@@ -144,14 +216,14 @@ trait Assertions:
       * Assert that collection contains the element
       */
     inline infix def shouldContain(element: A)(using source: TestSource): Unit =
-      if !actual.exists(e => Assertions.deepEquals(e, element)) then
+      if !actual.exists(_ == element) then
         throw AssertionFailure(s"Expected <${actual}> to contain <${element}>", source)
 
     /**
       * Assert that collection does not contain the element
       */
     inline infix def shouldNotContain(element: A)(using source: TestSource): Unit =
-      if actual.exists(e => Assertions.deepEquals(e, element)) then
+      if actual.exists(_ == element) then
         throw AssertionFailure(s"Expected <${actual}> not to contain <${element}>", source)
 
   extension (actual: String)
@@ -259,44 +331,5 @@ object Assertions:
         true
       case _ =>
         false
-
-  /**
-    * Deep equality check that handles arrays, options, and collections
-    */
-  def deepEquals(a: Any, b: Any): Boolean =
-    // First check platform-specific equality (e.g., js.Object in Scala.js)
-    compat.platformSpecificEquals(a, b) match
-      case Some(result) =>
-        result
-      case None =>
-        // Fall back to standard deep equality
-        (a, b) match
-          case (null, null) =>
-            true
-          case (null, _) =>
-            false
-          case (_, null) =>
-            false
-          case (a1: Array[?], a2: Array[?]) =>
-            a1.length == a2.length && a1.zip(a2).forall((x, y) => deepEquals(x, y))
-          case (o1: Option[?], o2: Option[?]) =>
-            (o1, o2) match
-              case (Some(v1), Some(v2)) =>
-                deepEquals(v1, v2)
-              case (None, None) =>
-                true
-              case _ =>
-                false
-          case (s1: Seq[?], s2: Seq[?]) =>
-            s1.length == s2.length && s1.zip(s2).forall((x, y) => deepEquals(x, y))
-          case (s1: Set[?], s2: Set[?]) =>
-            s1.size == s2.size && s1.forall(x => s2.exists(y => deepEquals(x, y)))
-          case (m1: Map[?, ?], m2: Map[?, ?]) =>
-            m1.size == m2.size &&
-            m1.forall { case (k, v) =>
-              m2.asInstanceOf[Map[Any, Any]].get(k).exists(v2 => deepEquals(v, v2))
-            }
-          case _ =>
-            a == b
 
 end Assertions

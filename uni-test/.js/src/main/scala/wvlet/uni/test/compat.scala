@@ -23,26 +23,28 @@ import scala.scalajs.reflect.Reflect
 private[test] object compat:
 
   /**
-    * Platform-specific equality check. Returns Some(result) if the comparison was handled, None if
-    * the default comparison should be used.
+    * Platform-specific matcher for js.Object comparison. Based on airspec's JsObjectMatcher.
     */
-  def platformSpecificEquals(a: Any, b: Any): Option[Boolean] =
-    (a, b) match
-      case (obj1: js.Object, obj2: js.Object) =>
-        Some(jsObjectEquals(obj1, obj2))
-      case _ =>
-        None
+  def platformSpecificMatcher: PartialFunction[(Any, Any), MatchResult] =
+    case (a: js.Object, b: js.Object) =>
+      MatchResult.check(jsObjEquals(a, b))
 
   /**
     * Deep equality check for JavaScript objects
     */
-  private def jsObjectEquals(v1: js.Object, v2: js.Object): Boolean =
-    if v1 eq v2 then
+  private def jsObjEquals(v1: js.Object, v2: js.Object): Boolean =
+    if v1 == v2 then
       true
     else if v1 == null || v2 == null then
       false
     else
       deepEqual(v1, v2)
+
+  private def getValues(v: js.Object): js.Array[(String, Any)] = js
+    .Object
+    .entries(v)
+    .sortBy(_._1)
+    .map(p => (p._1, p._2.asInstanceOf[js.Any]))
 
   private def deepEqual(v1: js.Object, v2: js.Object): Boolean =
     val k1 = js.Object.keys(v1)
@@ -51,35 +53,23 @@ private[test] object compat:
     if k1.length != k2.length then
       false
     else if k1.length == 0 then
-      // For objects with no enumerable keys (e.g., RegExp, Error, Date),
-      // JSON.stringify returns "{}" which is not useful for comparison.
-      // Fall back to toString() comparison for such objects.
-      val str1 = js.JSON.stringify(v1)
-      val str2 = js.JSON.stringify(v2)
-      if str1 == "{}" && str2 == "{}" then
-        // Both stringify to empty object, use toString for comparison
-        v1.asInstanceOf[js.Dynamic].toString() == v2.asInstanceOf[js.Dynamic].toString()
-      else
-        str1 == str2
+      js.JSON.stringify(v1) == js.JSON.stringify(v2)
     else
-      // Get sorted keys and compare values for each key
-      val sortedKeys = k1.toSeq.sorted
-      sortedKeys.forall { key =>
-        val jsVal1 = v1.asInstanceOf[js.Dynamic].selectDynamic(key)
-        val jsVal2 = v2.asInstanceOf[js.Dynamic].selectDynamic(key)
-        // Note: In JavaScript, typeof null === "object", so we must check null first
-        (jsVal1, jsVal2) match
-          case (j1, j2) if j1 == null || j2 == null =>
-            j1 == j2 // true only if both are null
-          case (o1, o2) if js.typeOf(o1) == "object" && js.typeOf(o2) == "object" =>
-            jsObjectEquals(o1.asInstanceOf[js.Object], o2.asInstanceOf[js.Object])
-          case (p1, p2) =>
-            p1 == p2
-      }
-
-    end if
-
-  end deepEqual
+      val values1 = getValues(v1)
+      val values2 = getValues(v2)
+      values1
+        .zip(values2)
+        .forall {
+          case ((k1, _), (k2, _)) if k1 != k2 =>
+            false
+          case ((_, v1), (_, v2)) =>
+            if js.typeOf(v1.asInstanceOf[js.Any]) == "object" &&
+              js.typeOf(v2.asInstanceOf[js.Any]) == "object"
+            then
+              jsObjEquals(v1.asInstanceOf[js.Object], v2.asInstanceOf[js.Object])
+            else
+              v1 == v2
+        }
 
   /**
     * Execution context for async operations. Uses macrotask executor for proper async handling in

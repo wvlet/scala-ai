@@ -22,12 +22,10 @@ import scala.concurrent.ExecutionContext
 private[test] object compat:
 
   /**
-    * Platform-specific equality check. Returns Some(result) if the comparison was handled, None if
-    * the default comparison should be used.
-    *
-    * On JVM, there's no special handling needed, so we always return None.
+    * Platform-specific matcher for equality checks. On JVM, there's no special handling needed, so
+    * we return an empty PartialFunction.
     */
-  def platformSpecificEquals(a: Any, b: Any): Option[Boolean] = None
+  def platformSpecificMatcher: PartialFunction[(Any, Any), MatchResult] = PartialFunction.empty
 
   /**
     * Execution context for async operations
