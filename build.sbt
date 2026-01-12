@@ -6,6 +6,8 @@ val SCALA_3                 = "3.7.3"
 val AIRFRAME_VERSION        = "2025.1.26"
 val AWS_SDK_VERSION         = "2.41.5"
 val JS_JAVA_LOGGING_VERSION = "1.0.0"
+val JUNIT_PLATFORM_VERSION  = "1.11.4"
+val SBT_TEST_INTERFACE_VERSION = "1.0"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
@@ -74,9 +76,9 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, agent, bedrock)
-lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js)
-lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native)
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, agent, bedrock, unitest.jvm)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, unitest.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, unitest.native)
 
 lazy val projectJVM = project
   .settings(noPublish)
@@ -112,6 +114,35 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
   )
   .nativeSettings(nativeBuildSettings)
+
+// UniTest - Lightweight testing framework with AirSpec syntax
+lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uni-test"))
+  .settings(
+    buildSettings,
+    name        := "uni-test",
+    description := "Lightweight testing framework with AirSpec syntax",
+    // Don't use AirSpec for testing uni-test itself (avoid circular dependency)
+    libraryDependencies --= Seq(
+      "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test
+    ),
+    testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
+    libraryDependencies ++=
+      Seq(
+        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION
+      )
+  )
+  .jvmSettings(
+    libraryDependencies ++=
+      Seq(
+        "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Provided,
+        "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Provided
+      )
+  )
+  .jsSettings(jsBuildSettings)
+  .nativeSettings(nativeBuildSettings)
+  .dependsOn(core)
 
 lazy val agent = project
   .in(file("uni-agent"))
