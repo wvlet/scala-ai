@@ -19,8 +19,8 @@ package wvlet.uni.test
 private[test] object compat:
 
   /**
-    * Platform-specific equality check. Returns Some(result) if the comparison was handled,
-    * None if the default comparison should be used.
+    * Platform-specific equality check. Returns Some(result) if the comparison was handled, None if
+    * the default comparison should be used.
     *
     * On JVM, there's no special handling needed, so we always return None.
     */

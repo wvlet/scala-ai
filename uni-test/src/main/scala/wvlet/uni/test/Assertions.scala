@@ -219,21 +219,30 @@ object Assertions:
     */
   def isDefinedValue(value: Any): Boolean =
     value match
-      case opt: Option[?]   => opt.isDefined
-      case seq: Iterable[?] => seq.nonEmpty
-      case null             => false
-      case _                => true
+      case opt: Option[?] =>
+        opt.isDefined
+      case seq: Iterable[?] =>
+        seq.nonEmpty
+      case null =>
+        false
+      case _ =>
+        true
 
   /**
     * Check if a value is considered "empty" (empty for Option/Iterable/String, null)
     */
   def isEmptyValue(value: Any): Boolean =
     value match
-      case opt: Option[?]   => opt.isEmpty
-      case seq: Iterable[?] => seq.isEmpty
-      case str: String      => str.isEmpty
-      case null             => true
-      case _                => false
+      case opt: Option[?] =>
+        opt.isEmpty
+      case seq: Iterable[?] =>
+        seq.isEmpty
+      case str: String =>
+        str.isEmpty
+      case null =>
+        true
+      case _ =>
+        false
 
   /**
     * Deep equality check that handles arrays, options, and collections

@@ -20,7 +20,12 @@ import scala.collection.mutable.ListBuffer
 /**
   * Test definition representing a single test case
   */
-case class TestDef(name: String, body: () => Any, parent: List[String] = Nil, isFlaky: Boolean = false):
+case class TestDef(
+    name: String,
+    body: () => Any,
+    parent: List[String] = Nil,
+    isFlaky: Boolean = false
+):
   /**
     * Full test name including parent context
     */

@@ -131,27 +131,40 @@ class UniTestSelfTest extends UniTest:
 
   test("flaky test converts failure to skipped") {
     // Create a flaky test that always fails
-    val flakyTest = TestDef("failing-flaky", () => throw RuntimeException("intentional"), Nil, isFlaky = true)
+    val flakyTest = TestDef(
+      "failing-flaky",
+      () => throw RuntimeException("intentional"),
+      Nil,
+      isFlaky = true
+    )
     val result = executeTest(flakyTest)
-    result shouldMatch { case TestResult.Skipped(_, msg) if msg.contains("[flaky]") => }
+    result shouldMatch {
+      case TestResult.Skipped(_, msg) if msg.contains("[flaky]") =>
+    }
   }
 
   test("non-flaky test reports failure") {
-    val normalTest = TestDef("failing-normal", () => throw RuntimeException("intentional"), Nil, isFlaky = false)
+    val normalTest = TestDef(
+      "failing-normal",
+      () => throw RuntimeException("intentional"),
+      Nil,
+      isFlaky = false
+    )
     val result = executeTest(normalTest)
-    result shouldMatch { case TestResult.Error(_, _, _) => }
+    result shouldMatch { case TestResult.Error(_, _, _) =>
+    }
   }
 
   test("shouldNotBe defined for collections") {
     val emptyList: List[Int] = Nil
-    val nonEmptyList = List(1, 2, 3)
+    val nonEmptyList         = List(1, 2, 3)
 
     emptyList shouldNotBe defined
     nonEmptyList shouldNotBe empty
   }
 
   test("shouldNotBe empty for strings") {
-    val str = "hello"
+    val str      = "hello"
     val emptyStr = ""
 
     str shouldNotBe empty
@@ -159,7 +172,7 @@ class UniTestSelfTest extends UniTest:
   }
 
   test("null matchers") {
-    val nullValue: String = null
+    val nullValue: String    = null
     val nonNullValue: String = "hello"
 
     nullValue shouldBe `null`

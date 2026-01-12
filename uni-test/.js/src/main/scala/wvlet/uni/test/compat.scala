@@ -21,8 +21,8 @@ import scala.scalajs.js
 private[test] object compat:
 
   /**
-    * Platform-specific equality check. Returns Some(result) if the comparison was handled,
-    * None if the default comparison should be used.
+    * Platform-specific equality check. Returns Some(result) if the comparison was handled, None if
+    * the default comparison should be used.
     */
   def platformSpecificEquals(a: Any, b: Any): Option[Boolean] =
     (a, b) match
