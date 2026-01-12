@@ -13,8 +13,13 @@
  */
 package wvlet.uni.test
 
+import org.junit.platform.commons.annotation.Testable
+
 /**
-  * JVM platform-specific base trait for UniTest. On JVM, no special annotation is needed as
-  * standard reflection is used.
+  * JVM platform-specific base trait for UniTest.
+  *
+  * The @Testable annotation enables IDE source-level discovery (IntelliJ, VS Code) so that test
+  * classes extending UniTest are recognized as runnable tests before compilation.
   */
+@Testable
 private[test] trait PlatformUniTest

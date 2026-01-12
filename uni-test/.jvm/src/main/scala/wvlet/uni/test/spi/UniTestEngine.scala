@@ -192,7 +192,7 @@ end UniTestEngine
   * Test descriptor for a UniTest class
   */
 class UniTestClassDescriptor(uniqueId: UniqueId, val testClass: Class[? <: UniTest])
-    extends AbstractTestDescriptor(uniqueId, testClass.getSimpleName):
+    extends AbstractTestDescriptor(uniqueId, testClass.getSimpleName, ClassSource.from(testClass)):
 
   override def getType: TestDescriptor.Type = TestDescriptor.Type.CONTAINER
 
@@ -200,6 +200,6 @@ class UniTestClassDescriptor(uniqueId: UniqueId, val testClass: Class[? <: UniTe
   * Test descriptor for a single test method
   */
 class UniTestMethodDescriptor(uniqueId: UniqueId, val testName: String, testClass: Class[?])
-    extends AbstractTestDescriptor(uniqueId, testName):
+    extends AbstractTestDescriptor(uniqueId, testName, ClassSource.from(testClass)):
 
   override def getType: TestDescriptor.Type = TestDescriptor.Type.TEST
