@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class CNameTest extends AirSpec:
+class CNameTest extends UniTest:
   test("convert to snakeCase") {
     assert(CName("AirframeSurface").snakeCase == "airframe_surface")
     assert(CName("airframe_surface").snakeCase == "airframe_surface")

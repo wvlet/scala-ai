@@ -13,13 +13,15 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.Failure
 import scala.util.Success
 
-class RxSingleTest extends AirSpec:
+class RxSingleTest extends UniTest:
   test("Rx.single") {
     val counter = new AtomicInteger(0)
     val rx      = Rx.single(counter.incrementAndGet()).map(_ + 10)

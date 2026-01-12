@@ -14,7 +14,9 @@
 package wvlet.uni.design
 
 import wvlet.uni.surface.Surface
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogLevel
 import wvlet.uni.log.LogSupport
 import wvlet.uni.log.Logger
@@ -45,7 +47,7 @@ object SingletonTest:
 
 /**
   */
-class SingletonTest extends AirSpec:
+class SingletonTest extends UniTest:
   import SingletonTest.*
 
   def d = Design

@@ -13,7 +13,9 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import scala.util.Random
 
@@ -27,7 +29,7 @@ object ConstructorInjectionTest:
 
 /**
   */
-class ConstructorInjectionTest extends AirSpec:
+class ConstructorInjectionTest extends UniTest:
 
   import ConstructorInjectionTest.*
 

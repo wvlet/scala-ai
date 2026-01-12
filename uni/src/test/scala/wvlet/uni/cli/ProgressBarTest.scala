@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class ProgressBarTest extends AirSpec:
+class ProgressBarTest extends UniTest:
 
   test("create progress bar with required total") {
     val bar = ProgressBar(total = 100)

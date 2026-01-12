@@ -1,6 +1,8 @@
 package example
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 // Example data classes for testing
 case class User(id: Int, name: String, email: Option[String] = None):
@@ -15,7 +17,7 @@ case class UserService(users: List[User]):
 /**
   * Example AirSpec test class demonstrating basic testing patterns
   */
-class AirSpecTest extends AirSpec:
+class AirSpecTest extends UniTest:
 
   test("basic assertions with shouldBe") {
     val user = User(1, "Alice")

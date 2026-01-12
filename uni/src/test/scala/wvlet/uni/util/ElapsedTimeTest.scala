@@ -13,14 +13,16 @@
  */
 package wvlet.uni.util
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.duration.*
 
 /**
   */
-class ElapsedTimeTest extends AirSpec:
+class ElapsedTimeTest extends UniTest:
   case class Example(str: String, value: Double, unit: TimeUnit)
 
   val examples = Seq(
@@ -191,6 +193,8 @@ class ElapsedTimeTest extends AirSpec:
     assert(parse("1h").compareTo(parse("1d")) <= 0)
   }
 
-  test("support rounding")[Any] {}
+  test("support rounding") {
+    // TODO: Implement rounding test
+  }
 
 end ElapsedTimeTest

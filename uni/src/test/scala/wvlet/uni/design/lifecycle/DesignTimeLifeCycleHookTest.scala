@@ -14,13 +14,15 @@
 package wvlet.uni.design.lifecycle
 
 import wvlet.uni.design.Design
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
   */
-class DesignTimeLifeCycleHookTest extends AirSpec:
+class DesignTimeLifeCycleHookTest extends UniTest:
   test("support design time bindings") {
     val order              = new AtomicInteger(1)
     val initializedTime    = new AtomicInteger(0)

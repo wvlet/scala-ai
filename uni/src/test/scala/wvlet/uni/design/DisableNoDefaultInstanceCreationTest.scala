@@ -14,13 +14,15 @@
 package wvlet.uni.design
 
 import DesignErrorCode.MISSING_DEPENDENCY
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 object DisableNoDefaultInstanceCreationTest:
   case class Component(config: Config)
   case class Config(value: String = "test")
 
-class DisableNoDefaultInstanceCreationTest extends AirSpec:
+class DisableNoDefaultInstanceCreationTest extends UniTest:
   import DisableNoDefaultInstanceCreationTest.*
 
   test("disable implicit instance creation") {

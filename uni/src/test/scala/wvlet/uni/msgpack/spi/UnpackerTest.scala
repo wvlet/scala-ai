@@ -15,11 +15,13 @@ package wvlet.uni.msgpack.spi
 
 import wvlet.uni.msgpack.impl.PureScalaBufferUnpacker
 import wvlet.uni.msgpack.impl.ByteArrayBuffer
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class UnpackerTest extends AirSpec:
+class UnpackerTest extends UniTest:
   test("hasNext at EOL") {
     val unpacker = MessagePack.newUnpacker(Array.empty[Byte])
     unpacker.hasNext shouldBe false

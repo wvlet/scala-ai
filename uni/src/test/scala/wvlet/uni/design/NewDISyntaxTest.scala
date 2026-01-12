@@ -13,9 +13,11 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object NewDISyntaxTest extends AirSpec:
+object NewDISyntaxTest extends UniTest:
   trait A
   case class AImpl() extends A
   case class B(s: String)

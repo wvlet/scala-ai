@@ -13,50 +13,48 @@
  */
 package wvlet.uni.log
 
-import wvlet.uni.util.SourceCode
-
 trait LoggerBase:
   self: Logger =>
 
   inline def error(inline message: Any): Unit =
     if self.isEnabled(LogLevel.ERROR) then
-      self.log(LogLevel.ERROR, SourceCode(), message)
+      self.log(LogLevel.ERROR, LogSource(), message)
 
   inline def warn(inline message: Any): Unit =
     if self.isEnabled(LogLevel.WARN) then
-      self.log(LogLevel.WARN, SourceCode(), message)
+      self.log(LogLevel.WARN, LogSource(), message)
 
   inline def info(inline message: Any): Unit =
     if self.isEnabled(LogLevel.INFO) then
-      self.log(LogLevel.INFO, SourceCode(), message)
+      self.log(LogLevel.INFO, LogSource(), message)
 
   inline def debug(inline message: Any): Unit =
     if self.isEnabled(LogLevel.DEBUG) then
-      self.log(LogLevel.DEBUG, SourceCode(), message)
+      self.log(LogLevel.DEBUG, LogSource(), message)
 
   inline def trace(inline message: Any): Unit =
     if self.isEnabled(LogLevel.TRACE) then
-      self.log(LogLevel.TRACE, SourceCode(), message)
+      self.log(LogLevel.TRACE, LogSource(), message)
 
   inline def error(inline message: Any, inline cause: Throwable): Unit =
     if self.isEnabled(LogLevel.ERROR) then
-      self.logWithCause(LogLevel.ERROR, SourceCode(), message, cause)
+      self.logWithCause(LogLevel.ERROR, LogSource(), message, cause)
 
   inline def warn(inline message: Any, inline cause: Throwable): Unit =
     if self.isEnabled(LogLevel.WARN) then
-      self.logWithCause(LogLevel.WARN, SourceCode(), message, cause)
+      self.logWithCause(LogLevel.WARN, LogSource(), message, cause)
 
   inline def info(inline message: Any, inline cause: Throwable): Unit =
     if self.isEnabled(LogLevel.INFO) then
-      self.logWithCause(LogLevel.INFO, SourceCode(), message, cause)
+      self.logWithCause(LogLevel.INFO, LogSource(), message, cause)
 
   inline def debug(inline message: Any, inline cause: Throwable): Unit =
     if self.isEnabled(LogLevel.DEBUG) then
-      self.logWithCause(LogLevel.DEBUG, SourceCode(), message, cause)
+      self.logWithCause(LogLevel.DEBUG, LogSource(), message, cause)
 
   inline def trace(inline message: Any, inline cause: Throwable): Unit =
     if self.isEnabled(LogLevel.TRACE) then
-      self.logWithCause(LogLevel.TRACE, SourceCode(), message, cause)
+      self.logWithCause(LogLevel.TRACE, LogSource(), message, cause)
 
 end LoggerBase
 
@@ -67,46 +65,46 @@ trait LoggingMethods extends Serializable:
 
   inline protected def error(inline message: Any): Unit =
     if logger.isEnabled(LogLevel.ERROR) then
-      logger.log(LogLevel.ERROR, SourceCode(), message)
+      logger.log(LogLevel.ERROR, LogSource(), message)
 
   inline protected def warn(inline message: Any): Unit =
     if logger.isEnabled(LogLevel.WARN) then
-      logger.log(LogLevel.WARN, SourceCode(), message)
+      logger.log(LogLevel.WARN, LogSource(), message)
 
   inline protected def info(inline message: Any): Unit =
     if logger.isEnabled(LogLevel.INFO) then
-      logger.log(LogLevel.INFO, SourceCode(), message)
+      logger.log(LogLevel.INFO, LogSource(), message)
 
   inline protected def debug(inline message: Any): Unit =
     if logger.isEnabled(LogLevel.DEBUG) then
-      logger.log(LogLevel.DEBUG, SourceCode(), message)
+      logger.log(LogLevel.DEBUG, LogSource(), message)
 
   inline protected def trace(inline message: Any): Unit =
     if logger.isEnabled(LogLevel.TRACE) then
-      logger.log(LogLevel.TRACE, SourceCode(), message)
+      logger.log(LogLevel.TRACE, LogSource(), message)
 
   inline protected def logAt(inline logLevel: LogLevel, inline message: Any): Unit =
     if logger.isEnabled(logLevel) then
-      logger.log(logLevel, SourceCode(), message)
+      logger.log(logLevel, LogSource(), message)
 
   inline protected def error(inline message: Any, inline cause: Throwable): Unit =
     if logger.isEnabled(LogLevel.ERROR) then
-      logger.logWithCause(LogLevel.ERROR, SourceCode(), message, cause)
+      logger.logWithCause(LogLevel.ERROR, LogSource(), message, cause)
 
   inline protected def warn(inline message: Any, inline cause: Throwable): Unit =
     if logger.isEnabled(LogLevel.WARN) then
-      logger.logWithCause(LogLevel.WARN, SourceCode(), message, cause)
+      logger.logWithCause(LogLevel.WARN, LogSource(), message, cause)
 
   inline protected def info(inline message: Any, inline cause: Throwable): Unit =
     if logger.isEnabled(LogLevel.INFO) then
-      logger.logWithCause(LogLevel.INFO, SourceCode(), message, cause)
+      logger.logWithCause(LogLevel.INFO, LogSource(), message, cause)
 
   inline protected def debug(inline message: Any, inline cause: Throwable): Unit =
     if logger.isEnabled(LogLevel.DEBUG) then
-      logger.logWithCause(LogLevel.DEBUG, SourceCode(), message, cause)
+      logger.logWithCause(LogLevel.DEBUG, LogSource(), message, cause)
 
   inline protected def trace(inline message: Any, inline cause: Throwable): Unit =
     if logger.isEnabled(LogLevel.TRACE) then
-      logger.logWithCause(LogLevel.TRACE, SourceCode(), message, cause)
+      logger.logWithCause(LogLevel.TRACE, LogSource(), message, cause)
 
 end LoggingMethods

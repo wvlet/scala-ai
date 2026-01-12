@@ -13,22 +13,24 @@
  */
 package wvlet.uni.msgpack.spi
 
-import wvlet.airspec.spi.AirSpecException
-import wvlet.airspec.spi.AssertionFailure
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.TestException
+import wvlet.uni.test.AssertionFailure
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogLevel
 import wvlet.uni.util.Timer
 
 import scala.util.Random
 
-class MessageFormatTest extends AirSpec with Timer:
+class MessageFormatTest extends UniTest with Timer:
 
   test("cover all byte codes") {
     def checkV(b: Byte, tpe: ValueType): Unit =
       try
         MessageFormat.of(b).valueType shouldBe tpe
       catch
-        case e: AirSpecException =>
+        case e: TestException =>
           error(f"Failure when looking at byte ${b}%02x")
           throw e
 

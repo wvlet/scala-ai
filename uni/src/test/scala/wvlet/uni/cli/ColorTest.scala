@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class ColorTest extends AirSpec:
+class ColorTest extends UniTest:
 
   test("parse hex colors") {
     Color.fromHex("#FF5733") shouldBe Color.Rgb(255, 87, 51)

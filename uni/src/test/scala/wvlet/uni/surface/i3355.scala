@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object i3355 extends AirSpec:
+object i3355 extends UniTest:
   case class ParamLists():
     def multiParam()(): Unit = ()
 

@@ -13,14 +13,16 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   * note: this is a regression test for a non-deterministic issue, see
   * https://github.com/scala/scala3/issues/19795
   */
 
-object i3417 extends AirSpec:
+object i3417 extends UniTest:
   trait MyOption[T]
 
   class Wrap(val option: MyOption[Int])

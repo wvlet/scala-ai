@@ -13,8 +13,6 @@
  */
 package wvlet.uni.log
 
-import wvlet.uni.util.SourceCode
-
 import java.util.concurrent.ConcurrentHashMap
 import java.util.Properties
 import java.util.logging as jl
@@ -112,11 +110,11 @@ class Logger(
     record.setLoggerName(name)
     _log.log(record)
 
-  def log(level: LogLevel, source: SourceCode, message: Any): Unit = log(
+  def log(level: LogLevel, source: LogSource, message: Any): Unit = log(
     LogRecord(level, source, formatLog(message))
   )
 
-  def logWithCause(level: LogLevel, source: SourceCode, message: Any, cause: Throwable): Unit = log(
+  def logWithCause(level: LogLevel, source: LogSource, message: Any, cause: Throwable): Unit = log(
     LogRecord(level, source, formatLog(message), cause)
   )
 

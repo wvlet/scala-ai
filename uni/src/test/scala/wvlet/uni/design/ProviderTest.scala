@@ -13,7 +13,9 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogSupport
 
 object ProviderExample extends Serializable:
@@ -56,7 +58,7 @@ end ProviderExample
 
 import ProviderExample.*
 
-class SingletonProviderTest extends AirSpec:
+class SingletonProviderTest extends UniTest:
   test("build singleton from provider bindings") {
     val s1 =
       providerDesign

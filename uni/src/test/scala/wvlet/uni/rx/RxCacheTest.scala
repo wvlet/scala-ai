@@ -13,11 +13,13 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.TimeUnit
 
-class RxCacheTest extends AirSpec:
+class RxCacheTest extends UniTest:
   private def evalStream(rx: RxOps[?]): Seq[RxEvent] =
     val events = Seq.newBuilder[RxEvent]
     val c      = RxRunner.runContinuously(rx)(events += _)

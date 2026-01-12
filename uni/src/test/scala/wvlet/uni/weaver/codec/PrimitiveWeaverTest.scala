@@ -2,9 +2,11 @@ package wvlet.uni.weaver.codec
 
 import wvlet.uni.msgpack.spi.MessagePack
 import wvlet.uni.weaver.ObjectWeaver
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class PrimitiveWeaverTest extends AirSpec:
+class PrimitiveWeaverTest extends UniTest:
 
   test("unpack Int from INTEGER types") {
     // Test various integer formats

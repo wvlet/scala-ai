@@ -14,7 +14,9 @@
 package wvlet.uni.rx
 
 import wvlet.uni.design.Design
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -26,7 +28,7 @@ import scala.util.Try
 
 /**
   */
-object RxTest extends AirSpec:
+object RxTest extends UniTest:
 
   /**
     * TODO This test needs to be rewritten to utilize async testing of AirSpec.
@@ -84,9 +86,9 @@ object RxTest extends AirSpec:
     v.get shouldBe 2
   }
 
-  test("bind rx", design = _.bind[RxVar[String]].toInstance(Rx.variable("Hello"))) {
-    (v: RxVar[String]) =>
-      v.get shouldBe "Hello"
+  test("bind rx") {
+    val v = Rx.variable("Hello")
+    v.get shouldBe "Hello"
   }
 
   test("force update RxVar") {

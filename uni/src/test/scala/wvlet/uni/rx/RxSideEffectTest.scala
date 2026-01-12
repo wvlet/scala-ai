@@ -13,12 +13,14 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import scala.util.Failure
 import scala.util.Success
 
-class RxSideEffectTest extends AirSpec:
+class RxSideEffectTest extends UniTest:
   test("Rx.tap(x)") {
     val observed = Seq.newBuilder[Int]
     Rx.fromSeq(Seq(1, 2, 3))

@@ -13,12 +13,14 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogSupport
 
 /**
   */
-class MapBindingTest extends AirSpec:
+class MapBindingTest extends UniTest:
   import MapBindingTest.*
 
   test("support map binding") {

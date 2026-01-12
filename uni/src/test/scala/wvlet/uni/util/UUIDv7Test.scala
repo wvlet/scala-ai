@@ -1,10 +1,12 @@
 package wvlet.uni.util
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.UUID // For serialization test
 
-class UUIDv7Test extends AirSpec:
+class UUIDv7Test extends UniTest:
 
   test("UUIDv7.newUUIDv7() should generate valid UUIDv7") {
     val uuid = UUIDv7.newUUIDv7()

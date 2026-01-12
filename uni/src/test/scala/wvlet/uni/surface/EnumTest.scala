@@ -13,7 +13,9 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
@@ -27,7 +29,7 @@ object EnumTest:
     def values: Seq[Color]                = Seq(Blue, Red)
     def unapply(s: String): Option[Color] = values.find(_.toString == s)
 
-class EnumTest extends AirSpec:
+class EnumTest extends UniTest:
   import EnumTest.*
 
   test("Find Surface.stringExtractor") {

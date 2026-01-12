@@ -13,13 +13,15 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-class RxTransformTest extends AirSpec:
+class RxTransformTest extends UniTest:
 
   test("Rx.transform") {
     Rx.single("success")

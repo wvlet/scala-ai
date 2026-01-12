@@ -14,7 +14,9 @@
 package wvlet.uni.design.lifecycle
 
 import wvlet.uni.design.Design
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogSupport
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -28,7 +30,7 @@ object EagerStartTest:
 
 /**
   */
-class EagerStartTest extends AirSpec:
+class EagerStartTest extends UniTest:
 
   import EagerStartTest.*
 

@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object i3416 extends AirSpec:
+object i3416 extends UniTest:
 
   object O:
     class C(private[O] val id: Int):

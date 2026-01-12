@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class ProgressBarStyleTest extends AirSpec:
+class ProgressBarStyleTest extends UniTest:
 
   test("Default style uses solid blocks") {
     val bar = ProgressBarStyle.Default(100)

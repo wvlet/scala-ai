@@ -16,11 +16,13 @@ package wvlet.uni.rx
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class IntervalTest extends AirSpec:
+class IntervalTest extends UniTest:
   private def pendingInScalaJSAndScalaNative =
     if isScalaJS then
       pending("Async test is required")

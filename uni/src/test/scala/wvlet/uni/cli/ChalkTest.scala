@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class ChalkTest extends AirSpec:
+class ChalkTest extends UniTest:
   private val RESET = "\u001b[0m"
 
   test("apply foreground color") {

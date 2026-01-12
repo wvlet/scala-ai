@@ -13,11 +13,13 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class AliasSurfaceTest extends AirSpec:
+class AliasSurfaceTest extends UniTest:
 
   case class Holder[A](v: A)
   type MyInt = Holder[Int]

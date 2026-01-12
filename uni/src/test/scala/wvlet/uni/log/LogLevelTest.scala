@@ -1,11 +1,13 @@
 package wvlet.uni.log
 
 import wvlet.uni.log.LogLevel
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.logging.Level as JLevel
 
-class LogLevelTest extends AirSpec:
+class LogLevelTest extends UniTest:
 
   test("parse known log levels from string") {
     LogLevel("off") shouldBe LogLevel.OFF

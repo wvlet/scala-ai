@@ -14,11 +14,13 @@
 package wvlet.uni.msgpack.spi
 
 import wvlet.uni.msgpack.spi.Code.*
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class ValueTypeTest extends AirSpec:
+class ValueTypeTest extends UniTest:
 
   test("have name") {
     for v <- ValueType.values do

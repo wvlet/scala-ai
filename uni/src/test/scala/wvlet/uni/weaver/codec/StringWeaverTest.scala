@@ -2,9 +2,11 @@ package wvlet.uni.weaver.codec
 
 import wvlet.uni.msgpack.spi.MessagePack
 import wvlet.uni.weaver.ObjectWeaver
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class StringWeaverTest extends AirSpec:
+class StringWeaverTest extends UniTest:
 
   test("pack/unpack String") {
     // Test roundtrip String serialization

@@ -18,7 +18,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop
 import org.scalacheck.Test
 import org.scalacheck.Test.Parameters
-import wvlet.uni.util.SourceCode
 
 /**
   * Property-based testing support using ScalaCheck. Mix in this trait with UniTest to use forAll
@@ -158,7 +157,7 @@ trait PropertyCheck:
         throw AssertionFailure(
           s"Property check exhausted: unable to generate enough test cases after ${result
               .discarded} discarded",
-          SourceCode.generate
+          TestSource.generate
         )
       case Test.Failed(args, labels) =>
         val argsStr   = args.map(_.arg).mkString(", ")
@@ -169,7 +168,7 @@ trait PropertyCheck:
             s" [${labels.mkString(", ")}]"
         throw AssertionFailure(
           s"Property check failed for args: (${argsStr})${labelsStr}",
-          SourceCode.generate
+          TestSource.generate
         )
       case Test.PropException(args, e, labels) =>
         val argsStr   = args.map(_.arg).mkString(", ")
@@ -184,7 +183,7 @@ trait PropertyCheck:
           case _ =>
             throw AssertionFailure(
               s"Property check failed for args: (${argsStr})${labelsStr}: ${e.getMessage}",
-              SourceCode.generate
+              TestSource.generate
             )
 
     end match

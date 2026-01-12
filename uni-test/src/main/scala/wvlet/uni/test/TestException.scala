@@ -13,35 +13,33 @@
  */
 package wvlet.uni.test
 
-import wvlet.uni.util.SourceCode
-
 /**
   * Base class for all test-related exceptions
   */
-sealed abstract class TestException(message: String, val source: SourceCode)
+sealed abstract class TestException(message: String, val source: TestSource)
     extends Exception(s"${message} (${source.fileLocation})")
 
 /**
   * Thrown when an assertion fails
   */
-class AssertionFailure(message: String, source: SourceCode) extends TestException(message, source)
+class AssertionFailure(message: String, source: TestSource) extends TestException(message, source)
 
 /**
   * Thrown when a test is skipped
   */
-class TestSkipped(message: String, source: SourceCode) extends TestException(message, source)
+class TestSkipped(message: String, source: TestSource) extends TestException(message, source)
 
 /**
   * Thrown when a test is marked as pending
   */
-class TestPending(message: String, source: SourceCode) extends TestException(message, source)
+class TestPending(message: String, source: TestSource) extends TestException(message, source)
 
 /**
   * Thrown when a test is cancelled (e.g., setup failure)
   */
-class TestCancelled(message: String, source: SourceCode) extends TestException(message, source)
+class TestCancelled(message: String, source: TestSource) extends TestException(message, source)
 
 /**
   * Thrown when a test is ignored
   */
-class TestIgnored(message: String, source: SourceCode) extends TestException(message, source)
+class TestIgnored(message: String, source: TestSource) extends TestException(message, source)

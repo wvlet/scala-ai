@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object IntersectionTypeTest extends AirSpec:
+object IntersectionTypeTest extends UniTest:
   trait Label1
 
   test("support intersection type") {

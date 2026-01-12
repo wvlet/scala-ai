@@ -15,11 +15,13 @@ package wvlet.uni.design
 
 import wvlet.uni.surface.Surface
 import wvlet.uni.surface.tag.*
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-object TaggedBindingTest extends AirSpec:
+object TaggedBindingTest extends UniTest:
   case class Fruit(name: String)
 
   trait Apple

@@ -1,9 +1,9 @@
 package wvlet.uni.control
 
-import wvlet.airspec.*
+import wvlet.uni.test.*
 import java.util.concurrent.TimeoutException
 
-class CircuitBreakerTest extends AirSpec:
+class CircuitBreakerTest extends UniTest:
 
   test("support changing states") {
     val cb = CircuitBreaker.default

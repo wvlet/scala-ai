@@ -1,6 +1,8 @@
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
@@ -12,7 +14,7 @@ object DependencyTest1:
   trait D
   class DImpl extends D
 
-class DependencyTest extends AirSpec:
+class DependencyTest extends UniTest:
 
   test("show missing dependencies") {
     val d = Design.newSilentDesign

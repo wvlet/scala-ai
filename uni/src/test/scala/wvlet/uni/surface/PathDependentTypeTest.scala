@@ -13,7 +13,9 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 object PathDependentType:
   trait MyProfile:
@@ -25,7 +27,7 @@ object PathDependentType:
   class DatabaseDef:
     def hello = "hello my"
 
-class PathDependentTypeTest extends AirSpec:
+class PathDependentTypeTest extends UniTest:
   import PathDependentType.*
 
   test("pass dependent types") {

@@ -13,11 +13,13 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class BackPropagationTest extends AirSpec:
+class BackPropagationTest extends UniTest:
   val ex = new IllegalArgumentException("dummy")
 
   private def eval[A](rx: Rx[A]): Seq[RxEvent] =

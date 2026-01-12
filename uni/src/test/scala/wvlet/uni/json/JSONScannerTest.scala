@@ -13,11 +13,13 @@
  */
 package wvlet.uni.json
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class JSONScannerTest extends AirSpec:
+class JSONScannerTest extends UniTest:
   protected def scan(json: String): Unit =
     debug(s"scan: ${json}")
     JSONScanner.scan(JSONSource.fromString(json))
