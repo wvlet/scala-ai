@@ -79,11 +79,13 @@ private[test] object compat:
     org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.global
 
   /**
-    * Create a new instance of the test class using Scala.js built-in reflection
+    * Create a new instance of the test class using Scala.js built-in reflection. Throws exception
+    * if class cannot be found or instantiated.
     */
-  def newInstance(className: String, classLoader: ClassLoader): Option[UniTest] = Reflect
+  def newInstance(className: String, classLoader: ClassLoader): UniTest = Reflect
     .lookupInstantiatableClass(className)
     .map(_.newInstance().asInstanceOf[UniTest])
+    .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
 
   /**
     * Find the root cause of an exception. Scala.js doesn't have InvocationTargetException.

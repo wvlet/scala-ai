@@ -33,16 +33,11 @@ private[test] object compat:
   val executionContext: ExecutionContext = ExecutionContext.global
 
   /**
-    * Create a new instance of the test class
+    * Create a new instance of the test class. Throws exception if instantiation fails.
     */
-  def newInstance(className: String, classLoader: ClassLoader): Option[UniTest] =
-    try
-      val testClass    = classLoader.loadClass(className)
-      val testInstance = testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
-      Some(testInstance)
-    catch
-      case e: Throwable =>
-        None
+  def newInstance(className: String, classLoader: ClassLoader): UniTest =
+    val testClass = classLoader.loadClass(className)
+    testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
 
   /**
     * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause

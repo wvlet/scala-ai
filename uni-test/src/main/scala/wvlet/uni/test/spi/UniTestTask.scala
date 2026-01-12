@@ -62,22 +62,8 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
 
     try
       // Load the test class using platform-specific reflection
-      compat.newInstance(className, testClassLoader) match
-        case Some(testInstance) =>
-          runTests(testInstance, className, eventHandler, loggers)
-        case None =>
-          // Could not instantiate test class
-          val msg = s"Could not instantiate test class: ${className}"
-          loggers.foreach(_.error(msg))
-          val event = UniTestEvent(
-            className,
-            taskDef().fingerprint(),
-            new SuiteSelector(),
-            Status.Error,
-            new OptionalThrowable(RuntimeException(msg)),
-            0L
-          )
-          eventHandler.handle(event)
+      val testInstance = compat.newInstance(className, testClassLoader)
+      runTests(testInstance, className, eventHandler, loggers)
     catch
       case e: Throwable =>
         // Unwrap exception to get the actual cause
