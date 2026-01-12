@@ -136,8 +136,8 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     libraryDependencies ++=
       Seq(
-        "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Optional,
-        "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Optional
+        "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Provided,
+        "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Provided
       )
   )
   .jsSettings(jsBuildSettings)
