@@ -14,7 +14,6 @@
 package wvlet.uni.test
 
 import wvlet.uni.log.LogSupport
-
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -58,7 +57,7 @@ case class TestDef(
   *     }
   * }}}
   */
-trait UniTest extends LogSupport with Assertions with TestControl:
+trait UniTest extends PlatformUniTest with LogSupport with Assertions with TestControl:
   // Storage for registered tests
   private val _tests: ListBuffer[TestDef] = ListBuffer.empty
 

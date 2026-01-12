@@ -13,6 +13,9 @@
  */
 package wvlet.uni.test
 
+import scala.concurrent.ExecutionContext
+import scala.scalanative.reflect.Reflect
+
 /**
   * Scala Native specific compatibility layer for uni-test
   */
@@ -25,5 +28,22 @@ private[test] object compat:
     * On Native, there's no special handling needed, so we always return None.
     */
   def platformSpecificEquals(a: Any, b: Any): Option[Boolean] = None
+
+  /**
+    * Execution context for async operations
+    */
+  val executionContext: ExecutionContext = ExecutionContext.global
+
+  /**
+    * Create a new instance of the test class using Scala Native reflection
+    */
+  def newInstance(className: String, classLoader: ClassLoader): Option[UniTest] = Reflect
+    .lookupInstantiatableClass(className)
+    .map(_.newInstance().asInstanceOf[UniTest])
+
+  /**
+    * Find the root cause of an exception.
+    */
+  def findCause(e: Throwable): Throwable = e
 
 end compat

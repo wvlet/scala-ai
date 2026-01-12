@@ -13,7 +13,9 @@
  */
 package wvlet.uni.test
 
+import scala.concurrent.ExecutionContext
 import scala.scalajs.js
+import scala.scalajs.reflect.Reflect
 
 /**
   * Scala.js specific compatibility layer for uni-test
@@ -78,5 +80,24 @@ private[test] object compat:
     end if
 
   end deepEqual
+
+  /**
+    * Execution context for async operations. Uses macrotask executor for proper async handling in
+    * JavaScript environment.
+    */
+  val executionContext: ExecutionContext =
+    org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.global
+
+  /**
+    * Create a new instance of the test class using Scala.js built-in reflection
+    */
+  def newInstance(className: String, classLoader: ClassLoader): Option[UniTest] = Reflect
+    .lookupInstantiatableClass(className)
+    .map(_.newInstance().asInstanceOf[UniTest])
+
+  /**
+    * Find the root cause of an exception. Scala.js doesn't have InvocationTargetException.
+    */
+  def findCause(e: Throwable): Throwable = e
 
 end compat

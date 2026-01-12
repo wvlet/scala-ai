@@ -13,6 +13,9 @@
  */
 package wvlet.uni.test
 
+import java.lang.reflect.InvocationTargetException
+import scala.concurrent.ExecutionContext
+
 /**
   * JVM specific compatibility layer for uni-test
   */
@@ -25,5 +28,32 @@ private[test] object compat:
     * On JVM, there's no special handling needed, so we always return None.
     */
   def platformSpecificEquals(a: Any, b: Any): Option[Boolean] = None
+
+  /**
+    * Execution context for async operations
+    */
+  val executionContext: ExecutionContext = ExecutionContext.global
+
+  /**
+    * Create a new instance of the test class
+    */
+  def newInstance(className: String, classLoader: ClassLoader): Option[UniTest] =
+    try
+      val testClass    = classLoader.loadClass(className)
+      val testInstance = testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+      Some(testInstance)
+    catch
+      case e: Throwable =>
+        None
+
+  /**
+    * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause
+    */
+  def findCause(e: Throwable): Throwable =
+    e match
+      case ite: InvocationTargetException if ite.getCause != null =>
+        findCause(ite.getCause)
+      case _ =>
+        e
 
 end compat

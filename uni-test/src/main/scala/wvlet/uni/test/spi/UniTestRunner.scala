@@ -20,14 +20,14 @@ import sbt.testing.TaskDef
 /**
   * sbt test runner for UniTest
   */
-class UniTestRunner(
-    val args: Array[String],
-    val remoteArgs: Array[String],
-    testClassLoader: ClassLoader
-) extends Runner:
+class UniTestRunner(_args: Array[String], _remoteArgs: Array[String], testClassLoader: ClassLoader)
+    extends Runner:
+
+  def args: Array[String]         = _args
+  def remoteArgs(): Array[String] = _remoteArgs
 
   // Parse test configuration from arguments
-  private val config: TestConfig = TestConfig.parse(args)
+  private val config: TestConfig = TestConfig.parse(_args)
 
   // Apply log configuration at runner initialization
   TestConfig.apply(config)
@@ -39,3 +39,26 @@ class UniTestRunner(
   override def done(): String =
     // Return summary string (empty for now)
     ""
+
+  // The following methods are defined for Scala.js support:
+
+  /**
+    * Receive a message from the test server. Not used in our implementation.
+    */
+  def receiveMessage(msg: String): Option[String] = None
+
+  /**
+    * Deserialize a task from a string representation. Used for remote test execution.
+    */
+  def deserializeTask(task: String, deserializer: String => TaskDef): Task = UniTestTask(
+    deserializer(task),
+    testClassLoader,
+    config
+  )
+
+  /**
+    * Serialize a task to a string representation. Used for remote test execution.
+    */
+  def serializeTask(task: Task, serializer: TaskDef => String): String = serializer(task.taskDef())
+
+end UniTestRunner

@@ -144,7 +144,6 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
     libraryDependencies ++=
       Seq(
-        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION,
         // ScalaCheck for property-based testing
         "org.scalacheck" %%% "scalacheck" % SCALACHECK_VERSION
       )
@@ -152,12 +151,28 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     libraryDependencies ++=
       Seq(
+        // JVM uses sbt test-interface
+        "org.scala-sbt"      % "test-interface"          % SBT_TEST_INTERFACE_VERSION,
         "org.junit.platform" % "junit-platform-engine"   % JUNIT_PLATFORM_VERSION % Provided,
         "org.junit.platform" % "junit-platform-launcher" % JUNIT_PLATFORM_VERSION % Provided
       )
   )
-  .jsSettings(jsBuildSettings)
-  .nativeSettings(nativeBuildSettings)
+  .jsSettings(
+    jsBuildSettings,
+    libraryDependencies ++=
+      Seq(
+        // Scala.js uses scalajs-test-interface for proper test discovery
+        ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).cross(CrossVersion.for3Use2_13)
+      )
+  )
+  .nativeSettings(
+    nativeBuildSettings,
+    libraryDependencies ++=
+      Seq(
+        // Scala Native uses native test-interface
+        "org.scala-native" %%% "test-interface" % "0.5.8"
+      )
+  )
   .dependsOn(log)
 
 lazy val agent = project
