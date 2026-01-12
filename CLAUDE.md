@@ -4,7 +4,7 @@
 
 **wvlet/uni** is a Scala 3 unified utility library:
 
-- **uni-core**: Foundational utilities from wvlet/airframe (logging, DI, JSON/MessagePack, RPC/HTTP, testing)
+- **uni**: Foundational utilities from wvlet/airframe (logging, DI, JSON/MessagePack, RPC/HTTP, testing)
 - **uni-agent**: Agent interfaces, orchestration, and tool integration
 - **uni-agent-bedrock**: AWS Bedrock integration
 
@@ -51,7 +51,7 @@ See `.github/instructions/airspec.instructions.md` for more.
 - String interpolation: always use `${...}` with brackets
 - Avoid `Try[A]` return types
 - Config classes: `withXXX(...)` for all fields, `noXXX()` for optional fields
-- uni-core: minimal dependencies only
+- uni: minimal dependencies only
 
 ## Git Workflow
 

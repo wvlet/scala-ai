@@ -2,8 +2,8 @@
 
 - Scala, Scala.js, and Scala Native
 - Use Scala 3 syntaxes. No need to support Scala 2.
-- uni-core project is a cross-build project. To add JVM/JS/Native specific code, use .jvm, .js, and .native folders respectively.
-  - uni-core designed to have minimal dependencies. Avoid using libraries that are not in the core module.
+- uni project is a cross-build project. To add JVM/JS/Native specific code, use .jvm, .js, and .native folders respectively.
+  - uni is designed to have minimal dependencies. Avoid using libraries that are not in the core module.
 
 ## Coding style
 

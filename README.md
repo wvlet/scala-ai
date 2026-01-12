@@ -6,7 +6,7 @@
 
 `wvlet.uni` provides small, reusable building blocks that complement the Scala standard library.
 
-* **`uni-core`**:
+* **`uni`**:
     * **Logging**: Performant, structured logging.
     * **Object Design**: Well-managed object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
     * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats, JSON, MessagePack, etc.
@@ -16,7 +16,7 @@
 * **`uni-agent`**: Tools for building agent applications, offering:
     * **Unified APIs**: A consistent interface for orchestrating agent workflows.
     * **Agent Orchestration**: Components for advanced agent control flows.
-    * **Dynamic Tool Usage**: Enabling agents to use external tools, including MCP (Model Context Protocol) or other RPC servers built with `uni-core`.
+    * **Dynamic Tool Usage**: Enabling agents to use external tools, including MCP (Model Context Protocol) or other RPC servers built with `uni`.
 
 ## Getting Started
 
@@ -28,8 +28,8 @@ val WVLET_UNI_VERSION = "LATEST_VERSION" // TODO: Replace with the actual latest
 
 libraryDependencies ++= Seq(
   // Core utilities for Scala 3 development
-  "org.wvlet" %% "uni-core" % WVLET_UNI_VERSION,
-  // Agent interfaces (includes uni-core)
+  "org.wvlet" %% "uni" % WVLET_UNI_VERSION,
+  // Agent interfaces (includes uni)
   "org.wvlet" %% "uni-agent" % WVLET_UNI_VERSION
 )
 ```

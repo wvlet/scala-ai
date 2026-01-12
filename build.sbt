@@ -93,8 +93,8 @@ lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _
 // core library for Scala JVM, Scala.js and Scala Native
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
-  .in(file("uni-core"))
-  .settings(buildSettings, name := "uni-core", description := "Scala unified core library")
+  .in(file("uni"))
+  .settings(buildSettings, name := "uni", description := "Scala unified core library")
   .jvmSettings(
     libraryDependencies ++=
       Seq(

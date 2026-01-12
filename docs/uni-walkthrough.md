@@ -1,6 +1,6 @@
-# Uni-Core Walkthrough
+# Uni Walkthrough
 
-This walkthrough provides a comprehensive guide to using `uni-core`, the foundational module of the wvlet/uni library. Uni-Core provides essential utilities including dependency injection, logging, JSON/MessagePack serialization, reactive streams, and control flow utilities.
+This walkthrough provides a comprehensive guide to using `uni`, the foundational module of the wvlet/uni library. Uni provides essential utilities including dependency injection, logging, JSON/MessagePack serialization, reactive streams, and control flow utilities.
 
 ## Table of Contents
 
@@ -17,10 +17,10 @@ This walkthrough provides a comprehensive guide to using `uni-core`, the foundat
 
 ## Getting Started
 
-Add the uni-core dependency to your `build.sbt`:
+Add the uni dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "org.wvlet" %% "wvlet-uni-core" % "2025.1.0" // Replace with current version
+libraryDependencies += "org.wvlet" %% "uni" % "2025.1.0" // Replace with current version
 ```
 
 ## Dependency Injection with Design
@@ -503,4 +503,4 @@ val design = Design.newDesign
   .bindInstance[ServerConfig](config.server)
 ```
 
-This walkthrough covers the essential features of uni-core. For more advanced usage and specific use cases, refer to the test files in the `uni-core/src/test` directory and the API documentation.
+This walkthrough covers the essential features of uni. For more advanced usage and specific use cases, refer to the test files in the `uni/src/test` directory and the API documentation.
