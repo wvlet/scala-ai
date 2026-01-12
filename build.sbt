@@ -77,9 +77,9 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, core.jvm, agent, bedrock, unitest.jvm)
-lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, core.js, unitest.js)
-lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, core.native, unitest.native)
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, uni.jvm, agent, bedrock, unitest.jvm)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, uni.js, unitest.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, uni.native, unitest.native)
 
 lazy val projectJVM = project
   .settings(noPublish)
@@ -121,7 +121,7 @@ lazy val log = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .nativeSettings(nativeBuildSettings)
 
 // core library for Scala JVM, Scala.js and Scala Native
-lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+lazy val uni = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("uni"))
   .settings(
@@ -172,7 +172,7 @@ lazy val agent = project
         "org.wvlet.airframe" %% "airframe-codec" % AIRFRAME_VERSION
       )
   )
-  .dependsOn(core.jvm, unitest.jvm % Test)
+  .dependsOn(uni.jvm, unitest.jvm % Test)
 
 lazy val bedrock = project
   .in(file("uni-agent-bedrock"))
