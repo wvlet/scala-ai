@@ -30,7 +30,7 @@ Uni-Core provides a powerful dependency injection framework based on `Design`. T
 ### Basic Usage
 
 ```scala
-import wvlet.uni.core.design.Design
+import wvlet.uni.design.Design
 
 // Define case classes
 case class User(id: String, name: String, email: String)
@@ -101,7 +101,7 @@ Uni-Core provides a comprehensive logging framework with support for structured 
 ### Basic Logging
 
 ```scala
-import wvlet.uni.core.log.LogSupport
+import wvlet.uni.log.LogSupport
 
 class MyService extends LogSupport:
   def processData(data: String): Unit =
@@ -117,7 +117,7 @@ class MyService extends LogSupport:
 ### Logger Configuration
 
 ```scala
-import wvlet.uni.core.log.{Logger, LogLevel}
+import wvlet.uni.log.{Logger, LogLevel}
 
 // Configure log levels
 Logger.setDefaultLogLevel(LogLevel.INFO)
@@ -141,7 +141,7 @@ Uni-Core includes a pure Scala JSON parser with DSL support for easy JSON manipu
 ### Parsing JSON
 
 ```scala
-import wvlet.uni.core.json.JSON
+import wvlet.uni.json.JSON
 
 val jsonString = """
 {
@@ -186,7 +186,7 @@ val email = for {
 ### Creating JSON
 
 ```scala
-import wvlet.uni.core.json.*
+import wvlet.uni.json.*
 
 // Create JSON objects programmatically
 val userJson = JSONObject(Map(
@@ -209,7 +209,7 @@ Uni-Core provides efficient binary serialization using MessagePack format.
 ### Basic MessagePack Usage
 
 ```scala
-import wvlet.uni.core.msgpack.spi.{MessagePack, Packer, Unpacker}
+import wvlet.uni.msgpack.spi.{MessagePack, Packer, Unpacker}
 
 // Serialize primitive data
 val packer = MessagePack.newPacker()
@@ -232,7 +232,7 @@ Uni-Core includes a reactive streams implementation for handling asynchronous da
 ### Basic Rx Operations
 
 ```scala
-import wvlet.uni.core.rx.Rx
+import wvlet.uni.rx.Rx
 
 // Create reactive sources
 val numbers = Rx.fromSeq(1 to 10)
@@ -295,7 +295,7 @@ Uni-Core provides utilities for handling errors, retries, and resource managemen
 ### Retry Logic
 
 ```scala
-import wvlet.uni.core.control.Retry
+import wvlet.uni.control.Retry
 
 // Simple retry
 val result = Retry.retryOn[IllegalArgumentException](maxRetry = 3) {
@@ -316,7 +316,7 @@ val advancedResult = Retry
 ### Circuit Breaker
 
 ```scala
-import wvlet.uni.core.control.CircuitBreaker
+import wvlet.uni.control.CircuitBreaker
 import scala.concurrent.duration.*
 
 val circuitBreaker = CircuitBreaker(
@@ -333,7 +333,7 @@ val protectedCall = circuitBreaker.protect {
 ### Resource Management
 
 ```scala
-import wvlet.uni.core.control.Resource
+import wvlet.uni.control.Resource
 
 // Automatic resource cleanup
 Resource.withResource(openFile("data.txt")) { file =>
@@ -356,7 +356,7 @@ Surface provides compile-time type reflection for Scala 3.
 ### Basic Surface Usage
 
 ```scala
-import wvlet.uni.core.surface.Surface
+import wvlet.uni.surface.Surface
 
 case class User(id: Long, name: String, email: Option[String])
 
@@ -376,7 +376,7 @@ Object weaving provides automatic serialization/deserialization capabilities.
 ### Basic Weaving
 
 ```scala
-import wvlet.uni.core.weaver.ObjectWeaver
+import wvlet.uni.weaver.ObjectWeaver
 
 case class Config(host: String, port: Int, ssl: Boolean)
 
