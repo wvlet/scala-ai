@@ -52,18 +52,17 @@ private[test] object compat:
       // For empty objects, compare using JSON.stringify
       js.JSON.stringify(v1) == js.JSON.stringify(v2)
     else
-      val entries1 = js.Object.entries(v1).sortBy(_._1)
-      val entries2 = js.Object.entries(v2).sortBy(_._1)
-      entries1.zip(entries2).forall { case ((key1, val1), (key2, val2)) =>
-        if key1 != key2 then
-          false
+      // Get sorted keys and compare values for each key
+      val sortedKeys = k1.toSeq.sorted
+      sortedKeys.forall { key =>
+        val jsVal1 = v1.asInstanceOf[js.Dynamic].selectDynamic(key)
+        val jsVal2 = v2.asInstanceOf[js.Dynamic].selectDynamic(key)
+        if js.typeOf(jsVal1) == "object" && js.typeOf(jsVal2) == "object" &&
+           jsVal1 != null && jsVal2 != null
+        then
+          jsObjectEquals(jsVal1.asInstanceOf[js.Object], jsVal2.asInstanceOf[js.Object])
         else
-          val jsVal1 = val1.asInstanceOf[js.Any]
-          val jsVal2 = val2.asInstanceOf[js.Any]
-          if js.typeOf(jsVal1) == "object" && js.typeOf(jsVal2) == "object" then
-            jsObjectEquals(jsVal1.asInstanceOf[js.Object], jsVal2.asInstanceOf[js.Object])
-          else
-            jsVal1 == jsVal2
+          jsVal1 == jsVal2
       }
 
 end compat

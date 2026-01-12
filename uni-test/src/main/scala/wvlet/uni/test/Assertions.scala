@@ -145,7 +145,7 @@ trait Assertions:
             true
           case _ =>
             false
-      if !isEmpty then
+      if isEmpty then
         throw AssertionFailure(s"Expected not empty but got <${actual}>", source)
 
   end extension
