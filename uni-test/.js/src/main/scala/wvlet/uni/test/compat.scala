@@ -49,8 +49,16 @@ private[test] object compat:
     if k1.length != k2.length then
       false
     else if k1.length == 0 then
-      // For empty objects, compare using JSON.stringify
-      js.JSON.stringify(v1) == js.JSON.stringify(v2)
+      // For objects with no enumerable keys (e.g., RegExp, Error, Date),
+      // JSON.stringify returns "{}" which is not useful for comparison.
+      // Fall back to toString() comparison for such objects.
+      val str1 = js.JSON.stringify(v1)
+      val str2 = js.JSON.stringify(v2)
+      if str1 == "{}" && str2 == "{}" then
+        // Both stringify to empty object, use toString for comparison
+        v1.asInstanceOf[js.Dynamic].toString() == v2.asInstanceOf[js.Dynamic].toString()
+      else
+        str1 == str2
     else
       // Get sorted keys and compare values for each key
       val sortedKeys = k1.toSeq.sorted
@@ -69,5 +77,9 @@ private[test] object compat:
         else
           jsVal1 == jsVal2
       }
+
+    end if
+
+  end deepEqual
 
 end compat

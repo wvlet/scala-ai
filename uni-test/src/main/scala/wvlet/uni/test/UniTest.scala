@@ -110,16 +110,15 @@ trait UniTest extends LogSupport with Assertions with TestControl:
         TestResult.Cancelled(testDef.fullName, e.getMessage)
       case e: TestIgnored =>
         TestResult.Ignored(testDef.fullName, e.getMessage)
-      case e: AssertionFailure =>
-        if testDef.isFlaky then
-          TestResult.Skipped(testDef.fullName, s"[flaky] ${e.getMessage}")
-        else
-          TestResult.Failure(testDef.fullName, e.getMessage, Some(e))
       case e: Throwable =>
         if testDef.isFlaky then
           TestResult.Skipped(testDef.fullName, s"[flaky] ${e.getMessage}")
         else
-          TestResult.Error(testDef.fullName, e.getMessage, e)
+          e match
+            case af: AssertionFailure =>
+              TestResult.Failure(testDef.fullName, af.getMessage, Some(af))
+            case _ =>
+              TestResult.Error(testDef.fullName, e.getMessage, e)
 
 end UniTest
 
