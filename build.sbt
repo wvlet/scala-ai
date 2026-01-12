@@ -2,11 +2,11 @@ import sbtide.Keys.ideSkipProject
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val SCALA_3                 = "3.7.3"
-val AIRFRAME_VERSION        = "2025.1.26"
-val AWS_SDK_VERSION         = "2.41.5"
-val JS_JAVA_LOGGING_VERSION = "1.0.0"
-val JUNIT_PLATFORM_VERSION  = "1.11.4"
+val SCALA_3                    = "3.7.3"
+val AIRFRAME_VERSION           = "2025.1.26"
+val AWS_SDK_VERSION            = "2.41.5"
+val JS_JAVA_LOGGING_VERSION    = "1.0.0"
+val JUNIT_PLATFORM_VERSION     = "1.14.2"
 val SBT_TEST_INTERFACE_VERSION = "1.0"
 
 // Common build settings
@@ -124,14 +124,9 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     name        := "uni-test",
     description := "Lightweight testing framework with AirSpec syntax",
     // Don't use AirSpec for testing uni-test itself (avoid circular dependency)
-    libraryDependencies --= Seq(
-      "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test
-    ),
+    libraryDependencies --= Seq("org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test),
     testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
-    libraryDependencies ++=
-      Seq(
-        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION
-      )
+    libraryDependencies ++= Seq("org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION)
   )
   .jvmSettings(
     libraryDependencies ++=
