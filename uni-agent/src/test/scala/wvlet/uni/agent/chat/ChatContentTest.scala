@@ -1,9 +1,9 @@
 package wvlet.uni.agent.chat
 
 import ChatMessage.SystemMessage
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class ChatContentTest extends AirSpec:
+class ChatContentTest extends UniTest:
   // Test for ChatContent
   test("create ChatContent") {
     val textContent = ChatContent.fromText("Hello, world!")

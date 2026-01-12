@@ -7,23 +7,22 @@ import wvlet.uni.agent.chat.bedrock.BedrockRunner
 import wvlet.uni.agent.LLM
 import wvlet.uni.agent.LLMAgent
 import wvlet.uni.agent.core.DataType
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class BedrockIntegrationTest extends AirSpec:
+class BedrockIntegrationTest extends UniTest:
   if !sys.env.isDefinedAt("AWS_SECRET_ACCESS_KEY") then
     skip("AWS environment variables are not set. Skip this test")
 
-  initDesign {
-    _.bindInstance(
-      LLMAgent(
-        name = "test-agent",
-        description = "Test Agent",
-        model = LLM.Bedrock.Claude4Sonnet_20250514V1_0.withAWSCrossRegionInference("us")
-      )
-    )
-  }
+  private val testAgent = LLMAgent(
+    name = "test-agent",
+    description = "Test Agent",
+    model = LLM.Bedrock.Claude4Sonnet_20250514V1_0.withAWSCrossRegionInference("us")
+  )
 
-  test("bedrock agent") { (runner: BedrockRunner) =>
+  private def createRunner: BedrockRunner = BedrockRunner(testAgent)
+
+  test("bedrock agent") {
+    val runner = createRunner
     val resp = runner.chat(
       "Hello agent",
       new ChatObserver:
@@ -53,7 +52,8 @@ class BedrockIntegrationTest extends AirSpec:
     debug(resp)
   }
 
-  test("bedrock agent with chat history") { (runner: BedrockRunner) =>
+  test("bedrock agent with chat history") {
+    val runner  = createRunner
     val session = runner.newChatSession
 
     // First message - establish context
@@ -93,7 +93,8 @@ class BedrockIntegrationTest extends AirSpec:
     (thirdResponse.messages.size >= 1) shouldBe true
   }
 
-  test("bedrock agent with tool calling") { (runner: BedrockRunner) =>
+  test("bedrock agent with tool calling") {
+    val runner = createRunner
     // Define test tools
     val weatherTool = ToolSpec(
       name = "get_weather",
@@ -222,7 +223,8 @@ class BedrockIntegrationTest extends AirSpec:
     }
   }
 
-  test("bedrock tool calling with streaming") { (runner: BedrockRunner) =>
+  test("bedrock tool calling with streaming") {
+    val runner     = createRunner
     val searchTool = ToolSpec(
       name = "web_search",
       description = "Search the web for information",

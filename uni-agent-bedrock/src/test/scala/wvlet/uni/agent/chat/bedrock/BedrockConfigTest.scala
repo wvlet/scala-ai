@@ -6,9 +6,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClientBuilder
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class BedrockConfigTest extends AirSpec:
+class BedrockConfigTest extends UniTest:
 
   test("default values") {
     val config = BedrockConfig()

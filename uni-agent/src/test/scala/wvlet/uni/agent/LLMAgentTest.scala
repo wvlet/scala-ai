@@ -1,8 +1,9 @@
 package wvlet.uni.agent
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
 
-class LLMAgentTest extends AirSpec:
+class LLMAgentTest extends UniTest:
 
   // Use a concrete LLM instance instead of a mock
   private val testLLM   = LLM.Bedrock.TitanTextG1LiteV1

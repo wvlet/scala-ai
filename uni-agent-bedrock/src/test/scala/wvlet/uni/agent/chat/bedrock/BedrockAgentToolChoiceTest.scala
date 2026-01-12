@@ -9,12 +9,13 @@ import wvlet.uni.agent.chat.ChatRequest
 import wvlet.uni.agent.chat.ToolParameter
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.core.DataType
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.defined
 
 /**
   * Tests for using LLMAgent with tool_choice configurations
   */
-class BedrockAgentToolChoiceTest extends AirSpec:
+class BedrockAgentToolChoiceTest extends UniTest:
 
   private def createAgent(modelConfig: ModelConfig = ModelConfig()): LLMAgent = LLMAgent(
     name = "test-agent",

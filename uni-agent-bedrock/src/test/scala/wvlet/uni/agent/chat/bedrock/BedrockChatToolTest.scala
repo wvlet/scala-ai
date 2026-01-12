@@ -8,11 +8,11 @@ import wvlet.uni.agent.chat.ChatRequest
 import wvlet.uni.agent.chat.ToolParameter
 import wvlet.uni.agent.chat.ToolSpec
 import wvlet.uni.agent.core.DataType
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
 import scala.jdk.CollectionConverters.*
 
-class BedrockChatToolTest extends AirSpec:
+class BedrockChatToolTest extends UniTest:
 
   private def createAgent(modelConfig: ModelConfig = ModelConfig()): LLMAgent = LLMAgent(
     name = "test-agent",

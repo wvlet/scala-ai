@@ -8,6 +8,7 @@ val AWS_SDK_VERSION            = "2.41.5"
 val JS_JAVA_LOGGING_VERSION    = "1.0.0"
 val JUNIT_PLATFORM_VERSION     = "6.0.2"
 val SBT_TEST_INTERFACE_VERSION = "1.0"
+val SCALACHECK_VERSION         = "1.18.1"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
@@ -18,14 +19,13 @@ val buildSettings = Seq[Setting[?]](
   crossPaths               := true,
   publishMavenStyle        := true,
   Test / parallelExecution := false,
-  // Use AirSpec for testing
+  // Use UniTest for testing
   libraryDependencies ++=
     Seq(
-      "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test,
       // For PreDestroy, PostConstruct annotations
       "javax.annotation" % "javax.annotation-api" % "1.3.2" % Test
     ),
-  testFrameworks += new TestFramework("wvlet.airspec.Framework")
+  testFrameworks += new TestFramework("wvlet.uni.test.spi.UniTestFramework")
 )
 
 val jsBuildSettings = Seq[Setting[?]](
@@ -93,10 +93,18 @@ lazy val projectJS = project.settings(noPublish).aggregate(jsProjects: _*)
 lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _*)
 
 // core library for Scala JVM, Scala.js and Scala Native
+// Note: core tests use airspec because of circular dependency with unitest
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("uni"))
-  .settings(buildSettings, name := "uni", description := "Scala unified core library")
+  .settings(
+    buildSettings,
+    name        := "uni",
+    description := "Scala unified core library",
+    // Keep airspec for core tests due to circular dependency with unitest
+    libraryDependencies += "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test,
+    testFrameworks := Seq(new TestFramework("wvlet.airspec.Framework"))
+  )
   .jvmSettings(
     libraryDependencies ++=
       Seq(
@@ -123,10 +131,13 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     buildSettings,
     name        := "uni-test",
     description := "Lightweight testing framework with AirSpec syntax",
-    // Don't use AirSpec for testing uni-test itself (avoid circular dependency)
-    libraryDependencies --= Seq("org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test),
     testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
-    libraryDependencies ++= Seq("org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION)
+    libraryDependencies ++=
+      Seq(
+        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION,
+        // ScalaCheck for property-based testing
+        "org.scalacheck" %%% "scalacheck" % SCALACHECK_VERSION
+      )
   )
   .jvmSettings(
     libraryDependencies ++=
@@ -151,7 +162,7 @@ lazy val agent = project
         "org.wvlet.airframe" %% "airframe-codec" % AIRFRAME_VERSION
       )
   )
-  .dependsOn(core.jvm)
+  .dependsOn(core.jvm, unitest.jvm % Test)
 
 lazy val bedrock = project
   .in(file("uni-agent-bedrock"))
@@ -169,7 +180,7 @@ lazy val bedrock = project
         "dev.langchain4j" % "langchain4j-bedrock" % "1.10.0" % Test
       )
   )
-  .dependsOn(agent)
+  .dependsOn(agent, unitest.jvm % Test)
 
 lazy val integrationTest = project
   .in(file("uni-integration-test"))
@@ -180,4 +191,4 @@ lazy val integrationTest = project
     description    := "Integration test for agent applications",
     ideSkipProject := false
   )
-  .dependsOn(bedrock)
+  .dependsOn(bedrock, unitest.jvm % Test)

@@ -1,8 +1,8 @@
 package wvlet.uni.agent
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class ModelConfigTest extends AirSpec:
+class ModelConfigTest extends UniTest:
 
   test("overrideWith should merge defined parameters") {
     val baseConfig = ModelConfig(

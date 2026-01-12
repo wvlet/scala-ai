@@ -2,11 +2,11 @@ package wvlet.uni.agent.chat.bedrock
 
 import software.amazon.awssdk.core.SdkNumber
 import software.amazon.awssdk.core.document.Document
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
 import scala.jdk.CollectionConverters.*
 
-class DocumentUtilTest extends AirSpec:
+class DocumentUtilTest extends UniTest:
 
   test("fromJson") {
     val json = """

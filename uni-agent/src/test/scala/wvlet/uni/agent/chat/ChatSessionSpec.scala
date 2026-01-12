@@ -1,8 +1,8 @@
 package wvlet.uni.agent.chat
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class ChatSessionSpec extends AirSpec:
+class ChatSessionSpec extends UniTest:
   // Mock implementation for testing
   class TestChatSession extends ChatSession:
     override def chatStream(
@@ -14,14 +14,18 @@ class ChatSessionSpec extends AirSpec:
       finishReason = ChatFinishReason.END_TURN
     )
 
-  test("chat should create a new chat with a single message") { (session: TestChatSession) =>
+  private def createSession: TestChatSession = TestChatSession()
+
+  test("chat should create a new chat with a single message") {
+    val session  = createSession
     val response = session.chat("Hello")
     response.messages shouldMatch {
       case Seq(ChatMessage.UserMessage("Hello"), ChatMessage.AIMessage("Test response", _)) =>
     }
   }
 
-  test("chatStream should handle multiple messages") { (session: TestChatSession) =>
+  test("chatStream should handle multiple messages") {
+    val session = createSession
     val request = ChatRequest(messages =
       Seq(
         ChatMessage.user("First message"),
@@ -41,50 +45,52 @@ class ChatSessionSpec extends AirSpec:
   }
 
   test("continueChat should append new message to previous conversation") {
-    (session: TestChatSession) =>
-      val firstResponse     = session.chat("Initial message")
-      val continuedResponse = session.continueChat(firstResponse, "Follow-up message")
+    val session           = createSession
+    val firstResponse     = session.chat("Initial message")
+    val continuedResponse = session.continueChat(firstResponse, "Follow-up message")
 
-      continuedResponse.messages shouldMatch {
-        case Seq(
-              ChatMessage.UserMessage("Initial message"),
-              ChatMessage.AIMessage("Test response", _),
-              ChatMessage.UserMessage("Follow-up message"),
-              ChatMessage.AIMessage("Test response", _)
-            ) =>
-      }
+    continuedResponse.messages shouldMatch {
+      case Seq(
+            ChatMessage.UserMessage("Initial message"),
+            ChatMessage.AIMessage("Test response", _),
+            ChatMessage.UserMessage("Follow-up message"),
+            ChatMessage.AIMessage("Test response", _)
+          ) =>
+    }
   }
 
   test("continueChat with history should handle message sequence directly") {
-    (session: TestChatSession) =>
-      val history = Seq(
-        ChatMessage.user("First message"),
-        ChatMessage.assistant("First response"),
-        ChatMessage.user("Second message"),
-        ChatMessage.assistant("Second response")
-      )
-      val response = session.continueChat(history, "Third message")
+    val session = createSession
+    val history = Seq(
+      ChatMessage.user("First message"),
+      ChatMessage.assistant("First response"),
+      ChatMessage.user("Second message"),
+      ChatMessage.assistant("Second response")
+    )
+    val response = session.continueChat(history, "Third message")
 
-      response.messages shouldMatch {
-        case Seq(
-              ChatMessage.UserMessage("First message"),
-              ChatMessage.AIMessage("First response", _),
-              ChatMessage.UserMessage("Second message"),
-              ChatMessage.AIMessage("Second response", _),
-              ChatMessage.UserMessage("Third message"),
-              ChatMessage.AIMessage("Test response", _)
-            ) =>
-      }
+    response.messages shouldMatch {
+      case Seq(
+            ChatMessage.UserMessage("First message"),
+            ChatMessage.AIMessage("First response", _),
+            ChatMessage.UserMessage("Second message"),
+            ChatMessage.AIMessage("Second response", _),
+            ChatMessage.UserMessage("Third message"),
+            ChatMessage.AIMessage("Test response", _)
+          ) =>
+    }
   }
 
-  test("continueChat with empty history should work like chat") { (session: TestChatSession) =>
+  test("continueChat with empty history should work like chat") {
+    val session  = createSession
     val response = session.continueChat(Seq.empty, "Hello")
     response.messages shouldMatch {
       case Seq(ChatMessage.UserMessage("Hello"), ChatMessage.AIMessage("Test response", _)) =>
     }
   }
 
-  test("continueChat should handle conversation history") { (session: TestChatSession) =>
+  test("continueChat should handle conversation history") {
+    val session = createSession
     val history = Seq(
       ChatMessage.user("Context message"),
       ChatMessage.assistant("Context response")
@@ -102,22 +108,18 @@ class ChatSessionSpec extends AirSpec:
   }
 
   test("continueChat with observer should handle conversation history") {
-    (session: TestChatSession) =>
-      val history = Seq(ChatMessage.user("First question"), ChatMessage.assistant("First answer"))
-      // Test the overload that explicitly takes an observer
-      val response = session.continueChat(history, "Second question", ChatObserver.defaultObserver)
-      response.messages shouldMatch {
-        case Seq(
-              ChatMessage.UserMessage("First question"),
-              ChatMessage.AIMessage("First answer", _),
-              ChatMessage.UserMessage("Second question"),
-              ChatMessage.AIMessage("Test response", _)
-            ) =>
-      }
-  }
-
-  initDesign { design =>
-    design.bindSingleton[TestChatSession]
+    val session = createSession
+    val history = Seq(ChatMessage.user("First question"), ChatMessage.assistant("First answer"))
+    // Test the overload that explicitly takes an observer
+    val response = session.continueChat(history, "Second question", ChatObserver.defaultObserver)
+    response.messages shouldMatch {
+      case Seq(
+            ChatMessage.UserMessage("First question"),
+            ChatMessage.AIMessage("First answer", _),
+            ChatMessage.UserMessage("Second question"),
+            ChatMessage.AIMessage("Test response", _)
+          ) =>
+    }
   }
 
 end ChatSessionSpec

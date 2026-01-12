@@ -6,10 +6,10 @@ import wvlet.uni.agent.chat.ToolParameter
 import wvlet.uni.agent.chat.ChatMessage.ToolCallRequest
 import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.uni.agent.core.DataType
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 import wvlet.airframe.rx.Rx
 
-class LocalToolExecutorTest extends AirSpec:
+class LocalToolExecutorTest extends UniTest:
 
   private def weatherTool = ToolSpec(
     name = "get_weather",

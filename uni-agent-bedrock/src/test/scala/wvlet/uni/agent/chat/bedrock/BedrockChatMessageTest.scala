@@ -10,11 +10,11 @@ import wvlet.uni.agent.core.AIException
 import wvlet.uni.agent.core.StatusCode
 import wvlet.uni.agent.LLM
 import wvlet.uni.agent.LLMAgent
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
 import scala.jdk.CollectionConverters.*
 
-class BedrockChatMessageTest extends AirSpec:
+class BedrockChatMessageTest extends UniTest:
 
   private val dummyAgent = LLMAgent(
     name = "test-agent",
