@@ -13,20 +13,18 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class RxMapTest extends AirSpec:
+class RxMapTest extends UniTest:
 
   private var flagTest1 = false
   private var flagTest2 = false
   private var flagTest3 = false
 
-  override def afterAll: Unit =
-    // Check that all of the async tests are executed
-    pending(s"AirSpec doesn't support async test for wvlet.uni.rx.Rx")
-    flagTest1 shouldBe true
-    flagTest2 shouldBe true
-    flagTest3 shouldBe true
+  // Note: UniTest doesn't have afterAll hook
+  // The async tests verification is skipped as UniTest doesn't support async test for wvlet.uni.rx.Rx
 
   test("Rx.map") {
     Rx.single(1).map(x => x + 1).map(x => x shouldBe 2).tap(_ => flagTest1 = true)

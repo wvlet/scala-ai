@@ -20,12 +20,14 @@ import java.time.Instant
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import wvlet.uni.msgpack.impl.ByteArrayBuffer
-import wvlet.airspec.spi.PropertyCheck
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.PropertyCheck
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class RoundTripTest extends AirSpec with PropertyCheck:
+class RoundTripTest extends UniTest with PropertyCheck:
   val buf = ByteArrayBuffer.newBuffer(1024)
 
   protected def rawRoundtrip[A, B](v: A)(pack: (WriteCursor, A) => Unit)(

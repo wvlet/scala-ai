@@ -17,7 +17,9 @@ import wvlet.uni.design.DesignErrorCode.MISSING_DEPENDENCY
 import wvlet.uni.design.DesignErrorCode.SHUTDOWN_FAILURE
 import wvlet.uni.design.Design
 import wvlet.uni.design.DesignException
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogLevel
 import wvlet.uni.log.LogSupport
 import wvlet.uni.log.Logger
@@ -45,7 +47,7 @@ class LifeCycleOrder(v: Int) {}
 
 /**
   */
-object LifeCycleManagerTest extends AirSpec:
+object LifeCycleManagerTest extends UniTest:
   private val counterDesign = Design
     .newSilentDesign
     .bindSingleton[CounterService]

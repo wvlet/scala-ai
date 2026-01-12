@@ -13,10 +13,12 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import scala.jdk.CollectionConverters.*
 
-object Scala3EnumTest extends AirSpec:
+object Scala3EnumTest extends UniTest:
 
   enum Color:
     case Red,

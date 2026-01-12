@@ -15,9 +15,11 @@
 package wvlet.uni.surface
 
 import scala.language.implicitConversions
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-trait SurfaceSpec extends AirSpec:
+trait SurfaceSpec extends UniTest:
   protected def check(body: => Surface, expectedName: String): Surface =
     val surface = body
     debug(s"[${surface.getClass.getSimpleName}] $surface, ${surface.fullName}")

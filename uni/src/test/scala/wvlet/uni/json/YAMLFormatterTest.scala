@@ -1,10 +1,12 @@
 package wvlet.uni.json
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 case class Test(json: String, yaml: String)
 
-class YAMLFormatterTest extends AirSpec:
+class YAMLFormatterTest extends UniTest:
 
   val testData = Seq(
     // json, yaml

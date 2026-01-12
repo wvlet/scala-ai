@@ -14,11 +14,13 @@
 package wvlet.uni.design
 
 import example.SealedTrait.Adt
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-object SealedTraitBindingTest extends AirSpec:
+object SealedTraitBindingTest extends UniTest:
   // This code compilation may fail when using Mill.
   case class Service(adt: Adt) {}
 

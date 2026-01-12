@@ -1,9 +1,11 @@
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import java.util.concurrent.TimeUnit
 
-object RxRunnerTest extends AirSpec:
+object RxRunnerTest extends UniTest:
 
   private val ex = new IllegalArgumentException("dummy")
 

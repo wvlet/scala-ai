@@ -13,12 +13,14 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   * Test generic types with default values
   */
-object i3353 extends AirSpec:
+object i3353 extends UniTest:
   case class FValue[V](value: Option[Int] = None)
 
   test("With an optional value default argument") {

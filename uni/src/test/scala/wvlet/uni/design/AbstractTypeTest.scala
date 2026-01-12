@@ -1,9 +1,11 @@
 package wvlet.uni.design
 
 import wvlet.uni.surface.Surface
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object AbstractTypeTest extends AirSpec:
+object AbstractTypeTest extends UniTest:
 
   trait Abst:
     def hello = "hello abst"

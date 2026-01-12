@@ -14,14 +14,16 @@
 package wvlet.uni.design.lifecycle
 
 import wvlet.uni.design.Design
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
   */
-object ExtendedCloseableTest extends AirSpec:
+object ExtendedCloseableTest extends UniTest:
 
   private val closeCount = new AtomicInteger(0)
 

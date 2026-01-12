@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object GenericMethodTest extends AirSpec:
+object GenericMethodTest extends UniTest:
   class A:
     def helloX[X](v: X): String = "hello"
 

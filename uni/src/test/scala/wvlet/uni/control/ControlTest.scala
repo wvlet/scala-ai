@@ -13,7 +13,9 @@
  */
 package wvlet.uni.control
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 object ControlTest:
   class A extends AutoCloseable:
@@ -22,7 +24,7 @@ object ControlTest:
 
 /**
   */
-class ControlTest extends AirSpec:
+class ControlTest extends UniTest:
 
   test("have loan pattern") {
     val out = new ControlTest.A

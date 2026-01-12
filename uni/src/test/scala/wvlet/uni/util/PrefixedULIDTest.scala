@@ -15,10 +15,12 @@ package wvlet.uni.util
 
 import wvlet.uni.util.PrefixedULID
 import wvlet.uni.util.ULID
-import wvlet.airspec.AirSpec
-import wvlet.airspec.spi.PropertyCheck
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
+import wvlet.uni.test.PropertyCheck
 
-class PrefixedULIDTest extends AirSpec with PropertyCheck:
+class PrefixedULIDTest extends UniTest with PropertyCheck:
 
   test("basic") {
     val ulid = ULID.newULID

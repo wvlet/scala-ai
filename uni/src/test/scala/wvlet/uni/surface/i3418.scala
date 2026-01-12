@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object i3418 extends AirSpec:
+object i3418 extends UniTest:
 
   case class A[P](data: List[(String, P)])
   case class AA[T, P](data: List[(T, P)])

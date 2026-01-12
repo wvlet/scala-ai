@@ -2,13 +2,15 @@ package wvlet.uni.log
 
 import wvlet.uni.log.LogLevel
 import wvlet.uni.log.Logger
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.logging
 import java.util.logging.Handler
 import java.util.logging.Level
 
-class LoggerTest extends AirSpec:
+class LoggerTest extends UniTest:
   private val myHandler =
     new Handler():
       override def publish(record: logging.LogRecord): Unit = ???

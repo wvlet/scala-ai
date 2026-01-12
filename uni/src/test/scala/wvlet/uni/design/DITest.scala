@@ -4,7 +4,9 @@ import wvlet.uni.surface.Primitive
 import wvlet.uni.surface.Surface
 import DesignErrorCode.CYCLIC_DEPENDENCY
 import DesignErrorCode.MISSING_DEPENDENCY
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import wvlet.uni.log.LogSupport
 
 import java.io.PrintStream
@@ -13,7 +15,7 @@ import scala.util.Random
 
 /**
   */
-object DITest extends AirSpec:
+object DITest extends UniTest:
 
   test("Use wvlet.airframe.di.Design to define a new design") {
     val d = Design.newDesign

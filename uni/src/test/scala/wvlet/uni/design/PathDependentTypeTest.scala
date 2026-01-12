@@ -14,11 +14,13 @@
 package wvlet.uni.design
 
 import wvlet.uni.surface.Surface
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class PathDependentTypeTest extends AirSpec:
+class PathDependentTypeTest extends UniTest:
   test("pass dependent types") {
     import PathDependentType.*
     val s = Surface.of[JdbcProfile#Backend#Database]

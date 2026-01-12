@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object i3419 extends AirSpec:
+object i3419 extends UniTest:
 
   class QPrivate private (val id: Int)
 

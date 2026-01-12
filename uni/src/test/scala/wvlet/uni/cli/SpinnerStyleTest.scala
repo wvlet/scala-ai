@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class SpinnerStyleTest extends AirSpec:
+class SpinnerStyleTest extends UniTest:
 
   test("Dots style has correct frames") {
     SpinnerStyle.Dots.frames.size shouldBe 10

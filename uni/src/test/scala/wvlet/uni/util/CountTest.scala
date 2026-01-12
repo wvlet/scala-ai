@@ -14,11 +14,13 @@
 package wvlet.uni.util
 
 import wvlet.uni.util.Count.CountUnit
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class CountTest extends AirSpec:
+class CountTest extends UniTest:
 
   private def check(s: String, expected: Count, expectedString: String): Unit =
     val c = Count(s)

@@ -13,11 +13,13 @@
  */
 package wvlet.uni.msgpack.impl
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class ByteArrayBufferTest extends AirSpec:
+class ByteArrayBufferTest extends UniTest:
 
   test("have ReadBuffer API") {
     val b = ByteArrayBuffer.newBuffer(1024)

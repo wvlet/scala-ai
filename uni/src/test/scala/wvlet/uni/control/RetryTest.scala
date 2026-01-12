@@ -15,13 +15,15 @@ package wvlet.uni.control
 
 import wvlet.uni.control.Retry.MaxRetryException
 import wvlet.uni.control.Retry.RetryContext
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import scala.concurrent.TimeoutException
 
 /**
   */
-class RetryTest extends AirSpec:
+class RetryTest extends UniTest:
 
   test("support backoff retry") {
     var count = 0

@@ -14,13 +14,15 @@
 package wvlet.uni.design.lifecycle
 
 import wvlet.uni.design.Design
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
   */
-object CloseableShutdownHookTest extends AirSpec:
+object CloseableShutdownHookTest extends UniTest:
   class A extends AutoCloseable:
     val closeIsCalled = new AtomicBoolean(false)
 

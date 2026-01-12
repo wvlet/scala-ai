@@ -13,7 +13,9 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 object ImplicitArgTest:
   case class ImplA(a: String)(using val b: Int)
@@ -21,7 +23,7 @@ object ImplicitArgTest:
 
 /**
   */
-class ImplicitArgTest extends AirSpec:
+class ImplicitArgTest extends UniTest:
   import ImplicitArgTest.*
 
   test("support implicit args") {

@@ -13,11 +13,13 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class RxOptionTest extends AirSpec:
+class RxOptionTest extends UniTest:
   test("eval") {
     val opt = Rx.option(Some("world"))
     val v   = opt.map(x => s"hello ${x}")

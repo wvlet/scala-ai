@@ -7,6 +7,7 @@ val AIRFRAME_VERSION           = "2025.1.27"
 val AWS_SDK_VERSION            = "2.41.5"
 val JS_JAVA_LOGGING_VERSION    = "1.0.0"
 val JUNIT_PLATFORM_VERSION     = "6.0.2"
+val LOGBACK_VERSION            = "1.5.24"
 val SBT_TEST_INTERFACE_VERSION = "1.0"
 val SCALACHECK_VERSION         = "1.19.0"
 
@@ -76,9 +77,9 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, agent, bedrock, unitest.jvm)
-lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, unitest.js)
-lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, unitest.native)
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, core.jvm, agent, bedrock, unitest.jvm)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, core.js, unitest.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, core.native, unitest.native)
 
 lazy val projectJVM = project
   .settings(noPublish)
@@ -92,24 +93,20 @@ lazy val projectJS = project.settings(noPublish).aggregate(jsProjects: _*)
 
 lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _*)
 
-// core library for Scala JVM, Scala.js and Scala Native
-// Note: core tests use airspec because of circular dependency with unitest
-lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+// Logging library - independent module with no internal dependencies
+lazy val log = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
-  .in(file("uni"))
+  .in(file("uni-log"))
   .settings(
     buildSettings,
-    name        := "uni",
-    description := "Scala unified core library",
-    // Keep airspec for core tests due to circular dependency with unitest
-    libraryDependencies += "org.wvlet.airframe" %%% "airspec" % AIRFRAME_VERSION % Test,
-    testFrameworks := Seq(new TestFramework("wvlet.airspec.Framework"))
+    name        := "uni-log",
+    description := "Logging library for Scala with minimal dependencies"
   )
   .jvmSettings(
     libraryDependencies ++=
       Seq(
         // For automatic log-rotation
-        "ch.qos.logback" % "logback-core" % "1.5.24"
+        "ch.qos.logback" % "logback-core" % LOGBACK_VERSION
       )
   )
   .jsSettings(
@@ -122,6 +119,19 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
   )
   .nativeSettings(nativeBuildSettings)
+
+// core library for Scala JVM, Scala.js and Scala Native
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .crossType(CrossType.Pure)
+  .in(file("uni"))
+  .settings(
+    buildSettings,
+    name        := "uni",
+    description := "Scala unified core library"
+  )
+  .jsSettings(jsBuildSettings)
+  .nativeSettings(nativeBuildSettings)
+  .dependsOn(log, unitest % Test)
 
 // UniTest - Lightweight testing framework with AirSpec syntax
 lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
@@ -148,7 +158,7 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jsSettings(jsBuildSettings)
   .nativeSettings(nativeBuildSettings)
-  .dependsOn(core)
+  .dependsOn(log)
 
 lazy val agent = project
   .in(file("uni-agent"))

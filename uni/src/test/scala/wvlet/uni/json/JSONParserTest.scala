@@ -14,11 +14,13 @@
 package wvlet.uni.json
 
 import wvlet.uni.json.JSON.*
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class JSONParserTest extends AirSpec:
+class JSONParserTest extends UniTest:
 
   protected def parse(s: String): JSONValue =
     val v = JSON.parse(JSONSource.fromString(s))

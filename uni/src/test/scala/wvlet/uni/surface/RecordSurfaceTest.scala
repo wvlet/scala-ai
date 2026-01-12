@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class RecordSurfaceTest extends AirSpec:
+class RecordSurfaceTest extends UniTest:
   test("build custom surface") {
     val p1 = RecordParameter(0, "p1", Primitive.Int)
     val p2 = RecordParameter(1, "p2", Primitive.String)

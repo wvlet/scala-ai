@@ -1,27 +1,42 @@
 package wvlet.uni.log
 
-import wvlet.uni.control.Guard
-import wvlet.uni.util.ThreadUtil
 import java.io.Flushable
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging as jl
 
 /**
   * Logging using a background thread
   */
-class AsyncHandler(parent: jl.Handler)
-    extends jl.Handler
-    with Guard
-    with AutoCloseable
-    with Flushable:
+class AsyncHandler(parent: jl.Handler) extends jl.Handler with AutoCloseable with Flushable:
 
-  private val executor = Executors.newSingleThreadExecutor(
-    ThreadUtil.newDaemonThreadFactory("ai-log-async")
-  )
+  // Inline Guard functionality
+  private val lock                    = new ReentrantLock()
+  private def newCondition            = lock.newCondition()
+  private def guard[U](body: => U): U =
+    lock.lockInterruptibly()
+    try body
+    finally lock.unlock()
+
+  // Inline daemon thread factory
+  private def newDaemonThreadFactory(name: String): ThreadFactory =
+    new ThreadFactory:
+      private val group: ThreadGroup =
+        new ThreadGroup(Thread.currentThread().getThreadGroup(), name)
+      private val threadNumber                    = new AtomicInteger(1)
+      override def newThread(r: Runnable): Thread =
+        val threadName = s"${name}-${threadNumber.getAndIncrement()}"
+        val thread     = new Thread(group, r, threadName)
+        thread.setName(threadName)
+        thread.setDaemon(true)
+        thread
+
+  private val executor = Executors.newSingleThreadExecutor(newDaemonThreadFactory("uni-log-async"))
 
   private val queue      = new util.ArrayDeque[jl.LogRecord]
   private val isNotEmpty = newCondition

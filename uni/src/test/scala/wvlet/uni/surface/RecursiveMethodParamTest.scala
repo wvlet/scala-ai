@@ -13,7 +13,9 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 object RecursiveMethodParamTest:
   case class Node(parent: Option[Node])
@@ -21,7 +23,7 @@ object RecursiveMethodParamTest:
   trait MyRecursiveApi:
     def find(node: Node): Unit = {}
 
-class RecursiveMethodParamTest extends AirSpec:
+class RecursiveMethodParamTest extends UniTest:
   import RecursiveMethodParamTest.*
 
   // ....

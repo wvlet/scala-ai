@@ -3,11 +3,13 @@ package wvlet.uni.design
 import wvlet.uni.surface.Surface
 import DesignTest.Alias.HelloRef
 import DesignTest.Alias.StringHello
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-object DesignTest extends AirSpec:
+object DesignTest extends UniTest:
 
   trait Message
   case class Hello(message: String) extends Message

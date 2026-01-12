@@ -14,11 +14,13 @@
 package wvlet.uni.json
 
 import wvlet.uni.json.JSON.*
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class JSONTest extends AirSpec:
+class JSONTest extends UniTest:
   test("support toJSONValue") {
     val json: Json = """{"id":1}"""
     json.toJSONValue shouldBe JSON.parse(json)

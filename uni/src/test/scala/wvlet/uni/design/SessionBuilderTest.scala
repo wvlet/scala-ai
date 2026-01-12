@@ -13,11 +13,13 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class SessionBuilderTest extends AirSpec:
+class SessionBuilderTest extends UniTest:
   val d = Design.newSilentDesign
 
   test("create a named session") {

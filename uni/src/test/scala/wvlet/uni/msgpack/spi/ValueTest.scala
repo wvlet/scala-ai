@@ -20,12 +20,14 @@ import org.scalacheck.Gen
 import wvlet.uni.msgpack.impl.ByteArrayBuffer
 import wvlet.uni.msgpack.spi.Value.*
 import wvlet.uni.msgpack.spi.ValueFactory.*
-import wvlet.airspec.spi.PropertyCheck
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.PropertyCheck
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class ValueTest extends AirSpec with PropertyCheck:
+class ValueTest extends UniTest with PropertyCheck:
   private def rankOf(mf: MessageFormat): Int =
     val order = Seq(
       MessageFormat.INT8,

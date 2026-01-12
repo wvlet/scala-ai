@@ -15,12 +15,14 @@ package wvlet.uni.util
 
 import wvlet.uni.util.CrockfordBase32
 import wvlet.uni.util.ULID
-import wvlet.airspec.AirSpec
-import wvlet.airspec.spi.PropertyCheck
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
+import wvlet.uni.test.PropertyCheck
 
 /**
   */
-class ULIDTest extends AirSpec with PropertyCheck:
+class ULIDTest extends UniTest with PropertyCheck:
 
   test("generate ULID") {
     for i <- 0 to 10 do

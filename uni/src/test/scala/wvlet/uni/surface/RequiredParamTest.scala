@@ -13,7 +13,9 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 case class ModelWithRequiredParam(
     @required
@@ -28,7 +30,7 @@ case class ModelWithRequiredParam(
 
 /**
   */
-class RequiredParamTest extends AirSpec:
+class RequiredParamTest extends UniTest:
   test("find required annotation") {
     val s      = Surface.of[ModelWithRequiredParam]
     val p_id   = s.params(0)

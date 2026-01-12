@@ -13,11 +13,13 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class CancelableTest extends AirSpec:
+class CancelableTest extends UniTest:
 
   test("Merge Cancelables") {
 

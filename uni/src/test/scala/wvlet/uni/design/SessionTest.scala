@@ -13,7 +13,9 @@
  */
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 class HelloBind {}
 
@@ -23,7 +25,7 @@ class DesignBindExample(val a: HelloBind, val design: Design)
 
 /**
   */
-class SessionTest extends AirSpec:
+class SessionTest extends UniTest:
   val d1 = Design.newDesign.bindSingleton[HelloBind].noLifeCycleLogging
 
   test("pre-compile session injection template") {

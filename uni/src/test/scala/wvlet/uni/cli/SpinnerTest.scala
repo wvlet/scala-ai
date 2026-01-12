@@ -13,9 +13,11 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class SpinnerTest extends AirSpec:
+class SpinnerTest extends UniTest:
 
   test("create spinner with default settings") {
     val spinner = Spinner()

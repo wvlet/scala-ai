@@ -13,9 +13,11 @@
  */
 package wvlet.uni.surface
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-object i3451 extends AirSpec:
+object i3451 extends UniTest:
 
   case class Cons(head: String, tail: Cons)
   case class TypedCons[A](head: Int, tail: TypedCons[A])

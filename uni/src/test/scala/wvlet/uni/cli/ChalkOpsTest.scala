@@ -13,10 +13,12 @@
  */
 package wvlet.uni.cli
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 import ChalkOps.*
 
-class ChalkOpsTest extends AirSpec:
+class ChalkOpsTest extends UniTest:
 
   test("string extension for foreground colors") {
     "hello".red shouldBe Chalk.red("hello")

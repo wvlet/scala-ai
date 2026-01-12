@@ -13,11 +13,13 @@
  */
 package wvlet.uni.util
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
-class DataSizeTest extends AirSpec:
+class DataSizeTest extends UniTest:
   import DataSize.*
 
   test("parse string") {

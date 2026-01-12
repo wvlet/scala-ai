@@ -13,9 +13,11 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
-class RxOpsTest extends AirSpec:
+class RxOpsTest extends UniTest:
 
   test("From RxOption") {
     test("recoverWith RxOption") {

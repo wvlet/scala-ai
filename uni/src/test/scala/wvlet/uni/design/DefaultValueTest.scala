@@ -1,6 +1,8 @@
 package wvlet.uni.design
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 /**
   */
@@ -12,7 +14,7 @@ object DefaultValueTest:
 
 /**
   */
-class DefaultValueTest extends AirSpec:
+class DefaultValueTest extends UniTest:
   import DefaultValueTest.*
   test("populate default values") {
     Design
