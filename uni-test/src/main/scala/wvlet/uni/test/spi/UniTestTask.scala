@@ -88,7 +88,7 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
     catch
       case e: Throwable =>
         // Unwrap InvocationTargetException to get the actual cause
-        val cause = findCause(e)
+        val cause           = findCause(e)
         val (event, logMsg) = classifySpecLevelException(className, cause)
         eventHandler.handle(event)
         loggers.foreach(_.info(logMsg))
@@ -182,7 +182,8 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
         e
 
   /**
-    * Classify an exception thrown at the spec level (during class construction) and create an appropriate event
+    * Classify an exception thrown at the spec level (during class construction) and create an
+    * appropriate event
     */
   private def classifySpecLevelException(className: String, e: Throwable): (Event, String) =
     val leafName = className.split('.').last
@@ -237,6 +238,10 @@ class UniTestTask(val taskDef: TaskDef, testClassLoader: ClassLoader, config: Te
           0L
         )
         (event, s"  x ${leafName}: error - ${e.getMessage}")
+
+    end match
+
+  end classifySpecLevelException
 
 end UniTestTask
 
