@@ -26,6 +26,21 @@ trait Parameter extends ParameterBase:
   def isSecret: Boolean
 
   /**
+    * Get all annotations on this parameter with their primitive values
+    */
+  def annotations: Seq[Annotation]
+
+  /**
+    * Find an annotation by name
+    */
+  def findAnnotation(name: String): Option[Annotation] = annotations.find(_.is(name))
+
+  /**
+    * Check if this parameter has an annotation with the given name
+    */
+  def hasAnnotation(name: String): Boolean = annotations.exists(_.is(name))
+
+  /**
     * Get this parameter value from a given object x
     */
   def get(x: Any): Any

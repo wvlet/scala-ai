@@ -48,7 +48,8 @@ case class StaticMethodParameter(
     surface: Surface,
     private val defaultValue: Option[Any] = None,
     accessor: Option[Any => Any] = None,
-    methodArgAccessor: Option[Any => Any] = None
+    methodArgAccessor: Option[Any => Any] = None,
+    annotations: Seq[Annotation] = Seq.empty
 ) extends MethodParameter:
   override def toString: String             = s"${name}:${surface.name}"
   def get(x: Any): Any                      = accessor.map(a => a(x)).getOrElse(null)

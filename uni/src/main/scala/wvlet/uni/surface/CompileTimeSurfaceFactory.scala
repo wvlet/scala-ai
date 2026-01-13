@@ -813,7 +813,8 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       defaultMethodArgGetter: Option[Symbol],
       isImplicit: Boolean,
       isRequired: Boolean,
-      isSecret: Boolean
+      isSecret: Boolean,
+      annotations: Expr[Seq[Annotation]]
   )
 
   private def resolveType(t: TypeRepr, typeArgTable: Map[String, TypeRepr]): TypeRepr =
@@ -879,6 +880,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
           val isSecret           = hasSecretAnnotation(s)
           val isRequired         = hasRequiredAnnotation(s)
           val isImplicit         = s.flags.is(Flags.Implicit)
+          val annotations        = extractAnnotations(s)
           val defaultValueGetter = defaultValueMethods.find(m => m.name.endsWith(s"$$${i}"))
 
           val defaultMethodArgGetter =
@@ -896,7 +898,8 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
             defaultMethodArgGetter,
             isImplicit,
             isRequired,
-            isSecret
+            isSecret,
+            annotations
           )
         }
     }
@@ -910,6 +913,148 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
   private def hasRequiredAnnotation(s: Symbol): Boolean =
     val t = TypeRepr.of[wvlet.uni.surface.required]
     s.hasAnnotation(t.typeSymbol)
+
+  /**
+    * Extract all annotations from a symbol with their primitive parameter values
+    */
+  private def extractAnnotations(s: Symbol): Expr[Seq[Annotation]] =
+    val annotationExprs = s.annotations.flatMap { annot =>
+      annot match
+        case Apply(Select(New(tpt), _), args) =>
+          val annotType = tpt.tpe
+          val annotName = annotType.typeSymbol.name
+          val annotFullName = annotType.typeSymbol.fullName
+            .stripSuffix("$")
+            .replaceAll("\\$", ".")
+
+          // Extract annotation constructor parameter names
+          val paramNames: List[String] =
+            annotType.typeSymbol.primaryConstructor.paramSymss.flatten
+              .filterNot(_.isTypeParam)
+              .map(_.name)
+
+          // Extract parameter values as expressions
+          val paramExprs: List[Expr[(String, Any)]] =
+            args.zip(paramNames).flatMap { case (arg, paramName) =>
+              extractPrimitiveValue(arg).map { valueExpr =>
+                '{
+                  (
+                    ${
+                      Expr(paramName)
+                    },
+                    ${
+                      valueExpr
+                    }
+                  )
+                }
+              }
+            }
+
+          val paramsMapExpr: Expr[Map[String, Any]] =
+            if paramExprs.isEmpty then '{ Map.empty[String, Any] }
+            else '{ Map(${Varargs(paramExprs)}: _*) }
+
+          Some('{
+            Annotation(
+              ${
+                Expr(annotName)
+              },
+              ${
+                Expr(annotFullName)
+              },
+              ${
+                paramsMapExpr
+              }
+            )
+          })
+
+        // Handle annotations applied with named arguments
+        case Apply(Select(New(tpt), _), Nil) =>
+          val annotType = tpt.tpe
+          val annotName = annotType.typeSymbol.name
+          val annotFullName = annotType.typeSymbol.fullName
+            .stripSuffix("$")
+            .replaceAll("\\$", ".")
+          Some('{
+            Annotation(
+              ${
+                Expr(annotName)
+              },
+              ${
+                Expr(annotFullName)
+              },
+              Map.empty
+            )
+          })
+
+        case _ =>
+          None
+    }
+    Expr.ofSeq(annotationExprs)
+
+  /**
+    * Extract a primitive value from an annotation argument tree
+    */
+  private def extractPrimitiveValue(tree: Tree): Option[Expr[Any]] =
+    tree match
+      case Literal(StringConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(IntConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(LongConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(FloatConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(DoubleConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(BooleanConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(ByteConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(ShortConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(CharConstant(v)) =>
+        Some(Expr(v).asExprOf[Any])
+      case Literal(ClassOfConstant(tpe)) =>
+        Some(Literal(ClassOfConstant(tpe)).asExprOf[Any])
+      // Handle Typed wrapper (e.g., Typed(Repeated(...), ...))
+      case Typed(expr, _) =>
+        extractPrimitiveValue(expr)
+      // Handle arrays/varargs (Repeated)
+      case Repeated(elems, _) =>
+        val elemExprs = elems.flatMap(e => extractPrimitiveValue(e))
+        if elemExprs.size == elems.size then
+          Some('{ Seq(${Varargs(elemExprs)}: _*) }.asExprOf[Any])
+        else
+          None
+      // Handle Select for enum values or constants
+      case Select(_, _) =>
+        // Try to evaluate as a constant
+        tree.asExpr match
+          case '{ $v: t } =>
+            tree match
+              case term: Term =>
+                term.tpe.widenTermRefByName match
+                  case ConstantType(c) =>
+                    extractPrimitiveValue(Literal(c))
+                  case _ =>
+                    // For enum values, we can try to capture them
+                    Some(term.asExpr.asExprOf[Any])
+              case _ =>
+                None
+      case Ident(_) =>
+        // Try to resolve as a constant reference
+        tree match
+          case term: Term =>
+            term.tpe.widenTermRefByName match
+              case ConstantType(c) =>
+                extractPrimitiveValue(Literal(c))
+              case _ =>
+                None
+          case _ =>
+            None
+      case _ =>
+        None
 
   private def constructorParametersOf(t: TypeRepr): Expr[Seq[MethodParameter]] = methodParametersOf(
     t,
@@ -1108,6 +1253,10 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
             methodArgAccessor =
               ${
                 methodArgAccessor
+              },
+            annotations =
+              ${
+                field.annotations
               }
           )
         }
