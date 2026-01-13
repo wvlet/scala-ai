@@ -2,15 +2,15 @@ import sbtide.Keys.ideSkipProject
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val SCALA_3                           = "3.7.3"
-val AIRFRAME_VERSION                  = "2025.1.27"
-val AWS_SDK_VERSION                   = "2.41.5"
-val JS_JAVA_LOGGING_VERSION           = "1.0.0"
-val JUNIT_PLATFORM_VERSION            = "6.0.2"
-val LOGBACK_VERSION                   = "1.5.24"
+val SCALA_3                             = "3.7.3"
+val AIRFRAME_VERSION                    = "2025.1.27"
+val AWS_SDK_VERSION                     = "2.41.6"
+val JS_JAVA_LOGGING_VERSION             = "1.0.0"
+val JUNIT_PLATFORM_VERSION              = "6.0.2"
+val LOGBACK_VERSION                     = "1.5.24"
 val SCALA_NATIVE_TEST_INTERFACE_VERSION = "0.5.8"
-val SBT_TEST_INTERFACE_VERSION        = "1.0"
-val SCALACHECK_VERSION                = "1.19.0"
+val SBT_TEST_INTERFACE_VERSION          = "1.0"
+val SCALACHECK_VERSION                  = "1.19.0"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
@@ -125,11 +125,7 @@ lazy val log = crossProject(JVMPlatform, JSPlatform, NativePlatform)
 lazy val uni = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("uni"))
-  .settings(
-    buildSettings,
-    name        := "uni",
-    description := "Scala unified core library"
-  )
+  .settings(buildSettings, name := "uni", description := "Scala unified core library")
   .jsSettings(jsBuildSettings)
   .nativeSettings(nativeBuildSettings)
   .dependsOn(log, unitest % Test)
@@ -153,7 +149,7 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++=
       Seq(
         // JVM uses sbt test-interface
-        "org.scala-sbt"      % "test-interface"          % SBT_TEST_INTERFACE_VERSION,
+        "org.scala-sbt" % "test-interface" % SBT_TEST_INTERFACE_VERSION,
         // JUnit Platform for IDE integration (IntelliJ, VS Code)
         // junit-platform-commons contains @Testable annotation for IDE source-level discovery
         "org.junit.platform" % "junit-platform-commons"  % JUNIT_PLATFORM_VERSION,
@@ -166,7 +162,9 @@ lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++=
       Seq(
         // Scala.js uses scalajs-test-interface for proper test discovery
-        ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).cross(CrossVersion.for3Use2_13)
+        ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).cross(
+          CrossVersion.for3Use2_13
+        )
       )
   )
   .nativeSettings(
