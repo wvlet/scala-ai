@@ -151,8 +151,20 @@ class UniTestEngine extends TestEngine:
         try
           val instance = classDesc.testClass.getDeclaredConstructor().newInstance()
 
+          // Get the set of test names that were discovered (selected for execution)
+          val discoveredTests = classDesc
+            .getChildren
+            .asScala
+            .collect { case m: UniTestMethodDescriptor => m.testName }
+            .toSet
+
           // Use queue-based approach to handle dynamically registered nested tests
-          val testQueue     = scala.collection.mutable.Queue.from(instance.registeredTests)
+          // Filter to only discovered tests (enables single test selection in IDE)
+          val testQueue = scala.collection.mutable.Queue.from(
+            instance.registeredTests.filter { testDef =>
+              discoveredTests.isEmpty || discoveredTests.contains(testDef.fullName)
+            }
+          )
           val executedTests = scala.collection.mutable.Set.empty[String]
 
           while testQueue.nonEmpty do
