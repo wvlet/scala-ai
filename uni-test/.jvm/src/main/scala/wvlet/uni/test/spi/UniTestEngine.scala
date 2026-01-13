@@ -34,14 +34,54 @@ class UniTestEngine extends TestEngine:
   override def discover(request: EngineDiscoveryRequest, uniqueId: UniqueId): TestDescriptor =
     val rootDescriptor = EngineDescriptor(uniqueId, "UniTest")
 
-    // Handle class selectors
+    // Track which classes have been added to avoid duplicates
+    val addedClasses = scala.collection.mutable.Set.empty[Class[?]]
+
+    // Handle class selectors (run all tests in a class)
     request
       .getSelectorsByType(classOf[ClassSelector])
       .asScala
       .foreach { selector =>
         val clazz = selector.getJavaClass
         if classOf[UniTest].isAssignableFrom(clazz) && !clazz.isInterface then
-          addTestClass(rootDescriptor, clazz.asInstanceOf[Class[? <: UniTest]])
+          addedClasses.add(clazz)
+          addTestClass(rootDescriptor, clazz.asInstanceOf[Class[? <: UniTest]], testFilter = None)
+      }
+
+    // Handle unique ID selectors (re-run specific tests by ID)
+    // Use context class loader for IDE environments where test classes
+    // are loaded by a different class loader than the engine
+    val classLoader = Thread.currentThread().getContextClassLoader
+    request
+      .getSelectorsByType(classOf[UniqueIdSelector])
+      .asScala
+      .foreach { selector =>
+        val selectedId = selector.getUniqueId
+        // Extract class name from unique ID segments
+        selectedId
+          .getSegments
+          .asScala
+          .find(_.getType == "class")
+          .foreach { segment =>
+            try
+              val clazz = classLoader.loadClass(segment.getValue)
+              if classOf[UniTest].isAssignableFrom(clazz) && !addedClasses.contains(clazz) then
+                addedClasses.add(clazz)
+                // Extract test name filter if present
+                val testFilter = selectedId
+                  .getSegments
+                  .asScala
+                  .find(_.getType == "test")
+                  .map(_.getValue)
+                addTestClass(
+                  rootDescriptor,
+                  clazz.asInstanceOf[Class[? <: UniTest]],
+                  testFilter = testFilter
+                )
+            catch
+              case _: ClassNotFoundException =>
+              // Ignore if class not found
+          }
       }
 
     // Handle package selectors
@@ -54,6 +94,8 @@ class UniTestEngine extends TestEngine:
       }
 
     rootDescriptor
+
+  end discover
 
   override def execute(request: ExecutionRequest): Unit =
     val root     = request.getRootTestDescriptor
@@ -70,7 +112,11 @@ class UniTestEngine extends TestEngine:
 
     listener.executionFinished(root, TestExecutionResult.successful())
 
-  private def addTestClass(parent: TestDescriptor, testClass: Class[? <: UniTest]): Unit =
+  private def addTestClass(
+      parent: TestDescriptor,
+      testClass: Class[? <: UniTest],
+      testFilter: Option[String]
+  ): Unit =
     val classId         = parent.getUniqueId.append("class", testClass.getName)
     val classDescriptor = UniTestClassDescriptor(classId, testClass)
 
@@ -79,6 +125,10 @@ class UniTestEngine extends TestEngine:
       val instance = testClass.getDeclaredConstructor().newInstance()
       instance
         .registeredTests
+        .filter { testDef =>
+          // Apply filter if specified (for running individual tests)
+          testFilter.forall(filter => testDef.fullName == filter)
+        }
         .foreach { testDef =>
           val testId         = classId.append("test", testDef.fullName)
           val testDescriptor = UniTestMethodDescriptor(testId, testDef.fullName, testClass)
@@ -192,7 +242,7 @@ end UniTestEngine
   * Test descriptor for a UniTest class
   */
 class UniTestClassDescriptor(uniqueId: UniqueId, val testClass: Class[? <: UniTest])
-    extends AbstractTestDescriptor(uniqueId, testClass.getSimpleName):
+    extends AbstractTestDescriptor(uniqueId, testClass.getSimpleName, ClassSource.from(testClass)):
 
   override def getType: TestDescriptor.Type = TestDescriptor.Type.CONTAINER
 
@@ -200,6 +250,6 @@ class UniTestClassDescriptor(uniqueId: UniqueId, val testClass: Class[? <: UniTe
   * Test descriptor for a single test method
   */
 class UniTestMethodDescriptor(uniqueId: UniqueId, val testName: String, testClass: Class[?])
-    extends AbstractTestDescriptor(uniqueId, testName):
+    extends AbstractTestDescriptor(uniqueId, testName, ClassSource.from(testClass)):
 
   override def getType: TestDescriptor.Type = TestDescriptor.Type.TEST
