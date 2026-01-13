@@ -49,6 +49,9 @@ class UniTestEngine extends TestEngine:
       }
 
     // Handle unique ID selectors (re-run specific tests by ID)
+    // Use context class loader for IDE environments where test classes
+    // are loaded by a different class loader than the engine
+    val classLoader = Thread.currentThread().getContextClassLoader
     request
       .getSelectorsByType(classOf[UniqueIdSelector])
       .asScala
@@ -61,7 +64,7 @@ class UniTestEngine extends TestEngine:
           .find(_.getType == "class")
           .foreach { segment =>
             try
-              val clazz = Class.forName(segment.getValue)
+              val clazz = classLoader.loadClass(segment.getValue)
               if classOf[UniTest].isAssignableFrom(clazz) && !addedClasses.contains(clazz) then
                 addedClasses.add(clazz)
                 // Extract test name filter if present
