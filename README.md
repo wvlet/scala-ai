@@ -40,5 +40,5 @@ libraryDependencies ++= Seq(
 )
 
 // Enable uni-test framework
-testFrameworks += new TestFramework("wvlet.uni.test.spi.UniTestFramework")
+testFrameworks += new TestFramework("wvlet.uni.test.Framework")
 ```
