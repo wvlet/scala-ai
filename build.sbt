@@ -27,7 +27,7 @@ val buildSettings = Seq[Setting[?]](
       // For PreDestroy, PostConstruct annotations
       "javax.annotation" % "javax.annotation-api" % "1.3.2" % Test
     ),
-  testFrameworks += new TestFramework("wvlet.uni.test.spi.UniTestFramework")
+  testFrameworks += new TestFramework("wvlet.uni.test.Framework")
 )
 
 val jsBuildSettings = Seq[Setting[?]](
@@ -78,9 +78,9 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, uni.jvm, agent, bedrock, unitest.jvm)
-lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, uni.js, unitest.js)
-lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, uni.native, unitest.native)
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, uni.jvm, agent, bedrock, test.jvm)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, uni.js, test.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, uni.native, test.native)
 
 lazy val projectJVM = project
   .settings(noPublish)
@@ -128,17 +128,17 @@ lazy val uni = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .settings(buildSettings, name := "uni", description := "Scala unified core library")
   .jsSettings(jsBuildSettings)
   .nativeSettings(nativeBuildSettings)
-  .dependsOn(log, unitest % Test)
+  .dependsOn(log, test % Test)
 
-// UniTest - Lightweight testing framework with AirSpec syntax
-lazy val unitest = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+// uni-test - Lightweight testing framework with AirSpec syntax
+lazy val test = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("uni-test"))
   .settings(
     buildSettings,
     name           := "uni-test",
     description    := "Lightweight testing framework with AirSpec syntax",
-    testFrameworks := Seq(new TestFramework("wvlet.uni.test.spi.UniTestFramework")),
+    testFrameworks := Seq(new TestFramework("wvlet.uni.test.Framework")),
     libraryDependencies ++=
       Seq(
         // ScalaCheck for property-based testing
@@ -189,7 +189,7 @@ lazy val agent = project
         "org.wvlet.airframe" %% "airframe-codec" % AIRFRAME_VERSION
       )
   )
-  .dependsOn(uni.jvm, unitest.jvm % Test)
+  .dependsOn(uni.jvm, test.jvm % Test)
 
 lazy val bedrock = project
   .in(file("uni-agent-bedrock"))
@@ -207,7 +207,7 @@ lazy val bedrock = project
         "dev.langchain4j" % "langchain4j-bedrock" % "1.10.0" % Test
       )
   )
-  .dependsOn(agent, unitest.jvm % Test)
+  .dependsOn(agent, test.jvm % Test)
 
 lazy val integrationTest = project
   .in(file("uni-integration-test"))
@@ -218,4 +218,4 @@ lazy val integrationTest = project
     description    := "Integration test for agent applications",
     ideSkipProject := false
   )
-  .dependsOn(bedrock, unitest.jvm % Test)
+  .dependsOn(bedrock, test.jvm % Test)

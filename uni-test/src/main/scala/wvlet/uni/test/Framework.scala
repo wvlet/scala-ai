@@ -11,25 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.uni.test.spi
+package wvlet.uni.test
 
 import sbt.testing.Fingerprint
-import sbt.testing.Framework
 import sbt.testing.Runner
 
 /**
-  * sbt test framework entry point for UniTest
+  * sbt test framework entry point for uni-test
   */
-class UniTestFramework extends Framework:
-  override def name(): String = "UniTest"
+class Framework extends sbt.testing.Framework:
+  override def name(): String = "uni-test"
 
-  override def fingerprints(): Array[Fingerprint] = Array(UniTestFingerprint)
+  override def fingerprints(): Array[Fingerprint] = Array(spi.UniTestFingerprint)
 
   override def runner(
       args: Array[String],
       remoteArgs: Array[String],
       testClassLoader: ClassLoader
-  ): Runner = UniTestRunner(args, remoteArgs, testClassLoader)
+  ): Runner = spi.UniTestRunner(args, remoteArgs, testClassLoader)
 
   /**
     * Scala.js slave runner - used for remote test execution. For now, we just create a standard
@@ -40,4 +39,4 @@ class UniTestFramework extends Framework:
       remoteArgs: Array[String],
       testClassLoader: ClassLoader,
       send: String => Unit
-  ): Runner = UniTestRunner(args, remoteArgs, testClassLoader)
+  ): Runner = spi.UniTestRunner(args, remoteArgs, testClassLoader)
