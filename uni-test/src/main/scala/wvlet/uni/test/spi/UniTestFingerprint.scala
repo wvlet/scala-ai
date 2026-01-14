@@ -22,3 +22,11 @@ object UniTestFingerprint extends SubclassFingerprint:
   override def superclassName(): String           = "wvlet.uni.test.UniTest"
   override def isModule(): Boolean                = false
   override def requireNoArgConstructor(): Boolean = true
+
+/**
+  * Fingerprint that identifies test objects (modules) extending UniTest
+  */
+object UniTestModuleFingerprint extends SubclassFingerprint:
+  override def superclassName(): String           = "wvlet.uni.test.UniTest"
+  override def isModule(): Boolean                = true
+  override def requireNoArgConstructor(): Boolean = false

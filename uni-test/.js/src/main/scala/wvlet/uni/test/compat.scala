@@ -79,13 +79,34 @@ private[test] object compat:
     org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.global
 
   /**
-    * Create a new instance of the test class using Scala.js built-in reflection. Throws exception
-    * if class cannot be found or instantiated.
+    * Create a new instance of the test class or get singleton instance if it's an object. Uses
+    * Scala.js built-in reflection. Throws exception if class cannot be found or instantiated.
     */
-  def newInstance(className: String, classLoader: ClassLoader): UniTest = Reflect
-    .lookupInstantiatableClass(className)
-    .map(_.newInstance().asInstanceOf[UniTest])
-    .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
+  def newInstance(className: String, classLoader: ClassLoader): UniTest =
+    // Try module lookup first (for Scala objects)
+    lookupModule(className)
+      .orElse(
+        // Try with $ suffix (sbt may pass class name without $)
+        if !className.endsWith("$") then
+          lookupModule(s"${className}$$")
+        else
+          None
+      )
+      .orElse(
+        // Fall back to instantiatable class (regular class)
+        Reflect.lookupInstantiatableClass(className).map(_.newInstance().asInstanceOf[UniTest])
+      )
+      .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
+
+  /**
+    * Try to load a module and verify it extends UniTest
+    */
+  private def lookupModule(name: String): Option[UniTest] = Reflect
+    .lookupLoadableModuleClass(name)
+    .map(_.loadModule())
+    .collect { case t: UniTest =>
+      t
+    }
 
   /**
     * Find the root cause of an exception. Scala.js doesn't have InvocationTargetException.

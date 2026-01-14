@@ -22,7 +22,10 @@ import sbt.testing.Runner
 class Framework extends sbt.testing.Framework:
   override def name(): String = "uni-test"
 
-  override def fingerprints(): Array[Fingerprint] = Array(spi.UniTestFingerprint)
+  override def fingerprints(): Array[Fingerprint] = Array(
+    spi.UniTestFingerprint,
+    spi.UniTestModuleFingerprint
+  )
 
   override def runner(
       args: Array[String],

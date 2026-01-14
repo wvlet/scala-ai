@@ -33,11 +33,52 @@ private[test] object compat:
   val executionContext: ExecutionContext = ExecutionContext.global
 
   /**
-    * Create a new instance of the test class. Throws exception if instantiation fails.
+    * Create a new instance of the test class or get singleton instance if it's an object. Throws
+    * exception if instantiation fails.
     */
   def newInstance(className: String, classLoader: ClassLoader): UniTest =
     val testClass = classLoader.loadClass(className)
-    testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+    getInstanceOf(testClass, className, classLoader)
+
+  /**
+    * Get an instance from a class. For Scala objects (modules), retrieves the singleton instance
+    * via MODULE$ field. For regular classes, creates a new instance via no-arg constructor.
+    */
+  def getInstanceOf(
+      testClass: Class[?],
+      className: String = "",
+      classLoader: ClassLoader = null
+  ): UniTest =
+    def createInstance: UniTest = testClass
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[UniTest]
+
+    def getModule(cls: Class[?]): Option[Any] =
+      try
+        Some(cls.getField("MODULE$").get(null))
+      catch
+        case _: NoSuchFieldException =>
+          None
+
+    val moduleInstance = getModule(testClass).orElse {
+      if classLoader != null && !className.endsWith("$") then
+        try
+          getModule(classLoader.loadClass(s"${className}$$"))
+        catch
+          case _: ClassNotFoundException =>
+            None
+      else
+        None
+    }
+
+    moduleInstance match
+      case Some(instance: UniTest) =>
+        instance
+      case _ =>
+        createInstance
+
+  end getInstanceOf
 
   /**
     * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause

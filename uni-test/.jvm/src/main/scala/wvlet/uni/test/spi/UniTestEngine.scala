@@ -16,6 +16,7 @@ package wvlet.uni.test.spi
 import org.junit.platform.engine.*
 import org.junit.platform.engine.discovery.*
 import org.junit.platform.engine.support.descriptor.*
+import wvlet.uni.test.compat
 import wvlet.uni.test.TestResult
 import wvlet.uni.test.UniTest
 
@@ -120,9 +121,9 @@ class UniTestEngine extends TestEngine:
     val classId         = parent.getUniqueId.append("class", testClass.getName)
     val classDescriptor = UniTestClassDescriptor(classId, testClass)
 
-    // Instantiate to get registered tests
+    // Instantiate to get registered tests (handles both classes and objects)
     try
-      val instance = testClass.getDeclaredConstructor().newInstance()
+      val instance = compat.getInstanceOf(testClass)
       instance
         .registeredTests
         .filter { testDef =>
@@ -149,7 +150,7 @@ class UniTestEngine extends TestEngine:
         listener.executionStarted(classDesc)
 
         try
-          val instance = classDesc.testClass.getDeclaredConstructor().newInstance()
+          val instance = compat.getInstanceOf(classDesc.testClass)
 
           // Get the set of test names that were discovered (selected for execution)
           val discoveredTests =
