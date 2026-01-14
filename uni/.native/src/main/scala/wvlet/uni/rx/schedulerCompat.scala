@@ -76,8 +76,8 @@ private[rx] object schedulerCompat:
   end NativeScheduler
 
   private class NativeBlockingScheduler extends RxScheduler:
-    private val pool: ScheduledExecutorService           = Executors.newCachedThreadPool()
-    private val delayScheduler: ScheduledExecutorService = Executors
+    private val pool: java.util.concurrent.ExecutorService = Executors.newCachedThreadPool()
+    private val delayScheduler: ScheduledExecutorService   = Executors
       .newSingleThreadScheduledExecutor()
 
     override val parallelism: Int = Int.MaxValue

@@ -136,7 +136,7 @@ object RxParallel:
                   runTask()
                 }
               case None =>
-                scheduler.execute(runTask)
+                scheduler.execute(() => runTask())
           }
 
         done.get.await
