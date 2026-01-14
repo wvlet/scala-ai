@@ -26,11 +26,20 @@ import wvlet.uni.test.compat
 import scala.concurrent.Await
 import scala.concurrent.Promise
 import scala.concurrent.duration.Duration
+import scala.io.AnsiColor
+
+/**
+  * ANSI color palette for test output, extending standard AnsiColor with additional bright colors
+  */
+private[spi] trait TestColorPalette extends AnsiColor:
+  final val GRAY = "\u001b[90m"
 
 /**
   * sbt test task that executes tests for a single test class
   */
-class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig) extends Task:
+class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig)
+    extends Task
+    with TestColorPalette:
 
   def taskDef(): TaskDef = _taskDef
 
@@ -136,20 +145,20 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
   private def logResult(result: TestResult, loggers: Array[sbt.testing.Logger]): Unit =
     result match
       case TestResult.Success(name) =>
-        loggers.foreach(_.info(s"  + ${name}"))
+        loggers.foreach(_.info(s"${GREEN}  + ${name}${RESET}"))
       case TestResult.Failure(name, msg, _) =>
-        loggers.foreach(_.error(s"  - ${name}: ${msg}"))
+        loggers.foreach(_.error(s"${RED}  - ${name}: ${msg}${RESET}"))
       case TestResult.Error(name, msg, cause) =>
-        loggers.foreach(_.error(s"  x ${name}: ${msg}"))
+        loggers.foreach(_.error(s"${RED}  x ${name}: ${msg}${RESET}"))
         loggers.foreach(_.trace(cause))
       case TestResult.Skipped(name, reason) =>
-        loggers.foreach(_.info(s"  ~ ${name}: skipped - ${reason}"))
+        loggers.foreach(_.info(s"${YELLOW}  ~ ${name}: skipped - ${reason}${RESET}"))
       case TestResult.Pending(name, reason) =>
-        loggers.foreach(_.info(s"  ? ${name}: pending - ${reason}"))
+        loggers.foreach(_.info(s"${MAGENTA}  ? ${name}: pending - ${reason}${RESET}"))
       case TestResult.Cancelled(name, reason) =>
-        loggers.foreach(_.info(s"  ! ${name}: cancelled - ${reason}"))
+        loggers.foreach(_.info(s"${CYAN}  ! ${name}: cancelled - ${reason}${RESET}"))
       case TestResult.Ignored(name, reason) =>
-        loggers.foreach(_.info(s"  - ${name}: ignored - ${reason}"))
+        loggers.foreach(_.info(s"${GRAY}  - ${name}: ignored - ${reason}${RESET}"))
 
   private def createEvent(testName: String, result: TestResult): Event =
     val selector = new TestSelector(testName)
@@ -215,7 +224,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(ts),
           0L
         )
-        (event, s"  ~ ${leafName}: skipped - ${ts.getMessage}")
+        (event, s"${YELLOW}  ~ ${leafName}: skipped - ${ts.getMessage}${RESET}")
       case tp: TestPending =>
         val event = UniTestEvent(
           className,
@@ -225,7 +234,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(tp),
           0L
         )
-        (event, s"  ? ${leafName}: pending - ${tp.getMessage}")
+        (event, s"${MAGENTA}  ? ${leafName}: pending - ${tp.getMessage}${RESET}")
       case tc: TestCancelled =>
         val event = UniTestEvent(
           className,
@@ -235,7 +244,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(tc),
           0L
         )
-        (event, s"  ! ${leafName}: cancelled - ${tc.getMessage}")
+        (event, s"${CYAN}  ! ${leafName}: cancelled - ${tc.getMessage}${RESET}")
       case ti: TestIgnored =>
         val event = UniTestEvent(
           className,
@@ -245,7 +254,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(ti),
           0L
         )
-        (event, s"  - ${leafName}: ignored - ${ti.getMessage}")
+        (event, s"${GRAY}  - ${leafName}: ignored - ${ti.getMessage}${RESET}")
       case _ =>
         val event = UniTestEvent(
           className,
@@ -255,7 +264,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(e),
           0L
         )
-        (event, s"  x ${leafName}: error - ${e.getMessage}")
+        (event, s"${RED}  x ${leafName}: error - ${e.getMessage}${RESET}")
 
     end match
 
