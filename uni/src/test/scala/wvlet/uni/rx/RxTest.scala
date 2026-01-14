@@ -1239,10 +1239,13 @@ object RxTest extends UniTest:
   }
 
   test("async Rx test with error propagation") {
-    // Test that Rx errors are properly propagated
+    // Test that Rx errors are properly propagated and can be recovered
     Rx.single(42)
-      .map { x =>
-        x shouldBe 42
+      .map { _ =>
+        throw new RuntimeException("expected error")
+      }
+      .recover { case e: RuntimeException =>
+        e.getMessage shouldBe "expected error"
       }
   }
 

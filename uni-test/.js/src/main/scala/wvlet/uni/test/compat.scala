@@ -122,7 +122,8 @@ private[test] object compat:
     // Run the Rx for side effects - this is non-blocking
     var result: Option[A]        = None
     var error: Option[Throwable] = None
-    val cancelable               =
+    // Discard the cancelable - we run synchronously on JS
+    val _ =
       RxRunner.runOnce(rx) {
         case OnNext(v) =>
           result = Some(v.asInstanceOf[A])
