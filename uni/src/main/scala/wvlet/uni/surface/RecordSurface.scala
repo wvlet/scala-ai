@@ -75,7 +75,8 @@ case class RecordParameter(
     surface: Surface,
     isRequired: Boolean = false,
     isSecret: Boolean = false,
-    defaultValue: Option[Any] = None
+    defaultValue: Option[Any] = None,
+    annotations: Seq[Annotation] = Seq.empty
 ) extends Parameter:
   override def get(x: Any): Any             = ???
   override def getDefaultValue: Option[Any] = defaultValue
