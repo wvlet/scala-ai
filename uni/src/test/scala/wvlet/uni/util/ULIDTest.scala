@@ -75,10 +75,10 @@ class ULIDTest extends UniTest with PropertyCheck:
   test("generate") {
     ULID.of(ULID.MinTime, 0, 0) shouldBe ULID("00000000000000000000000000")
     ULID.of(1L, 0, 0) shouldBe ULID("00000000010000000000000000")
-    ULID.of(ULID.MaxTime, 0, 0) shouldBe ULID("7ZZZZZZZZZ0000000000000000")
+    ULID.of(ULID.MaxTime, 0, 0) shouldBe ULID("7zzzzzzzzz0000000000000000")
     ULID.of(ULID.MaxTime, ~0L, ~0L) shouldBe ULID.MaxValue
-    ULID.of(0L, 0, ~0L) shouldBe ULID("0000000000000FZZZZZZZZZZZZ")
-    ULID.of(0L, ~0L, ~0L) shouldBe ULID("0000000000ZZZZZZZZZZZZZZZZ")
+    ULID.of(0L, 0, ~0L) shouldBe ULID("0000000000000fzzzzzzzzzzzz")
+    ULID.of(0L, ~0L, ~0L) shouldBe ULID("0000000000zzzzzzzzzzzzzzzz")
   }
 
   test("generation failures") {
@@ -142,15 +142,14 @@ class ULIDTest extends UniTest with PropertyCheck:
     ulid shouldBe ulid2
   }
 
-  test("Parse lowercase representation of ULID") {
+  test("Parse uppercase representation of ULID") {
     val ulid          = ULID.newULID
-    val ulidLowerCase = ulid.toString.toLowerCase
-    val parsed        = ULID.fromString(ulidLowerCase)
+    val ulidUpperCase = ulid.toString.toUpperCase
+    val parsed        = ULID.fromString(ulidUpperCase)
 
-    // lower case string should be canonicalized for ordering
-    ulid.compareTo(parsed) shouldBe 0
+    // upper case string should be canonicalized to lower case
+    parsed shouldBe ulid
     ulid.epochMillis shouldBe parsed.epochMillis
-    ulidLowerCase shouldBe parsed.toString.toLowerCase
   }
 
 end ULIDTest

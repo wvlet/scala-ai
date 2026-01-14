@@ -98,7 +98,7 @@ end ULID
   */
 object ULID:
   val MinValue: ULID        = ULID("00000000000000000000000000")
-  val MaxValue: ULID        = ULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")
+  val MaxValue: ULID        = ULID("7zzzzzzzzzzzzzzzzzzzzzzzzz")
   private[util] val MinTime = 0L
   private[util] val MaxTime = (~0L) >>> (64 - 48) // Timestamp uses 48-bit range
 
@@ -174,8 +174,8 @@ object ULID:
     require(ulid != null, "The input ULID string was null")
     require(ulid.length == 26, s"ULID must have 26 characters: ${ulid} (length: ${ulid.length})")
     require(CrockfordBase32.isValidBase32(ulid), s"Invalid Base32 character is found in ${ulid}")
-    // Canonicalize the ULID string to upper case
-    new ULID(ulid.toUpperCase)
+    // Canonicalize the ULID string to lower case
+    new ULID(ulid.toLowerCase)
 
   /**
     * Create an ULID from a given timestamp (48-bit) and a random value (80-bit)
