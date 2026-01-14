@@ -414,6 +414,7 @@ Rx.fromSeq(urls)
 
 Tests are implemented in:
 - `uni/.jvm/src/test/scala/wvlet/uni/rx/RxConcurrencyTest.scala` - JVM-specific concurrency tests
+- `uni/.jvm/src/test/scala/wvlet/uni/rx/RxConcurrencyPropertyTest.scala` - Property-based concurrency tests
 - `uni/src/test/scala/wvlet/uni/rx/RxTest.scala` - Cross-platform Rx tests
 
 Test coverage includes:
@@ -421,7 +422,26 @@ Test coverage includes:
 2. **Stress tests**: High contention scenarios ✅
 3. **Cross-platform tests**: Verify behavior consistency ✅
 4. **Benchmarks**: Compare with cats-effect baseline (future work)
-5. **Property-based tests**: Verify concurrency invariants (future work)
+5. **Property-based tests**: Verify concurrency invariants ✅
+
+### Property-Based Tests
+
+The property-based tests verify the following concurrency invariants using ScalaCheck:
+
+| Primitive | Property | Description |
+|-----------|----------|-------------|
+| `RxRef` | Atomicity | Concurrent updates preserve count invariant |
+| `RxRef` | Modify correctness | `modify` returns correct accumulated results |
+| `RxRef` | CAS uniqueness | `compareAndSet` succeeds exactly once |
+| `RxDeferred` | Single completion | Only first `complete` succeeds |
+| `RxDeferred` | Waiter consistency | All waiters receive the same value |
+| `RxSemaphore` | Permit conservation | Acquired permits always returned |
+| `RxSemaphore` | Bracket safety | `withPermit` releases even on failure |
+| `RxSemaphore` | Concurrency limit | Never exceeds permit count |
+| `RxParallel` | Result ordering | `parSequence` preserves input order |
+| `RxParallel` | Traverse correctness | `parTraverse` applies function correctly |
+| `RxBoundedQueue` | FIFO order | Elements dequeued in insertion order |
+| `RxBoundedQueue` | Capacity enforcement | Queue rejects offers when full |
 
 ## References
 
