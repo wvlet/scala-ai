@@ -18,13 +18,13 @@ import wvlet.uni.test.UniTest
 import scala.annotation.StaticAnnotation
 
 // Test annotations with various parameter types
-class label(val value: String) extends StaticAnnotation
+class label(val value: String)                             extends StaticAnnotation
 class description(val text: String, val priority: Int = 0) extends StaticAnnotation
-class range(val min: Int, val max: Int) extends StaticAnnotation
-class tags(val values: String*) extends StaticAnnotation
-class enabled(val flag: Boolean) extends StaticAnnotation
-class precision(val value: Double) extends StaticAnnotation
-class marker extends StaticAnnotation
+class range(val min: Int, val max: Int)                    extends StaticAnnotation
+class tags(val values: String*)                            extends StaticAnnotation
+class enabled(val flag: Boolean)                           extends StaticAnnotation
+class precision(val value: Double)                         extends StaticAnnotation
+class marker                                               extends StaticAnnotation
 
 // Test case class with annotated parameters
 case class ModelWithAnnotations(
@@ -38,7 +38,9 @@ case class ModelWithAnnotations(
     @marker
     name: String,
     @precision(0.001)
-    value: Double
+    value: Double,
+    @tags("foo", "bar")
+    category: String
 )
 
 // Test class with method having annotated parameters
@@ -95,6 +97,15 @@ class AnnotationTest extends UniTest:
     precisionAnnot.get("value") shouldBe Some(0.001)
   }
 
+  test("extract annotations with varargs values") {
+    val s         = Surface.of[ModelWithAnnotations]
+    val pCategory = s.params.find(_.name == "category").get
+
+    val tagsAnnot = pCategory.findAnnotation("tags").get
+    tagsAnnot.get("values") shouldBe Some(Seq("foo", "bar"))
+    tagsAnnot.getAs[Seq[String]]("values") shouldBe Some(Seq("foo", "bar"))
+  }
+
   test("extract marker annotations without parameters") {
     val s     = Surface.of[ModelWithAnnotations]
     val pName = s.params.find(_.name == "name").get
@@ -113,7 +124,7 @@ class AnnotationTest extends UniTest:
   }
 
   test("extract annotations from method parameters") {
-    val methods     = Surface.methodsOf[ServiceWithAnnotatedMethods]
+    val methods       = Surface.methodsOf[ServiceWithAnnotatedMethods]
     val processMethod = methods.find(_.name == "process").get
 
     val dataParam = processMethod.args.find(_.name == "data").get
@@ -163,3 +174,5 @@ class AnnotationTest extends UniTest:
     pid.hasAnnotation("required") shouldBe true
     ppw.hasAnnotation("secret") shouldBe true
   }
+
+end AnnotationTest

@@ -918,79 +918,100 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     * Extract all annotations from a symbol with their primitive parameter values
     */
   private def extractAnnotations(s: Symbol): Expr[Seq[Annotation]] =
-    val annotationExprs = s.annotations.flatMap { annot =>
-      annot match
-        case Apply(Select(New(tpt), _), args) =>
-          val annotType = tpt.tpe
-          val annotName = annotType.typeSymbol.name
-          val annotFullName = annotType.typeSymbol.fullName
-            .stripSuffix("$")
-            .replaceAll("\\$", ".")
+    val annotationExprs = s
+      .annotations
+      .flatMap { annot =>
+        annot match
+          case Apply(Select(New(tpt), _), args) =>
+            val annotType     = tpt.tpe
+            val annotName     = annotType.typeSymbol.name
+            val annotFullName = annotType
+              .typeSymbol
+              .fullName
+              .stripSuffix("$")
+              .replaceAll("\\$", ".")
 
-          // Extract annotation constructor parameter names
-          val paramNames: List[String] =
-            annotType.typeSymbol.primaryConstructor.paramSymss.flatten
+            // Extract annotation constructor parameter names
+            val paramNames: List[String] = annotType
+              .typeSymbol
+              .primaryConstructor
+              .paramSymss
+              .flatten
               .filterNot(_.isTypeParam)
               .map(_.name)
 
-          // Extract parameter values as expressions
-          val paramExprs: List[Expr[(String, Any)]] =
-            args.zip(paramNames).flatMap { case (arg, paramName) =>
-              extractPrimitiveValue(arg).map { valueExpr =>
-                '{
-                  (
-                    ${
-                      Expr(paramName)
-                    },
-                    ${
-                      valueExpr
+            // Extract parameter values as expressions, handling both positional and named args
+            val paramExprs: List[Expr[(String, Any)]] = args
+              .zipWithIndex
+              .flatMap { case (arg, idx) =>
+                arg match
+                  case NamedArg(argName, argValue) =>
+                    // Named argument: use the provided name
+                    extractPrimitiveValue(argValue).map { valueExpr =>
+                      '{
+                        (
+                          ${
+                            Expr(argName)
+                          },
+                          ${
+                            valueExpr
+                          }
+                        )
+                      }
                     }
+                  case _ =>
+                    // Positional argument: use the parameter name at this position
+                    val paramName = paramNames.lift(idx).getOrElse(s"arg${idx}")
+                    extractPrimitiveValue(arg).map { valueExpr =>
+                      '{
+                        (
+                          ${
+                            Expr(paramName)
+                          },
+                          ${
+                            valueExpr
+                          }
+                        )
+                      }
+                    }
+              }
+
+            val paramsMapExpr: Expr[Map[String, Any]] =
+              if paramExprs.isEmpty then
+                '{
+                  Map.empty[String, Any]
+                }
+              else
+                '{
+                  Map(
+                    ${
+                      Varargs(paramExprs)
+                    }*
                   )
                 }
-              }
-            }
 
-          val paramsMapExpr: Expr[Map[String, Any]] =
-            if paramExprs.isEmpty then '{ Map.empty[String, Any] }
-            else '{ Map(${Varargs(paramExprs)}: _*) }
-
-          Some('{
-            Annotation(
-              ${
-                Expr(annotName)
-              },
-              ${
-                Expr(annotFullName)
-              },
-              ${
-                paramsMapExpr
+            Some(
+              '{
+                Annotation(
+                  ${
+                    Expr(annotName)
+                  },
+                  ${
+                    Expr(annotFullName)
+                  },
+                  ${
+                    paramsMapExpr
+                  }
+                )
               }
             )
-          })
 
-        // Handle annotations applied with named arguments
-        case Apply(Select(New(tpt), _), Nil) =>
-          val annotType = tpt.tpe
-          val annotName = annotType.typeSymbol.name
-          val annotFullName = annotType.typeSymbol.fullName
-            .stripSuffix("$")
-            .replaceAll("\\$", ".")
-          Some('{
-            Annotation(
-              ${
-                Expr(annotName)
-              },
-              ${
-                Expr(annotFullName)
-              },
-              Map.empty
-            )
-          })
-
-        case _ =>
-          None
-    }
+          case _ =>
+            None
+      }
     Expr.ofSeq(annotationExprs)
+
+  end extractAnnotations
 
   /**
     * Extract a primitive value from an annotation argument tree
@@ -1024,14 +1045,24 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
       case Repeated(elems, _) =>
         val elemExprs = elems.flatMap(e => extractPrimitiveValue(e))
         if elemExprs.size == elems.size then
-          Some('{ Seq(${Varargs(elemExprs)}: _*) }.asExprOf[Any])
+          Some(
+            '{
+              Seq(
+                ${
+                  Varargs(elemExprs)
+                }*
+              )
+            }.asExprOf[Any]
+          )
         else
           None
       // Handle Select for enum values or constants
       case Select(_, _) =>
         // Try to evaluate as a constant
         tree.asExpr match
-          case '{ $v: t } =>
+          case '{
+                $v: t
+              } =>
             tree match
               case term: Term =>
                 term.tpe.widenTermRefByName match

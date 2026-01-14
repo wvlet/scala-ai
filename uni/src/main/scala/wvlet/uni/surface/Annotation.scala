@@ -25,11 +25,8 @@ package wvlet.uni.surface
   *   Map of parameter names to their values. Supports primitive types (String, Int, Long, Float,
   *   Double, Boolean, Byte, Short, Char), Class[?], and arrays of these types.
   */
-case class Annotation(
-    name: String,
-    fullName: String,
-    params: Map[String, Any] = Map.empty
-) extends Serializable:
+case class Annotation(name: String, fullName: String, params: Map[String, Any] = Map.empty)
+    extends Serializable:
   /**
     * Get a parameter value by name
     */
@@ -38,7 +35,9 @@ case class Annotation(
   /**
     * Get a parameter value with expected type
     */
-  def getAs[T](paramName: String): Option[T] = params.get(paramName).map(_.asInstanceOf[T])
+  def getAs[T](paramName: String): Option[T] = params
+    .get(paramName)
+    .flatMap(v => scala.util.Try(v.asInstanceOf[T]).toOption)
 
   /**
     * Check if this annotation has the given name
@@ -46,5 +45,7 @@ case class Annotation(
   def is(annotationName: String): Boolean = name == annotationName || fullName == annotationName
 
   override def toString: String =
-    if params.isEmpty then s"@${name}"
-    else s"@${name}(${params.map((k, v) => s"${k}=${v}").mkString(", ")})"
+    if params.isEmpty then
+      s"@${name}"
+    else
+      s"@${name}(${params.map((k, v) => s"${k}=${v}").mkString(", ")})"
