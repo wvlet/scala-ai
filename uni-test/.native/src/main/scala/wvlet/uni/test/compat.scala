@@ -33,13 +33,21 @@ private[test] object compat:
   val executionContext: ExecutionContext = ExecutionContext.global
 
   /**
-    * Create a new instance of the test class using Scala Native reflection. Throws exception if
-    * class cannot be found or instantiated.
+    * Create a new instance of the test class or get singleton instance if it's an object. Uses
+    * Scala Native reflection. Throws exception if class cannot be found or instantiated.
     */
-  def newInstance(className: String, classLoader: ClassLoader): UniTest = Reflect
-    .lookupInstantiatableClass(className)
-    .map(_.newInstance().asInstanceOf[UniTest])
-    .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
+  def newInstance(className: String, classLoader: ClassLoader): UniTest =
+    // First try to look up as a loadable module (Scala object)
+    Reflect
+      .lookupLoadableModuleClass(className)
+      .map(_.loadModule().asInstanceOf[UniTest])
+      .orElse(
+        // Fall back to instantiatable class (regular class)
+        Reflect
+          .lookupInstantiatableClass(className)
+          .map(_.newInstance().asInstanceOf[UniTest])
+      )
+      .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
 
   /**
     * Find the root cause of an exception.

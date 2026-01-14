@@ -33,11 +33,26 @@ private[test] object compat:
   val executionContext: ExecutionContext = ExecutionContext.global
 
   /**
-    * Create a new instance of the test class. Throws exception if instantiation fails.
+    * Create a new instance of the test class or get singleton instance if it's an object. Throws
+    * exception if instantiation fails.
     */
   def newInstance(className: String, classLoader: ClassLoader): UniTest =
     val testClass = classLoader.loadClass(className)
-    testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+    getInstanceOf(testClass)
+
+  /**
+    * Get an instance from a class. For Scala objects (modules), retrieves the singleton instance
+    * via MODULE$ field. For regular classes, creates a new instance via no-arg constructor.
+    */
+  def getInstanceOf(testClass: Class[?]): UniTest =
+    // Check if it's a Scala object (module) by looking for MODULE$ field
+    try
+      val moduleField = testClass.getField("MODULE$")
+      moduleField.get(null).asInstanceOf[UniTest]
+    catch
+      case _: NoSuchFieldException =>
+        // Not a module, create instance via constructor
+        testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
 
   /**
     * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause
