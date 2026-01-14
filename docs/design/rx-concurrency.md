@@ -1,5 +1,54 @@
 # uni-rx Concurrency Design Note
 
+## Implementation Status
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| **Phase 1** | Core Concurrency Primitives | ✅ Complete |
+| | `RxRef[A]` - Lock-free concurrent state | ✅ `uni/src/main/scala/wvlet/uni/rx/RxRef.scala` |
+| | `RxDeferred[A]` - One-shot synchronization | ✅ `uni/src/main/scala/wvlet/uni/rx/RxDeferred.scala` |
+| | `RxSemaphore` - Concurrency limiting | ✅ `uni/src/main/scala/wvlet/uni/rx/RxSemaphore.scala` |
+| **Phase 2** | Fiber-like Execution Model | ✅ Complete |
+| | `RxFiber[A]` - Lightweight concurrency unit | ✅ `uni/src/main/scala/wvlet/uni/rx/RxFiber.scala` |
+| | `RxScheduler` - Work-stealing thread pool | ✅ `uni/src/main/scala/wvlet/uni/rx/RxScheduler.scala` |
+| **Phase 3** | Parallel Operators | ✅ Complete |
+| | `parFlatMap`, `parMapN`, `merge`, `race` | ✅ `uni/src/main/scala/wvlet/uni/rx/RxParallel.scala` |
+| | `parSequence`, `parTraverse`, `parZip` | ✅ |
+| **Phase 4** | Resource Safety and Backpressure | ✅ Complete |
+| | `RxResource` - Bracket semantics | ✅ `uni/src/main/scala/wvlet/uni/rx/RxResource.scala` |
+| | `RxBoundedQueue` - Backpressure support | ✅ `uni/src/main/scala/wvlet/uni/rx/RxBoundedQueue.scala` |
+
+### Async Testing Integration
+
+UniTest now supports async testing via automatic `Rx` detection:
+
+```scala
+class AsyncTest extends UniTest:
+  test("async operation") {
+    // Returns Rx[A] - automatically awaited
+    Rx.single(42).map(_ * 2).map { result =>
+      result shouldBe 84
+    }
+  }
+
+  test("parallel operations") {
+    RxParallel.parSequence(Seq(
+      Rx.single(1),
+      Rx.single(2),
+      Rx.single(3)
+    )).map { results =>
+      results shouldBe Seq(1, 2, 3)
+    }
+  }
+```
+
+The `await` extension method is available for explicit blocking:
+
+```scala
+extension [A](rx: Rx[A])
+  def await: A  // Block until result (JVM/Native) or run for effects (JS)
+```
+
 ## Overview
 
 This document outlines the gap between cats-effect's concurrency model and uni-rx, along with a phased implementation plan to bring high-concurrency support to uni-rx while maintaining its lightweight, cross-platform nature.
@@ -88,9 +137,11 @@ cats-effect 3 provides a sophisticated concurrency runtime with:
 4. **Backward compatible**: Existing `Rx` code continues to work unchanged
 5. **Minimal footprint**: Only add what's needed for high-concurrency support
 
-## Implementation Plan
+## Implementation Plan (Completed)
 
-### Phase 1: Core Concurrency Primitives
+All four phases have been implemented. The sections below document the final API design.
+
+### Phase 1: Core Concurrency Primitives ✅
 
 #### RxRef[A] - Lock-free Concurrent State
 
@@ -173,7 +224,7 @@ object RxSemaphore:
   def of(permits: Long): Rx[RxSemaphore]     // Creation within Rx context
 ```
 
-### Phase 2: Fiber-like Execution Model
+### Phase 2: Fiber-like Execution Model ✅
 
 #### RxFiber[A] - Lightweight Concurrency Unit
 
@@ -235,7 +286,7 @@ object RxScheduler:
 - Fixed-size thread pool
 - Work-stealing if available in Scala Native runtime
 
-### Phase 3: Parallel Operators
+### Phase 3: Parallel Operators ✅
 
 #### Parallel Combinators
 
@@ -267,7 +318,7 @@ object Rx:
   def parZip[A, B](a: Rx[A], b: Rx[B]): Rx[(A, B)]
 ```
 
-### Phase 4: Resource Safety and Backpressure
+### Phase 4: Resource Safety and Backpressure ✅
 
 #### RxResource - Bracket Semantics
 
@@ -361,11 +412,16 @@ Rx.fromSeq(urls)
 
 ## Testing Strategy
 
-1. **Unit tests**: Each primitive in isolation
-2. **Stress tests**: High contention scenarios
-3. **Cross-platform tests**: Verify behavior consistency
-4. **Benchmarks**: Compare with cats-effect baseline
-5. **Property-based tests**: Verify concurrency invariants
+Tests are implemented in:
+- `uni/.jvm/src/test/scala/wvlet/uni/rx/RxConcurrencyTest.scala` - JVM-specific concurrency tests
+- `uni/src/test/scala/wvlet/uni/rx/RxTest.scala` - Cross-platform Rx tests
+
+Test coverage includes:
+1. **Unit tests**: Each primitive in isolation ✅
+2. **Stress tests**: High contention scenarios ✅
+3. **Cross-platform tests**: Verify behavior consistency ✅
+4. **Benchmarks**: Compare with cats-effect baseline (future work)
+5. **Property-based tests**: Verify concurrency invariants (future work)
 
 ## References
 
