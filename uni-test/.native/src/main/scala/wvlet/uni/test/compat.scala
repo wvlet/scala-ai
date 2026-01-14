@@ -43,9 +43,7 @@ private[test] object compat:
       .map(_.loadModule().asInstanceOf[UniTest])
       .orElse(
         // Fall back to instantiatable class (regular class)
-        Reflect
-          .lookupInstantiatableClass(className)
-          .map(_.newInstance().asInstanceOf[UniTest])
+        Reflect.lookupInstantiatableClass(className).map(_.newInstance().asInstanceOf[UniTest])
       )
       .getOrElse(throw new ClassNotFoundException(s"Cannot find or instantiate: ${className}"))
 

@@ -46,11 +46,10 @@ private[test] object compat:
     */
   def getInstanceOf(testClass: Class[?]): UniTest =
     // Check if it's a Scala object (module) by looking for MODULE$ field
-    try
-      val moduleField = testClass.getField("MODULE$")
-      moduleField.get(null).asInstanceOf[UniTest]
-    catch
-      case _: NoSuchFieldException =>
+    testClass.getFields.find(_.getName == "MODULE$") match
+      case Some(moduleField) =>
+        moduleField.get(null).asInstanceOf[UniTest]
+      case None =>
         // Not a module, create instance via constructor
         testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
 
