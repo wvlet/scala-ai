@@ -147,10 +147,9 @@ class ULIDTest extends UniTest with PropertyCheck:
     val ulidUpperCase = ulid.toString.toUpperCase
     val parsed        = ULID.fromString(ulidUpperCase)
 
-    // upper case string should be canonicalized to lower case for ordering
-    ulid.compareTo(parsed) shouldBe 0
+    // upper case string should be canonicalized to lower case
+    parsed shouldBe ulid
     ulid.epochMillis shouldBe parsed.epochMillis
-    ulidUpperCase shouldBe parsed.toString.toUpperCase
   }
 
 end ULIDTest
