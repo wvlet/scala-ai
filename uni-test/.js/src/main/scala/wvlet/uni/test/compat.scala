@@ -92,4 +92,32 @@ private[test] object compat:
     */
   def findCause(e: Throwable): Throwable = e
 
+  /**
+    * Await the result of an async test.
+    *
+    * Note: Scala.js cannot block to await async results. For now, async tests returning Future or
+    * RxOps will throw an UnsupportedOperationException. Use synchronous assertions or explicit
+    * callback-based testing patterns in Scala.js.
+    *
+    * For synchronous results, returns the value as-is.
+    */
+  def awaitTestResult(result: Any): Any =
+    result match
+      case f: scala.concurrent.Future[?] =>
+        throw new UnsupportedOperationException(
+          "Async tests returning Future are not yet supported in Scala.js. " +
+            "Use synchronous assertions or explicit callback-based testing patterns."
+        )
+      case _ =>
+        // Check if result might be RxOps (using simple name check since we can't use reflection)
+        val className = result.getClass.getName
+        if className.contains("wvlet.uni.rx") then
+          throw new UnsupportedOperationException(
+            "Async tests returning Rx are not yet supported in Scala.js. " +
+              "Use synchronous assertions or explicit callback-based testing patterns."
+          )
+        else
+          // Return synchronous result as-is
+          result
+
 end compat

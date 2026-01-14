@@ -13,7 +13,10 @@
  */
 package wvlet.uni.test
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 import scala.scalanative.reflect.Reflect
 
 /**
@@ -45,5 +48,40 @@ private[test] object compat:
     * Find the root cause of an exception.
     */
   def findCause(e: Throwable): Throwable = e
+
+  /**
+    * Await the result of an async test. Supports:
+    * - scala.concurrent.Future[A]
+    * - wvlet.uni.rx.RxOps[A] (detected via class name check)
+    *
+    * For synchronous results, returns the value as-is.
+    */
+  def awaitTestResult(result: Any): Any =
+    result match
+      case f: Future[?] =>
+        // Await Future result
+        Await.result(f, Duration.Inf)
+      case _ =>
+        // Check if result is RxOps using class name (Scala Native has limited reflection)
+        val className = result.getClass.getName
+        if className.startsWith("wvlet.uni.rx") then
+          // Try to call the await method
+          awaitRxResult(result)
+        else
+          // Return synchronous result as-is
+          result
+
+  /**
+    * Await RxOps result. Uses the await method which should be available on RxOps.
+    */
+  private def awaitRxResult(rx: Any): Any =
+    // In Scala Native, we need to use the runtime reflection available
+    // For now, we rely on the RxOps having a well-known await method
+    try
+      val method = rx.getClass.getMethod("await")
+      method.invoke(rx)
+    catch
+      case e: Exception =>
+        throw new RuntimeException(s"Failed to await Rx result: ${e.getMessage}", e)
 
 end compat

@@ -92,13 +92,21 @@ trait UniTest extends PlatformUniTest with LogSupport with Assertions with TestC
     finally _context = previousContext
 
   /**
-    * Execute a specific test by name
+    * Execute a specific test by name.
+    *
+    * This method supports async tests that return:
+    * - scala.concurrent.Future[A] - awaited on JVM/Native
+    * - wvlet.uni.rx.RxOps[A] - awaited on JVM/Native
+    *
+    * Note: Async tests are not yet supported on Scala.js.
     */
   private[test] def executeTest(testDef: TestDef): TestResult =
     try
-      runWithContext(testDef.name) {
+      val result = runWithContext(testDef.name) {
         testDef.body()
       }
+      // Await async results (Future, Rx) before determining success
+      compat.awaitTestResult(result)
       TestResult.Success(testDef.fullName)
     catch
       case e: TestSkipped =>
