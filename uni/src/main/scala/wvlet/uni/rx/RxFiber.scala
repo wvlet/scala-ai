@@ -141,6 +141,8 @@ object RxFiber:
 
             // Notify cancellation listeners
             cancellers.foreach(callback => callback())
+          else
+            cancelLoop() // Retry on CAS failure
 
     private[rx] def complete(result: Try[A]): Unit = completeLoop(result)
 
