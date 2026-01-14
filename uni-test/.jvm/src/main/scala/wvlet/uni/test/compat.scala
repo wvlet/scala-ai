@@ -49,36 +49,36 @@ private[test] object compat:
       className: String = "",
       classLoader: ClassLoader = null
   ): UniTest =
-    // Check if it's a Scala object (module) by looking for MODULE$ static field
-    // and verify it extends UniTest (to avoid loading companion objects that don't)
-    try
-      val moduleField = testClass.getField("MODULE$")
-      val instance    = moduleField.get(null)
-      if instance.isInstanceOf[UniTest] then
-        instance.asInstanceOf[UniTest]
+    def createInstance: UniTest = testClass
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[UniTest]
+
+    def getModule(cls: Class[?]): Option[Any] =
+      try
+        Some(cls.getField("MODULE$").get(null))
+      catch
+        case _: NoSuchFieldException =>
+          None
+
+    val moduleInstance = getModule(testClass).orElse {
+      if classLoader != null && !className.endsWith("$") then
+        try
+          getModule(classLoader.loadClass(s"${className}$$"))
+        catch
+          case _: ClassNotFoundException =>
+            None
       else
-        // MODULE$ exists but doesn't extend UniTest, use constructor
-        testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
-    catch
-      case _: NoSuchFieldException =>
-        // Try loading the module class with $ suffix (for sbt passing class name without $)
-        if classLoader != null && !className.endsWith("$") then
-          try
-            val moduleClass = classLoader.loadClass(s"${className}$$")
-            val moduleField = moduleClass.getField("MODULE$")
-            val instance    = moduleField.get(null)
-            if instance.isInstanceOf[UniTest] then
-              instance.asInstanceOf[UniTest]
-            else
-              // MODULE$ exists but doesn't extend UniTest, use constructor
-              testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
-          catch
-            case _: (ClassNotFoundException | NoSuchFieldException) =>
-              // Not a module, create instance via constructor
-              testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
-        else
-          // Not a module, create instance via constructor
-          testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+        None
+    }
+
+    moduleInstance match
+      case Some(instance: UniTest) =>
+        instance
+      case _ =>
+        createInstance
+
+  end getInstanceOf
 
   /**
     * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause

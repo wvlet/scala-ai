@@ -58,8 +58,9 @@ private[test] object compat:
   private def lookupModule(name: String): Option[UniTest] = Reflect
     .lookupLoadableModuleClass(name)
     .map(_.loadModule())
-    .filter(_.isInstanceOf[UniTest])
-    .map(_.asInstanceOf[UniTest])
+    .collect { case t: UniTest =>
+      t
+    }
 
   /**
     * Find the root cause of an exception.
