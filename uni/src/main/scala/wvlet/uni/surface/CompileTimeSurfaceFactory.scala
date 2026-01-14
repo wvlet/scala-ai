@@ -929,7 +929,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
               .typeSymbol
               .fullName
               .stripSuffix("$")
-              .replaceAll("\\$", ".")
+              .replaceAll("\\$+", ".")
 
             // Extract annotation constructor parameter names
             val paramNames: List[String] = annotType
