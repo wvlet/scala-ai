@@ -38,20 +38,47 @@ private[test] object compat:
     */
   def newInstance(className: String, classLoader: ClassLoader): UniTest =
     val testClass = classLoader.loadClass(className)
-    getInstanceOf(testClass)
+    getInstanceOf(testClass, className, classLoader)
 
   /**
     * Get an instance from a class. For Scala objects (modules), retrieves the singleton instance
     * via MODULE$ field. For regular classes, creates a new instance via no-arg constructor.
     */
-  def getInstanceOf(testClass: Class[?]): UniTest =
-    // Check if it's a Scala object (module) by looking for MODULE$ field
-    testClass.getFields.find(_.getName == "MODULE$") match
-      case Some(moduleField) =>
-        moduleField.get(null).asInstanceOf[UniTest]
-      case None =>
-        // Not a module, create instance via constructor
+  def getInstanceOf(
+      testClass: Class[?],
+      className: String = "",
+      classLoader: ClassLoader = null
+  ): UniTest =
+    // Check if it's a Scala object (module) by looking for MODULE$ static field
+    // and verify it extends UniTest (to avoid loading companion objects that don't)
+    try
+      val moduleField = testClass.getField("MODULE$")
+      val instance    = moduleField.get(null)
+      if instance.isInstanceOf[UniTest] then
+        instance.asInstanceOf[UniTest]
+      else
+        // MODULE$ exists but doesn't extend UniTest, use constructor
         testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+    catch
+      case _: NoSuchFieldException =>
+        // Try loading the module class with $ suffix (for sbt passing class name without $)
+        if classLoader != null && !className.endsWith("$") then
+          try
+            val moduleClass = classLoader.loadClass(s"${className}$$")
+            val moduleField = moduleClass.getField("MODULE$")
+            val instance    = moduleField.get(null)
+            if instance.isInstanceOf[UniTest] then
+              instance.asInstanceOf[UniTest]
+            else
+              // MODULE$ exists but doesn't extend UniTest, use constructor
+              testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+          catch
+            case _: (ClassNotFoundException | NoSuchFieldException) =>
+              // Not a module, create instance via constructor
+              testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
+        else
+          // Not a module, create instance via constructor
+          testClass.getDeclaredConstructor().newInstance().asInstanceOf[UniTest]
 
   /**
     * Unwrap InvocationTargetException and other wrapper exceptions to find the root cause
