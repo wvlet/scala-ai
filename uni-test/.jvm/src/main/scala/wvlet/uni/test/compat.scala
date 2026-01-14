@@ -90,4 +90,10 @@ private[test] object compat:
       case _ =>
         e
 
+  /**
+    * Run an Rx stream for test purposes. On JVM, blocks until result is available. Returns the
+    * result value.
+    */
+  def runRxTest[A](rx: wvlet.uni.rx.RxOps[A]): A = rx.await
+
 end compat

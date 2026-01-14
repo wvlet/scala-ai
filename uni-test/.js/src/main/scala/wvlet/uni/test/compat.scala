@@ -113,4 +113,27 @@ private[test] object compat:
     */
   def findCause(e: Throwable): Throwable = e
 
+  /**
+    * Run an Rx stream for test purposes. On JS, we can't block so we just run for side effects. The
+    * Rx is executed but we can't await the result.
+    */
+  def runRxTest[A](rx: wvlet.uni.rx.RxOps[A]): A =
+    import wvlet.uni.rx.*
+    // Run the Rx for side effects - this is non-blocking
+    var result: Option[A]        = None
+    var error: Option[Throwable] = None
+    // Discard the cancelable - we run synchronously on JS
+    val _ =
+      RxRunner.runOnce(rx) {
+        case OnNext(v) =>
+          result = Some(v.asInstanceOf[A])
+        case OnError(e) =>
+          error = Some(e)
+        case OnCompletion => // Done
+      }
+    // Check for errors
+    error.foreach(throw _)
+    // Return result or Unit (for side-effect tests)
+    result.getOrElse(().asInstanceOf[A])
+
 end compat

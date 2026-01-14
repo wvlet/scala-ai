@@ -14,6 +14,7 @@
 package wvlet.uni.test
 
 import wvlet.uni.log.LogSupport
+import wvlet.uni.rx.*
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -97,7 +98,12 @@ trait UniTest extends PlatformUniTest with LogSupport with Assertions with TestC
   private[test] def executeTest(testDef: TestDef): TestResult =
     try
       runWithContext(testDef.name) {
-        testDef.body()
+        testDef.body() match
+          case rx: RxOps[?] =>
+            // Handle async Rx test - run and await result
+            awaitRx(rx)
+          case other =>
+            other
       }
       TestResult.Success(testDef.fullName)
     catch
@@ -118,6 +124,15 @@ trait UniTest extends PlatformUniTest with LogSupport with Assertions with TestC
               TestResult.Failure(testDef.fullName, af.getMessage, Some(af))
             case _ =>
               TestResult.Error(testDef.fullName, e.getMessage, e)
+
+  /**
+    * Await the result of an Rx stream. Uses platform-specific implementation. On JVM/Native: blocks
+    * until result is available. On JS: runs the Rx for side effects (non-blocking).
+    */
+  private def awaitRx[A](rx: RxOps[A]): A =
+    // Use the platform-specific runRxTest method from test compat
+    // Note: Use fully qualified name to avoid shadowing by wvlet.uni.rx.compat
+    wvlet.uni.test.compat.runRxTest(rx)
 
 end UniTest
 
