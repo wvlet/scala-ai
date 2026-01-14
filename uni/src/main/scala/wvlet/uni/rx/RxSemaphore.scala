@@ -1,0 +1,227 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.rx
+
+import java.util.concurrent.atomic.AtomicReference
+import scala.annotation.tailrec
+import scala.collection.immutable.Queue
+
+/**
+  * A semaphore for controlling concurrent access to a limited resource.
+  *
+  * RxSemaphore is inspired by cats-effect Semaphore. It maintains a count of available permits.
+  * `acquire` decrements the count (blocking if zero), and `release` increments it.
+  *
+  * Key properties:
+  *   - Permits can be acquired and released in any order
+  *   - `acquire` semantically blocks (suspends) if no permits are available
+  *   - Safe for concurrent access from multiple threads
+  *   - No thread actually blocks; waiting is cooperative
+  */
+trait RxSemaphore:
+
+  /**
+    * Acquire a permit, semantically blocking if none are available.
+    */
+  def acquire: Rx[Unit]
+
+  /**
+    * Acquire n permits, semantically blocking if not enough are available.
+    */
+  def acquireN(n: Long): Rx[Unit]
+
+  /**
+    * Release a permit.
+    */
+  def release: Rx[Unit]
+
+  /**
+    * Release n permits.
+    */
+  def releaseN(n: Long): Rx[Unit]
+
+  /**
+    * Try to acquire a permit without blocking. Returns true if successful.
+    */
+  def tryAcquire: Rx[Boolean]
+
+  /**
+    * Try to acquire n permits without blocking. Returns true if successful.
+    */
+  def tryAcquireN(n: Long): Rx[Boolean]
+
+  /**
+    * Execute an Rx with automatic acquire before and release after.
+    */
+  def withPermit[A](rx: Rx[A]): Rx[A]
+
+  /**
+    * Execute an Rx with automatic acquire of n permits before and release after.
+    */
+  def withPermitN[A](n: Long)(rx: Rx[A]): Rx[A]
+
+  /**
+    * Get the current number of available permits.
+    */
+  def available: Rx[Long]
+
+  /**
+    * Get the current number of waiting acquires.
+    */
+  def waiting: Rx[Int]
+
+end RxSemaphore
+
+object RxSemaphore:
+
+  /**
+    * Create a new semaphore with the given number of permits.
+    */
+  def apply(permits: Long): RxSemaphore =
+    require(permits >= 0, s"Permits must be non-negative: ${permits}")
+    new RxSemaphoreImpl(permits)
+
+  /**
+    * Create a new semaphore with the given number of permits, wrapped in Rx.
+    */
+  def of(permits: Long): Rx[RxSemaphore] = Rx.single(apply(permits))
+
+  /**
+    * Waiter entry: number of permits requested and callback to invoke when satisfied
+    */
+  private case class Waiter(permits: Long, callback: () => Unit)
+
+  /**
+    * Internal state
+    */
+  private case class State(available: Long, waiters: Queue[Waiter])
+
+  private class RxSemaphoreImpl(initialPermits: Long) extends RxSemaphore:
+    private val state = new AtomicReference[State](State(initialPermits, Queue.empty))
+
+    override def acquire: Rx[Unit] = acquireN(1)
+
+    override def acquireN(n: Long): Rx[Unit] =
+      require(n >= 0, s"Cannot acquire negative permits: ${n}")
+      if n == 0 then
+        Rx.single(())
+      else
+        new Rx[Unit]:
+          override def parents: Seq[RxOps[?]] = Seq.empty
+          override def toString: String       = s"RxSemaphore.acquireN(${n})"
+
+          // Package-private method for RxRunner to handle acquisition
+          private[rx] def tryAcquireOrRegister(callback: () => Unit): Boolean = acquireLoop(
+            n,
+            callback
+          )
+
+    @tailrec
+    private def acquireLoop(n: Long, callback: () => Unit): Boolean =
+      val current = state.get()
+      if current.available >= n then
+        // Enough permits available
+        val newState = current.copy(available = current.available - n)
+        if state.compareAndSet(current, newState) then
+          true
+        else
+          acquireLoop(n, callback)
+      else
+        // Need to wait
+        val waiter   = Waiter(n, callback)
+        val newState = current.copy(waiters = current.waiters.enqueue(waiter))
+        if state.compareAndSet(current, newState) then
+          false
+        else
+          acquireLoop(n, callback)
+
+    override def release: Rx[Unit] = releaseN(1)
+
+    override def releaseN(n: Long): Rx[Unit] =
+      require(n >= 0, s"Cannot release negative permits: ${n}")
+      Rx.single {
+        if n > 0 then
+          releaseLoop(n)
+      }
+
+    @tailrec
+    private def releaseLoop(n: Long): Unit =
+      val current                       = state.get()
+      val newAvailable                  = current.available + n
+      val (toWake, remaining, leftover) = satisfyWaiters(current.waiters, newAvailable)
+      val newState                      = State(leftover, remaining)
+      if state.compareAndSet(current, newState) then
+        // Wake up satisfied waiters
+        toWake.foreach(_.callback())
+      else
+        releaseLoop(n)
+
+    /**
+      * Try to satisfy waiters from the queue with available permits.
+      * @return
+      *   (waiters to wake, remaining waiters, leftover permits)
+      */
+    private def satisfyWaiters(
+        waiters: Queue[Waiter],
+        available: Long
+    ): (List[Waiter], Queue[Waiter], Long) =
+      var toWake    = List.empty[Waiter]
+      var remaining = waiters
+      var permits   = available
+
+      while remaining.nonEmpty && remaining.head.permits <= permits do
+        val (waiter, rest) = remaining.dequeue
+        toWake = waiter :: toWake
+        permits -= waiter.permits
+        remaining = rest
+
+      (toWake.reverse, remaining, permits)
+
+    override def tryAcquire: Rx[Boolean] = tryAcquireN(1)
+
+    override def tryAcquireN(n: Long): Rx[Boolean] =
+      require(n >= 0, s"Cannot acquire negative permits: ${n}")
+      Rx.single {
+        tryAcquireLoop(n)
+      }
+
+    @tailrec
+    private def tryAcquireLoop(n: Long): Boolean =
+      val current = state.get()
+      if current.available >= n then
+        val newState = current.copy(available = current.available - n)
+        if state.compareAndSet(current, newState) then
+          true
+        else
+          tryAcquireLoop(n)
+      else
+        false
+
+    override def withPermit[A](rx: Rx[A]): Rx[A] = withPermitN(1)(rx)
+
+    override def withPermitN[A](n: Long)(rx: Rx[A]): Rx[A] = acquireN(n).flatMap(_ =>
+      rx.transform { result =>
+        // Release even on failure
+        releaseLoop(n)
+        result.get
+      }
+    )
+
+    override def available: Rx[Long] = Rx.single(state.get().available)
+
+    override def waiting: Rx[Int] = Rx.single(state.get().waiters.size)
+
+  end RxSemaphoreImpl
+
+end RxSemaphore
