@@ -78,9 +78,9 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(log.jvm, uni.jvm, agent, bedrock, test.jvm)
-lazy val jsProjects: Seq[ProjectReference]     = Seq(log.js, uni.js, test.js)
-lazy val nativeProjects: Seq[ProjectReference] = Seq(log.native, uni.native, test.native)
+lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, uni.jvm, agent, bedrock, test.jvm)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, test.js)
+lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, uni.native, test.native)
 
 lazy val projectJVM = project
   .settings(noPublish)
@@ -94,14 +94,14 @@ lazy val projectJS = project.settings(noPublish).aggregate(jsProjects: _*)
 
 lazy val projectNative = project.settings(noPublish).aggregate(nativeProjects: _*)
 
-// Logging library - independent module with no internal dependencies
-lazy val log = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+// Core library with logging and reactive streams
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
-  .in(file("uni-log"))
+  .in(file("uni-core"))
   .settings(
     buildSettings,
-    name        := "uni-log",
-    description := "Logging library for Scala with minimal dependencies"
+    name        := "uni-core",
+    description := "Core utilities: logging and reactive streams"
   )
   .jvmSettings(
     libraryDependencies ++=
@@ -128,7 +128,7 @@ lazy val uni = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .settings(buildSettings, name := "uni", description := "Scala unified core library")
   .jsSettings(jsBuildSettings)
   .nativeSettings(nativeBuildSettings)
-  .dependsOn(log, test % Test)
+  .dependsOn(core, test % Test)
 
 // uni-test - Lightweight testing framework with AirSpec syntax
 lazy val test = crossProject(JVMPlatform, JSPlatform, NativePlatform)
@@ -175,7 +175,7 @@ lazy val test = crossProject(JVMPlatform, JSPlatform, NativePlatform)
         "org.scala-native" %%% "test-interface" % SCALA_NATIVE_TEST_INTERFACE_VERSION
       )
   )
-  .dependsOn(log)
+  .dependsOn(core)
 
 lazy val agent = project
   .in(file("uni-agent"))

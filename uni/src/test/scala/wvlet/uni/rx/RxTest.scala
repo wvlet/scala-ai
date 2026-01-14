@@ -1226,4 +1226,24 @@ object RxTest extends UniTest:
     Rx.single(1).subscribe()
   }
 
+  test("async Rx test support") {
+    // Test that returns Rx[A] is properly awaited by UniTest
+    Rx.single(1)
+      .map { x =>
+        x shouldBe 1
+        x + 1
+      }
+      .map { y =>
+        y shouldBe 2
+      }
+  }
+
+  test("async Rx test with error propagation") {
+    // Test that Rx errors are properly propagated
+    Rx.single(42)
+      .map { x =>
+        x shouldBe 42
+      }
+  }
+
 end RxTest

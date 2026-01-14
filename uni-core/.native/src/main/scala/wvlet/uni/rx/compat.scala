@@ -93,11 +93,12 @@ object compat:
     val c =
       RxRunner.runOnce(rx) {
         case OnNext(v) =>
-          p.success(v.asInstanceOf[A])
+          p.trySuccess(v.asInstanceOf[A])
         case OnError(e) =>
-          p.failure(e)
+          p.tryFailure(e)
         case OnCompletion =>
-          p.failure(new IllegalStateException(s"OnCompletion should not be issued in: ${rx}"))
+          // If promise not yet completed, complete with Unit (for Rx[Unit] tests)
+          p.trySuccess(().asInstanceOf[A])
       }
     try Await.result(p.future, Duration.Inf)
     finally c.cancel

@@ -67,4 +67,10 @@ private[test] object compat:
     */
   def findCause(e: Throwable): Throwable = e
 
+  /**
+    * Run an Rx stream for test purposes. On Native, blocks until result is available. Returns the
+    * result value.
+    */
+  def runRxTest[A](rx: wvlet.uni.rx.RxOps[A]): A = rx.await
+
 end compat
