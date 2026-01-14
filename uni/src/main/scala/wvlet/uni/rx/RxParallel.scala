@@ -186,11 +186,7 @@ object RxParallel:
     else if rxs.size == 1 then
       rxs.head
     else
-      new Rx[A]:
-        override def parents: Seq[RxOps[?]] = rxs
-
-        // Package-private for RxRunner
-        private[rx] def sources: Seq[Rx[A]] = rxs
+      Rx.MergeOp(rxs)
 
 end RxParallel
 
@@ -200,12 +196,10 @@ end RxParallel
 extension [A](rx: Rx[A])
 
   /**
-    * FlatMap with bounded parallelism. Multiple inner streams can be active concurrently.
+    * FlatMap with bounded parallelism. Multiple inner streams can be active concurrently. A single
+    * semaphore is shared across all inner streams to enforce the parallelism limit.
     */
-  def parFlatMap[B](parallelism: Int)(f: A => Rx[B]): Rx[B] = rx.flatMap { a =>
-    val semaphore = RxSemaphore(parallelism)
-    semaphore.withPermit(f(a))
-  }
+  def parFlatMap[B](parallelism: Int)(f: A => Rx[B]): Rx[B] = Rx.ParFlatMapOp(rx, parallelism, f)
 
   /**
     * Map with bounded parallelism. Multiple map operations can run concurrently.

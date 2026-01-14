@@ -1106,4 +1106,16 @@ object Rx extends LogSupport:
       */
     override def withTicker(ticker: Ticker): RxCache[A] = this.copy(ticker = ticker)
 
+  /**
+    * Merge multiple Rx streams into one, emitting values from any source as they arrive.
+    */
+  case class MergeOp[A](sources: Seq[Rx[A]]) extends Rx[A]:
+    override def parents: Seq[RxOps[?]] = sources
+
+  /**
+    * FlatMap with bounded parallelism, sharing a single semaphore across all inner streams.
+    */
+  case class ParFlatMapOp[A, B](input: Rx[A], parallelism: Int, f: A => Rx[B]) extends Rx[B]:
+    override def parents: Seq[RxOps[?]] = Seq(input)
+
 end Rx

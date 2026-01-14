@@ -76,16 +76,17 @@ private[rx] object schedulerCompat:
   end NativeScheduler
 
   private class NativeBlockingScheduler extends RxScheduler:
-    private val pool: ScheduledExecutorService = Executors.newCachedThreadPool()
+    private val pool: ScheduledExecutorService           = Executors.newCachedThreadPool()
+    private val delayScheduler: ScheduledExecutorService = Executors
+      .newSingleThreadScheduledExecutor()
 
     override val parallelism: Int = Int.MaxValue
 
     override def execute(task: Runnable): Unit = pool.execute(task)
 
     override def schedule(delay: Long, unit: TimeUnit)(task: => Unit): Cancelable =
-      val cancelled       = new AtomicBoolean(false)
-      val delayedExecutor = Executors.newSingleThreadScheduledExecutor()
-      val future          = delayedExecutor.schedule(
+      val cancelled = new AtomicBoolean(false)
+      val future    = delayScheduler.schedule(
         new Runnable:
           override def run(): Unit =
             if !cancelled.get() then
@@ -97,15 +98,13 @@ private[rx] object schedulerCompat:
       Cancelable { () =>
         cancelled.set(true)
         future.cancel(false)
-        delayedExecutor.shutdown()
       }
 
     override def scheduleAtFixedRate(initialDelay: Long, period: Long, unit: TimeUnit)(
         task: => Unit
     ): Cancelable =
-      val cancelled       = new AtomicBoolean(false)
-      val delayedExecutor = Executors.newSingleThreadScheduledExecutor()
-      val future          = delayedExecutor.scheduleAtFixedRate(
+      val cancelled = new AtomicBoolean(false)
+      val future    = delayScheduler.scheduleAtFixedRate(
         new Runnable:
           override def run(): Unit =
             if !cancelled.get() then
@@ -118,10 +117,11 @@ private[rx] object schedulerCompat:
       Cancelable { () =>
         cancelled.set(true)
         future.cancel(false)
-        delayedExecutor.shutdown()
       }
 
-    override def shutdown(): Unit = pool.shutdown()
+    override def shutdown(): Unit =
+      pool.shutdown()
+      delayScheduler.shutdown()
 
   end NativeBlockingScheduler
 

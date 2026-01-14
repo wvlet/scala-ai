@@ -130,43 +130,72 @@ object RxResource:
     }
 
     override def map[B](f: A => B): RxResource[B] =
-      new RxResourceImpl(acquire.map(f), _ => Rx.single(()), finalizers)
+      // Map creates a new resource that wraps the original, preserving its release
+      new RxResource[B]:
+        override def use[C](body: B => Rx[C]): Rx[C] = RxResourceImpl.this.use(a => body(f(a)))
+
+        override def map[C](g: B => C): RxResource[C] = RxResourceImpl.this.map(a => g(f(a)))
+
+        override def flatMap[C](g: B => RxResource[C]): RxResource[C] = RxResourceImpl.this.flatMap(
+          a => g(f(a))
+        )
+
+        override def zip[C](other: RxResource[C]): RxResource[(B, C)] = RxResourceImpl.this
+          .map(f)
+          .zip(other)
+
+        override def onFinalize(finalizer: Rx[Unit]): RxResource[B] = RxResourceImpl.this
+          .onFinalize(finalizer)
+          .map(f)
 
     override def flatMap[B](f: A => RxResource[B]): RxResource[B] =
-      new RxResourceImpl(
-        acquire.flatMap { a =>
-          // When acquiring B, we need to ensure A is released if B's acquisition fails
-          f(a) match
-            case impl: RxResourceImpl[B] =>
-              impl.acquire
-            case other =>
-              other.use(b => Rx.single(b))
-        },
-        b =>
-          // This is a simplification - proper implementation would track the nested resource
-          Rx.single(()),
-        finalizers
-      )
+      // FlatMap composes resources, ensuring both are released properly
+      new RxResource[B]:
+        override def use[C](body: B => Rx[C]): Rx[C] = RxResourceImpl.this.use { a =>
+          f(a).use(body)
+        }
+
+        override def map[C](g: B => C): RxResource[C] = flatMap(b => RxResource.pure(g(b)))
+
+        override def flatMap[C](g: B => RxResource[C]): RxResource[C] = RxResourceImpl.this.flatMap(
+          a => f(a).flatMap(g)
+        )
+
+        override def zip[C](other: RxResource[C]): RxResource[(B, C)] = flatMap(b =>
+          other.map(c => (b, c))
+        )
+
+        override def onFinalize(finalizer: Rx[Unit]): RxResource[B] = RxResourceImpl.this.flatMap(
+          a => f(a).onFinalize(finalizer)
+        )
 
     override def zip[B](other: RxResource[B]): RxResource[(A, B)] =
-      new RxResourceImpl(
-        acquire.flatMap { a =>
-          other match
-            case impl: RxResourceImpl[B] =>
-              impl.acquire.map(b => (a, b))
-            case _ =>
-              other.use(b => Rx.single((a, b)))
-        },
-        { case (a, b) =>
-          // Release in reverse order
-          other match
-            case impl: RxResourceImpl[B] =>
-              impl.release(b).flatMap(_ => release(a))
-            case _ =>
-              release(a)
-        },
-        finalizers
-      )
+      // Zip acquires both resources and releases in reverse order
+      new RxResource[(A, B)]:
+        override def use[C](body: ((A, B)) => Rx[C]): Rx[C] = RxResourceImpl.this.use { a =>
+          other.use { b =>
+            body((a, b))
+          }
+        }
+
+        override def map[C](f: ((A, B)) => C): RxResource[C] = this.flatMap(ab =>
+          RxResource.pure(f(ab))
+        )
+
+        override def flatMap[C](f: ((A, B)) => RxResource[C]): RxResource[C] = RxResourceImpl.this
+          .flatMap { a =>
+            other.flatMap { b =>
+              f((a, b))
+            }
+          }
+
+        override def zip[C](another: RxResource[C]): RxResource[((A, B), C)] = flatMap(ab =>
+          another.map(c => (ab, c))
+        )
+
+        override def onFinalize(finalizer: Rx[Unit]): RxResource[(A, B)] = RxResourceImpl.this
+          .onFinalize(finalizer)
+          .zip(other)
 
     override def onFinalize(finalizer: Rx[Unit]): RxResource[A] =
       new RxResourceImpl(acquire, release, finalizer :: finalizers)

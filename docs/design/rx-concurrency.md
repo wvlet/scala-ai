@@ -138,7 +138,8 @@ trait RxDeferred[A]:
   def tryGet: Rx[Option[A]]
 
 object RxDeferred:
-  def apply[A](): Rx[RxDeferred[A]]
+  def apply[A](): RxDeferred[A]          // Direct creation
+  def of[A](): Rx[RxDeferred[A]]         // Creation within Rx context
 ```
 
 **Implementation notes:**
@@ -168,7 +169,8 @@ trait RxSemaphore:
   def available: Rx[Long]
 
 object RxSemaphore:
-  def apply(permits: Long): Rx[RxSemaphore]
+  def apply(permits: Long): RxSemaphore      // Direct creation
+  def of(permits: Long): Rx[RxSemaphore]     // Creation within Rx context
 ```
 
 ### Phase 2: Fiber-like Execution Model
@@ -343,7 +345,7 @@ Rx.fromSeq(urls)
 
 // Parallel (new capability)
 Rx.fromSeq(urls)
-  .parFlatMap(maxConcurrency = 10)(url => fetchUrl(url))
+  .parFlatMap(parallelism = 10)(url => fetchUrl(url))
   .run(process)
 ```
 

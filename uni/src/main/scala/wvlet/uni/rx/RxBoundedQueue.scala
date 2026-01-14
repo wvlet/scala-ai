@@ -104,7 +104,10 @@ object RxBoundedQueue:
     override def add(ev: RxEvent): Unit =
       ev match
         case OnNext(v) =>
-          offer(v.asInstanceOf[A]).run()
+          // Use tryOffer for non-blocking behavior; if queue is full, the element is dropped
+          // For blocking behavior, use offer() directly
+          tryOfferLoop(v.asInstanceOf[A])
+          ()
         case OnError(e) =>
           completed.set(Some(e))
         case OnCompletion =>
