@@ -614,4 +614,28 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to ListMap"))
 
+  given optionWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[Option[A]] =
+    new ObjectWeaver[Option[A]]:
+      override def pack(p: Packer, v: Option[A], config: WeaverConfig): Unit =
+        v match
+          case Some(value) =>
+            elementWeaver.pack(p, value, config)
+          case None =>
+            p.packNil
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.NIL =>
+            u.unpackNil
+            context.setObject(None)
+          case _ =>
+            val elementContext = WeaverContext(context.config)
+            elementWeaver.unpack(u, elementContext)
+            if elementContext.hasError then
+              context.setError(elementContext.getError.get)
+            else if elementContext.isNull then
+              context.setObject(None)
+            else
+              context.setObject(Some(elementContext.getLastValue))
+
 end PrimitiveWeaver

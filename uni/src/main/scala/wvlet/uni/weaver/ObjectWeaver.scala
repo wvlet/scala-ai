@@ -48,6 +48,18 @@ end ObjectWeaver
 
 object ObjectWeaver:
 
+  /**
+    * Derive an ObjectWeaver for a case class at compile-time. Usage:
+    * {{{
+    * case class Person(name: String, age: Int)
+    * given ObjectWeaver[Person] = ObjectWeaver.derived[Person]
+    *
+    * // Or with derives clause:
+    * case class Person(name: String, age: Int) derives ObjectWeaver
+    * }}}
+    */
+  inline def derived[A]: ObjectWeaver[A] = ObjectWeaverDerivation.deriveWeaver[A]
+
   def weave[A](v: A, config: WeaverConfig = WeaverConfig())(using
       weaver: ObjectWeaver[A]
   ): MsgPack = weaver.weave(v, config)
@@ -65,3 +77,5 @@ object ObjectWeaver:
   ): A = weaver.fromJson(json, config)
 
   export PrimitiveWeaver.given
+
+end ObjectWeaver
