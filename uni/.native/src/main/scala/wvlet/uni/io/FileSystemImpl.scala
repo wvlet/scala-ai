@@ -21,7 +21,6 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.collection.mutable.ArrayBuffer
-import scala.util.matching.Regex
 
 /**
   * Scala Native implementation of FileSystem. Uses java.io APIs which are well-supported in Scala
@@ -172,7 +171,7 @@ private[io] object FileSystemNative extends FileSystemBase:
       options
         .glob
         .foreach { pattern =>
-          val regex = globToRegex(pattern)
+          val regex = ListOptions.globToRegex(pattern)
           result = result.filter { p =>
             regex.matches(p.path) || regex.matches(p.fileName)
           }
@@ -183,15 +182,6 @@ private[io] object FileSystemNative extends FileSystemBase:
     end if
 
   end list
-
-  private def globToRegex(glob: String): Regex =
-    val regexStr = glob
-      .replace(".", "\\.")
-      .replace("**", "<<<DOUBLESTAR>>>")
-      .replace("*", "[^/\\\\]*")
-      .replace("<<<DOUBLESTAR>>>", ".*")
-      .replace("?", ".")
-    ("^" + regexStr + "$").r
 
   override def createDirectory(path: IOPath): Unit =
     val file = toJavaFile(path)

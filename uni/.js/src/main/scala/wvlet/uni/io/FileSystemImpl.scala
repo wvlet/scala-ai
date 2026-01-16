@@ -247,7 +247,7 @@ private[io] object FileSystemJS extends FileSystemBase:
         options
           .glob
           .foreach { pattern =>
-            val regex = globToRegex(pattern)
+            val regex = ListOptions.globToRegex(pattern)
             result = result.filter { p =>
               regex.matches(p.path) || regex.matches(p.fileName)
             }
@@ -289,15 +289,6 @@ private[io] object FileSystemJS extends FileSystemBase:
         current
       else
         current ++ listRecursive(base, subentries, depth + 1, maxDepth, options)
-
-  private def globToRegex(glob: String): scala.util.matching.Regex =
-    val regexStr = glob
-      .replace(".", "\\.")
-      .replace("**", "<<<DOUBLESTAR>>>")
-      .replace("*", "[^/\\\\]*")
-      .replace("<<<DOUBLESTAR>>>", ".*")
-      .replace("?", ".")
-    ("^" + regexStr + "$").r
 
   override def createDirectory(path: IOPath): Unit =
     if isNodeEnv then
@@ -389,11 +380,20 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def createTempFile(prefix: String, suffix: String, directory: Option[IOPath]): IOPath =
     if isNodeEnv then
-      val dir     = directory.map(_.path).getOrElse(NodeOSModule.tmpdir())
-      val tempDir = NodeFSModule.mkdtempSync(s"${dir}/${prefix}")
-      val file    = IOPath.parse(tempDir).resolve(s"${prefix}${suffix}")
-      writeString(file, "")
-      file
+      val dir = directory.getOrElse(tempDirectory)
+      // Generate random file names and try to create atomically
+      var attempts = 0
+      while attempts < 100 do
+        val randomPart = scala.util.Random.alphanumeric.take(8).mkString
+        val tempPath   = dir.resolve(s"${prefix}${randomPart}${suffix}")
+        try
+          writeString(tempPath, "", WriteMode.CreateNew)
+          return tempPath
+        catch
+          case _: java.nio.file.FileAlreadyExistsException =>
+          // File exists, try again with different random name
+        attempts += 1
+      throw IOOperationException("Failed to create temporary file after 100 attempts")
     else if isBrowserEnv then
       BrowserFileSystem.createTempFile(prefix, suffix, directory)
     else

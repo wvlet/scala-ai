@@ -30,7 +30,6 @@ import java.util.Comparator
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
-import scala.util.matching.Regex
 
 /**
   * JVM implementation of FileSystem using Java NIO.
@@ -63,32 +62,41 @@ private[io] object FileSystemJvm extends FileSystemBase:
 
   override def info(path: IOPath): FileInfo =
     val nioPath = toNioPath(path)
-    if !Files.exists(nioPath) then
-      FileInfo.notFound(path)
-    else
-      val attrs    = Files.readAttributes(nioPath, classOf[BasicFileAttributes])
-      val fileType =
-        if attrs.isRegularFile then
-          FileType.File
-        else if attrs.isDirectory then
-          FileType.Directory
-        else if attrs.isSymbolicLink then
-          FileType.SymbolicLink
-        else
-          FileType.Other
+    try
+      if !Files.exists(nioPath) then
+        FileInfo.notFound(path)
+      else
+        val attrs    = Files.readAttributes(nioPath, classOf[BasicFileAttributes])
+        val fileType =
+          if attrs.isRegularFile then
+            FileType.File
+          else if attrs.isDirectory then
+            FileType.Directory
+          else if attrs.isSymbolicLink then
+            FileType.SymbolicLink
+          else
+            FileType.Other
 
-      FileInfo(
-        path = path,
-        fileType = fileType,
-        size = attrs.size(),
-        lastModified = Some(attrs.lastModifiedTime().toInstant),
-        lastAccessed = Some(attrs.lastAccessTime().toInstant),
-        createdAt = Some(attrs.creationTime().toInstant),
-        isReadable = Files.isReadable(nioPath),
-        isWritable = Files.isWritable(nioPath),
-        isExecutable = Files.isExecutable(nioPath),
-        isHidden = Files.isHidden(nioPath)
-      )
+        FileInfo(
+          path = path,
+          fileType = fileType,
+          size = attrs.size(),
+          lastModified = Some(attrs.lastModifiedTime().toInstant),
+          lastAccessed = Some(attrs.lastAccessTime().toInstant),
+          createdAt = Some(attrs.creationTime().toInstant),
+          isReadable = Files.isReadable(nioPath),
+          isWritable = Files.isWritable(nioPath),
+          isExecutable = Files.isExecutable(nioPath),
+          isHidden = Files.isHidden(nioPath)
+        )
+    catch
+      case _: Throwable =>
+        // Handle race condition where file is deleted between exists check and attribute read
+        FileInfo.notFound(path)
+
+    end try
+
+  end info
 
   override def readString(path: IOPath): String = Files.readString(
     toNioPath(path),
@@ -186,7 +194,7 @@ private[io] object FileSystemJvm extends FileSystemBase:
         options
           .glob
           .foreach { pattern =>
-            val regex = globToRegex(pattern)
+            val regex = ListOptions.globToRegex(pattern)
             result = result.filter { p =>
               regex.matches(p.path) || regex.matches(p.fileName)
             }
@@ -201,15 +209,6 @@ private[io] object FileSystemJvm extends FileSystemBase:
     end if
 
   end list
-
-  private def globToRegex(glob: String): Regex =
-    val regexStr = glob
-      .replace(".", "\\.")
-      .replace("**", "<<<DOUBLESTAR>>>")
-      .replace("*", "[^/\\\\]*")
-      .replace("<<<DOUBLESTAR>>>", ".*")
-      .replace("?", ".")
-    ("^" + regexStr + "$").r
 
   override def createDirectory(path: IOPath): Unit = Files.createDirectories(toNioPath(path))
 
@@ -228,6 +227,8 @@ private[io] object FileSystemJvm extends FileSystemBase:
               Files.delete(file)
               FileVisitResult.CONTINUE
             override def postVisitDirectory(dir: Path, exc: java.io.IOException): FileVisitResult =
+              if exc != null then
+                throw exc
               Files.delete(dir)
               FileVisitResult.CONTINUE
         )
@@ -270,19 +271,26 @@ private[io] object FileSystemJvm extends FileSystemBase:
   end copy
 
   override def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit =
-    val options =
+    val sourcePath = toNioPath(source)
+    val targetPath = toNioPath(target)
+    val options    =
       if overwrite then
         Array(StandardCopyOption.REPLACE_EXISTING)
       else
         Array.empty[StandardCopyOption]
 
     // Create parent directories if needed
-    val targetPath = toNioPath(target)
-    val parent     = targetPath.getParent
+    val parent = targetPath.getParent
     if parent != null && !Files.exists(parent) then
       Files.createDirectories(parent)
 
-    Files.move(toNioPath(source), targetPath, options*)
+    try
+      Files.move(sourcePath, targetPath, options*)
+    catch
+      case _: java.nio.file.FileSystemException =>
+        // Fallback to copy-and-delete for cross-filesystem moves
+        copy(source, target, CopyOptions(overwrite = overwrite, recursive = true))
+        deleteRecursively(source)
 
   override def createTempFile(prefix: String, suffix: String, directory: Option[IOPath]): IOPath =
     val dir = directory.map(toNioPath).getOrElse(Paths.get(System.getProperty("java.io.tmpdir")))

@@ -89,11 +89,9 @@ class FileSystemTest extends UniTest:
 
     FileSystem.writeString(file, "original")
 
-    val caught = intercept[Exception] {
+    intercept[java.nio.file.FileAlreadyExistsException] {
       FileSystem.writeString(file, "new content", WriteMode.CreateNew)
     }
-    (caught.getMessage.contains("exists") ||
-      caught.isInstanceOf[java.nio.file.FileAlreadyExistsException]) shouldBe true
 
     // Original content should be unchanged
     FileSystem.readString(file) shouldBe "original"

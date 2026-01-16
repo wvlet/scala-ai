@@ -64,6 +64,18 @@ case class ListOptions(
 object ListOptions:
   val default: ListOptions = ListOptions()
 
+  /**
+    * Converts a glob pattern to a regex for file matching.
+    */
+  def globToRegex(glob: String): scala.util.matching.Regex =
+    val regexStr = glob
+      .replace(".", "\\.")
+      .replace("**", "<<<DOUBLESTAR>>>")
+      .replace("*", "[^/\\\\]*")
+      .replace("<<<DOUBLESTAR>>>", ".*")
+      .replace("?", ".")
+    ("^" + regexStr + "$").r
+
 /**
   * Options for copy operations.
   */
@@ -361,8 +373,11 @@ end FileSystemBase
   * instance.
   */
 object FileSystem extends FileSystemBase:
+  import scala.compiletime.uninitialized
+
   // Delegate all operations to the platform-specific implementation
-  private var _impl: FileSystemBase = _
+  @volatile
+  private var _impl: FileSystemBase = uninitialized
 
   /**
     * Sets the platform-specific implementation. Called by platform initialization code.

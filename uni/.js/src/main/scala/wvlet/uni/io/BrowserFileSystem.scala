@@ -20,6 +20,7 @@ import scala.concurrent.Promise
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.global as g
 import scala.scalajs.js.typedarray.ArrayBuffer
+import scala.scalajs.js.typedarray.Int8Array
 import scala.scalajs.js.typedarray.Uint8Array
 import java.time.Instant
 
@@ -471,12 +472,7 @@ private[io] object BrowserFileSystem:
                     .asInstanceOf[js.Promise[ArrayBuffer]]
                     .`then`[Unit](
                       { (buffer: ArrayBuffer) =>
-                        val bytes = new Uint8Array(buffer)
-                        val arr   = new Array[Byte](bytes.length)
-                        var i     = 0
-                        while i < bytes.length do
-                          arr(i) = bytes(i).toByte
-                          i += 1
+                        val arr = new Int8Array(buffer).toArray
                         promise.success(Some((file.name.asInstanceOf[String], arr)))
                         ()
                       },
