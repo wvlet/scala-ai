@@ -7,7 +7,6 @@ val AIRFRAME_VERSION                    = "2025.1.27"
 val AWS_SDK_VERSION                     = "2.41.6"
 val JS_JAVA_LOGGING_VERSION             = "1.0.0"
 val JUNIT_PLATFORM_VERSION              = "6.0.2"
-val LOGBACK_VERSION                     = "1.5.24"
 val SCALA_NATIVE_TEST_INTERFACE_VERSION = "0.5.8"
 val SBT_TEST_INTERFACE_VERSION          = "1.0"
 val SCALACHECK_VERSION                  = "1.19.0"
@@ -102,13 +101,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     buildSettings,
     name        := "uni-core",
     description := "Core utilities: logging and reactive streams"
-  )
-  .jvmSettings(
-    libraryDependencies ++=
-      Seq(
-        // For automatic log-rotation
-        "ch.qos.logback" % "logback-core" % LOGBACK_VERSION
-      )
   )
   .jsSettings(
     jsBuildSettings,
