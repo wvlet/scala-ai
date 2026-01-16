@@ -53,7 +53,8 @@ class FileHandler(
     )
 
 /**
-  * Log rotation handler with time-based (daily) and size-based rotation. Rotated files are compressed with gzip.
+  * Log rotation handler with time-based (daily) and size-based rotation. Rotated files are
+  * compressed with gzip.
   */
 class LogRotationHandler(
     fileName: String,
@@ -75,32 +76,40 @@ class LogRotationHandler(
     else
       fileName
 
-  private val logFile           = new File(fileName)
-  private val logDir            = Option(logFile.getParentFile).getOrElse(new File("."))
-  private val dateFormatter     = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-  @volatile private var writer: Writer       = null
-  @volatile private var currentFileSize      = 0L
-  @volatile private var currentDate: LocalDate = null
+  private val logFile       = new File(fileName)
+  private val logDir        = Option(logFile.getParentFile).getOrElse(new File("."))
+  private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  @volatile
+  private var writer: Writer = null
+
+  @volatile
+  private var currentFileSize = 0L
+
+  @volatile
+  private var currentDate: LocalDate = null
 
   // Lock for thread-safe file operations
   private val lock = new Object
 
-  private def initWriter(): Unit =
-    lock.synchronized:
-      if writer == null then
-        logDir.mkdirs()
-        val append = logFile.exists()
-        currentFileSize = if append then logFile.length() else 0L
-        currentDate = LocalDate.now()
-        writer = new OutputStreamWriter(
+  private def initWriter(): Unit = lock.synchronized:
+    if writer == null then
+      logDir.mkdirs()
+      val append = logFile.exists()
+      currentFileSize =
+        if append then
+          logFile.length()
+        else
+          0L
+      currentDate = LocalDate.now()
+      writer =
+        new OutputStreamWriter(
           new BufferedOutputStream(new FileOutputStream(logFile, append)),
           StandardCharsets.UTF_8
         )
 
-  override def flush(): Unit =
-    lock.synchronized:
-      if writer != null then
-        Try(writer.flush())
+  override def flush(): Unit = lock.synchronized:
+    if writer != null then
+      Try(writer.flush())
 
   private def toException(t: Throwable) = new Exception(t.getMessage, t)
 
@@ -116,22 +125,20 @@ class LogRotationHandler(
         case Failure(e) =>
           reportError(null, toException(e), ErrorManager.FORMAT_FAILURE)
 
-  private def writeMessage(message: String): Unit =
-    lock.synchronized:
-      checkRotation()
-      if writer == null then
-        initWriter()
-      writer.write(message)
-      writer.flush()
-      currentFileSize += message.getBytes(StandardCharsets.UTF_8).length
+  private def writeMessage(message: String): Unit = lock.synchronized:
+    checkRotation()
+    if writer == null then
+      initWriter()
+    writer.write(message)
+    writer.flush()
+    currentFileSize += message.getBytes(StandardCharsets.UTF_8).length
 
   private def checkRotation(): Unit =
-    val today = LocalDate.now()
+    val today         = LocalDate.now()
     val needsRotation =
-      writer != null && (
-        (currentDate != null && !currentDate.equals(today)) ||
-          (maxSizeInBytes != Long.MaxValue && currentFileSize >= maxSizeInBytes)
-      )
+      writer != null &&
+        ((currentDate != null && !currentDate.equals(today)) ||
+          (maxSizeInBytes != Long.MaxValue && currentFileSize >= maxSizeInBytes))
 
     if needsRotation then
       rotate()
@@ -146,10 +153,14 @@ class LogRotationHandler(
 
     if logFile.exists() && logFile.length() > 0 then
       // Find the next available index for today's date
-      val dateStr = if currentDate != null then currentDate.format(dateFormatter) else LocalDate.now().format(dateFormatter)
-      val index = findNextIndex(dateStr)
+      val dateStr =
+        if currentDate != null then
+          currentDate.format(dateFormatter)
+        else
+          LocalDate.now().format(dateFormatter)
+      val index           = findNextIndex(dateStr)
       val rotatedFileName = s"${fileNameStem}-${dateStr}.${index}${logFileExt}"
-      val rotatedFile = new File(rotatedFileName)
+      val rotatedFile     = new File(rotatedFileName)
 
       // Rename current log file
       if logFile.renameTo(rotatedFile) then
@@ -160,17 +171,26 @@ class LogRotationHandler(
       cleanupOldFiles()
 
   private def findNextIndex(dateStr: String): Int =
-    val pattern = s"${new File(fileNameStem).getName}-${dateStr}\\.(\\d+)${java.util.regex.Pattern.quote(logFileExt)}\\.gz".r
+    val pattern =
+      s"${new File(fileNameStem).getName}-${dateStr}\\.(\\d+)${java
+          .util
+          .regex
+          .Pattern
+          .quote(logFileExt)}\\.gz".r
     val existingIndices = Option(logDir.listFiles())
-      .getOrElse(Array.empty)
+      .getOrElse(Array.empty[File])
       .flatMap { f =>
         f.getName match
-          case pattern(idx) => Some(idx.toInt)
-          case _            => None
+          case pattern(idx) =>
+            Some(idx.toInt)
+          case _ =>
+            None
       }
 
-    if existingIndices.isEmpty then 0
-    else existingIndices.max + 1
+    if existingIndices.isEmpty then
+      0
+    else
+      existingIndices.max + 1
 
   private def compressFile(file: File): Unit =
     val gzFile = new File(s"${file.getAbsolutePath}.gz")
@@ -180,7 +200,7 @@ class LogRotationHandler(
         new GZIPOutputStream(new FileOutputStream(gzFile))
       ) { (in, out) =>
         val buffer = new Array[Byte](8192)
-        var len = in.read(buffer)
+        var len    = in.read(buffer)
         while len > 0 do
           out.write(buffer, 0, len)
           len = in.read(buffer)
@@ -194,9 +214,9 @@ class LogRotationHandler(
 
   private def cleanupOldFiles(): Unit =
     if maxNumberOfFiles < Integer.MAX_VALUE then
-      val stemName = new File(fileNameStem).getName
+      val stemName     = new File(fileNameStem).getName
       val rotatedFiles = Option(logDir.listFiles())
-        .getOrElse(Array.empty)
+        .getOrElse(Array.empty[File])
         .filter { f =>
           val name = f.getName
           name.startsWith(s"${stemName}-") && name.endsWith(s"${logFileExt}.gz")
@@ -210,15 +230,14 @@ class LogRotationHandler(
             reportError(s"Failed to delete old log file ${f}", null, ErrorManager.GENERIC_FAILURE)
         }
 
-  override def close(): Unit =
-    lock.synchronized:
-      if writer != null then
-        Try(writer.close()) match
-          case Success(_) =>
-          // do nothing
-          case Failure(e) =>
-            reportError(null, toException(e), ErrorManager.CLOSE_FAILURE)
-        writer = null
+  override def close(): Unit = lock.synchronized:
+    if writer != null then
+      Try(writer.close()) match
+        case Success(_) =>
+        // do nothing
+        case Failure(e) =>
+          reportError(null, toException(e), ErrorManager.CLOSE_FAILURE)
+      writer = null
 
   private def recoverTempFiles(logPath: String): Unit =
     // Recover orphaned temp files
