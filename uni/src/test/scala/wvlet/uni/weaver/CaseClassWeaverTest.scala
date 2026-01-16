@@ -161,6 +161,7 @@ class CaseClassWeaverTest extends UniTest:
         case e: Exception =>
           Some(e)
     result.isDefined shouldBe true
+    result.get.getMessage.contains("Null value not allowed for non-optional field") shouldBe true
   }
 
   test("explicitly given weaver works") {

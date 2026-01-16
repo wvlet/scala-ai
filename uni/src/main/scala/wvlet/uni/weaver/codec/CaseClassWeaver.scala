@@ -70,11 +70,7 @@ class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[ObjectWeaver
             if fieldContext.hasError then
               context.setError(fieldContext.getError.get)
               hasError = true
-              // Skip remaining fields to keep unpacker consistent
-              while i + 1 < mapSize do
-                u.skipValue // key
-                u.skipValue // value
-                i += 1
+              i = skipRemainingFields(u, i, mapSize)
             else if fieldContext.isNull && !param.surface.isOption then
               // Null value for a non-Option field is an error
               context.setError(
@@ -84,11 +80,7 @@ class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[ObjectWeaver
                 )
               )
               hasError = true
-              // Skip remaining fields to keep unpacker consistent
-              while i + 1 < mapSize do
-                u.skipValue // key
-                u.skipValue // value
-                i += 1
+              i = skipRemainingFields(u, i, mapSize)
             else
               fieldValues(idx) = fieldContext.getLastValue
               fieldSet(idx) = true
@@ -104,6 +96,19 @@ class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[ObjectWeaver
     catch
       case e: Exception =>
         context.setError(e)
+
+  /**
+    * Skip remaining key-value pairs in the map to keep unpacker in a consistent state.
+    * @return
+    *   the updated index after skipping
+    */
+  private def skipRemainingFields(u: Unpacker, currentIndex: Int, mapSize: Int): Int =
+    var i = currentIndex
+    while i + 1 < mapSize do
+      u.skipValue // key
+      u.skipValue // value
+      i += 1
+    i
 
   private def buildInstance(
       fieldValues: Array[Any],

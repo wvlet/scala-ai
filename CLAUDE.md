@@ -55,6 +55,8 @@ See `.github/instructions/airspec.instructions.md` for more.
 
 ## Git Workflow
 
+Save plan documents to plans/YYYY-MM-DD-(topic).md files
+
 ### Branches and PRs
 - Never push directly to main. All changes require PRs.
 - Create branch FIRST: `git switch -c <prefix>/<description>`
