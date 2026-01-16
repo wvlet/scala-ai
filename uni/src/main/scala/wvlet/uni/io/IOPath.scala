@@ -1,0 +1,249 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.io
+
+/**
+  * Cross-platform path abstraction. Represents a file or directory path that works consistently
+  * across JVM, Scala.js (Node.js and browser), and Scala Native.
+  */
+case class IOPath(segments: Seq[String], isAbsolute: Boolean):
+  /**
+    * Returns the path as a string using the platform-specific separator.
+    */
+  def path: String =
+    val sep = IOPath.separator
+    if isAbsolute then
+      if IOPath.isWindows && segments.nonEmpty && segments.head.contains(":") then
+        // Windows absolute path with drive letter (e.g., C:\foo\bar)
+        segments.mkString(sep)
+      else
+        // Unix absolute path (e.g., /foo/bar)
+        sep + segments.mkString(sep)
+    else
+      segments.mkString(sep)
+
+  /**
+    * Returns the path as a POSIX string (using forward slashes).
+    */
+  def posixPath: String =
+    if isAbsolute then
+      if segments.nonEmpty && segments.head.contains(":") then
+        // Windows drive letter - convert backslash style
+        segments.mkString("/")
+      else
+        "/" + segments.mkString("/")
+    else
+      segments.mkString("/")
+
+  /**
+    * Returns the file name (last segment of the path).
+    */
+  def fileName: String = segments.lastOption.getOrElse("")
+
+  /**
+    * Returns the file extension (without the dot), or empty string if none.
+    */
+  def extension: String =
+    val name = fileName
+    val idx  = name.lastIndexOf('.')
+    if idx > 0 then
+      name.substring(idx + 1)
+    else if idx == 0 && name.length > 1 then
+      name.substring(1) // Handle dotfiles like .gitignore -> gitignore
+    else
+      ""
+
+  /**
+    * Returns the file name without extension.
+    */
+  def baseName: String =
+    val name = fileName
+    val idx  = name.lastIndexOf('.')
+    if idx > 0 then
+      name.substring(0, idx)
+    else if idx == 0 then
+      "" // Handle dotfiles like .gitignore
+    else
+      name
+
+  /**
+    * Returns the parent path, or None if this is the root or has no parent.
+    */
+  def parent: Option[IOPath] =
+    if segments.isEmpty then
+      None
+    else if segments.size == 1 then
+      if isAbsolute then
+        Some(IOPath(Seq.empty, isAbsolute = true))
+      else
+        None
+    else
+      Some(IOPath(segments.dropRight(1), isAbsolute))
+
+  /**
+    * Resolves a child path relative to this path.
+    */
+  def resolve(child: String): IOPath =
+    val childPath = IOPath.parse(child)
+    if childPath.isAbsolute then
+      childPath
+    else
+      IOPath(segments ++ childPath.segments, isAbsolute)
+
+  /**
+    * Resolves a child path relative to this path.
+    */
+  def resolve(child: IOPath): IOPath =
+    if child.isAbsolute then
+      child
+    else
+      IOPath(segments ++ child.segments, isAbsolute)
+
+  /**
+    * Alias for resolve.
+    */
+  def /(child: String): IOPath = resolve(child)
+
+  /**
+    * Alias for resolve.
+    */
+  def /(child: IOPath): IOPath = resolve(child)
+
+  /**
+    * Returns the path relative to the given base path.
+    */
+  def relativeTo(base: IOPath): IOPath =
+    if isAbsolute != base.isAbsolute then
+      this // Cannot relativize paths with different absolute status
+    else
+      val commonPrefixLength = segments.zip(base.segments).takeWhile((a, b) => a == b).length
+      val ups                = Seq.fill(base.segments.length - commonPrefixLength)("..")
+      val remaining          = segments.drop(commonPrefixLength)
+      IOPath(ups ++ remaining, isAbsolute = false)
+
+  /**
+    * Normalizes the path by resolving `.` and `..` segments.
+    */
+  def normalize: IOPath =
+    val normalized =
+      segments.foldLeft(List.empty[String]) { (acc, segment) =>
+        segment match
+          case "." =>
+            acc
+          case ".." if acc.nonEmpty && acc.last != ".." =>
+            acc.dropRight(1)
+          case ".." if !isAbsolute =>
+            acc :+ ".."
+          case ".." =>
+            acc // Ignore .. at root
+          case s =>
+            acc :+ s
+      }
+    IOPath(normalized, isAbsolute)
+
+  /**
+    * Returns true if this path starts with the given path.
+    */
+  def startsWith(other: IOPath): Boolean =
+    isAbsolute == other.isAbsolute && segments.take(other.segments.length) == other.segments
+
+  /**
+    * Returns true if this path ends with the given path.
+    */
+  def endsWith(other: IOPath): Boolean =
+    if other.isAbsolute then
+      this == other
+    else
+      segments.takeRight(other.segments.length) == other.segments
+
+  /**
+    * Returns the number of segments in the path.
+    */
+  def segmentCount: Int = segments.length
+
+  /**
+    * Returns the root path if this is an absolute path, None otherwise.
+    */
+  def root: Option[IOPath] =
+    if isAbsolute then
+      if segments.nonEmpty && segments.head.contains(":") then
+        // Windows drive root
+        Some(IOPath(Seq(segments.head), isAbsolute = true))
+      else
+        Some(IOPath(Seq.empty, isAbsolute = true))
+    else
+      None
+
+  override def toString: String = path
+
+end IOPath
+
+object IOPath:
+  /**
+    * Platform-specific path separator. Set by platform implementations.
+    */
+  var separator: String = "/"
+
+  /**
+    * Whether the current platform is Windows. Set by platform implementations.
+    */
+  var isWindows: Boolean = false
+
+  /**
+    * Parses a path string into an IOPath.
+    */
+  def parse(pathStr: String): IOPath =
+    if pathStr.isEmpty then
+      IOPath(Seq.empty, isAbsolute = false)
+    else
+      // Normalize separators
+      val normalized = pathStr.replace("\\", "/")
+
+      // Check for absolute path
+      val isAbs =
+        normalized.startsWith("/") ||
+          (normalized.length >= 2 && normalized(1) == ':') // Windows drive letter
+
+      // Split into segments
+      val parts = normalized.split("/").filter(_.nonEmpty).toSeq
+
+      IOPath(parts, isAbs)
+
+  /**
+    * Creates an IOPath from the given path string.
+    */
+  def apply(pathStr: String): IOPath = parse(pathStr)
+
+  /**
+    * Creates an IOPath by joining multiple path segments.
+    */
+  def of(first: String, rest: String*): IOPath =
+    rest.foldLeft(parse(first))((path, segment) => path.resolve(segment))
+
+  /**
+    * Returns the current working directory. Implemented by platform-specific code.
+    */
+  def currentDir: IOPath = FileSystem.currentDirectory
+
+  /**
+    * Returns the user's home directory. Implemented by platform-specific code.
+    */
+  def homeDir: IOPath = FileSystem.homeDirectory
+
+  /**
+    * Returns the system's temporary directory. Implemented by platform-specific code.
+    */
+  def tempDir: IOPath = FileSystem.tempDirectory
+
+end IOPath
