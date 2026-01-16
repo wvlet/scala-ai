@@ -21,8 +21,10 @@ import scala.concurrent.Future
 enum WriteMode:
   /** Create a new file, fail if it already exists */
   case CreateNew
+
   /** Create or truncate the file */
   case Create
+
   /** Append to the file, create if it doesn't exist */
   case Append
 
@@ -38,7 +40,7 @@ case class ListOptions(
     maxDepth: Option[Int] = None,
     /** Filter by file extension (e.g., "txt", "scala") */
     extensions: Seq[String] = Seq.empty,
-    /** Filter by glob pattern (e.g., "*.scala", "**\/*.txt") */
+    /** Filter by glob pattern (e.g., "*.scala", "**&#47;*.txt") */
     glob: Option[String] = None
 ):
   def withIncludeHidden(value: Boolean): ListOptions = copy(includeHidden = value)
@@ -182,14 +184,22 @@ trait FileSystemBase:
     * @throws UnsupportedOperationException
     *   in browser environments
     */
-  def appendString(path: IOPath, content: String): Unit = writeString(path, content, WriteMode.Append)
+  def appendString(path: IOPath, content: String): Unit = writeString(
+    path,
+    content,
+    WriteMode.Append
+  )
 
   /**
     * Appends a byte array to a file.
     * @throws UnsupportedOperationException
     *   in browser environments
     */
-  def appendBytes(path: IOPath, content: Array[Byte]): Unit = writeBytes(path, content, WriteMode.Append)
+  def appendBytes(path: IOPath, content: Array[Byte]): Unit = writeBytes(
+    path,
+    content,
+    WriteMode.Append
+  )
 
   // ============================================================
   // Directory operations
@@ -274,7 +284,11 @@ trait FileSystemBase:
     * @throws UnsupportedOperationException
     *   in browser environments
     */
-  def createTempFile(prefix: String = "tmp", suffix: String = ".tmp", directory: Option[IOPath] = None): IOPath
+  def createTempFile(
+      prefix: String = "tmp",
+      suffix: String = ".tmp",
+      directory: Option[IOPath] = None
+  ): IOPath
 
   /**
     * Creates a temporary directory.
@@ -300,12 +314,20 @@ trait FileSystemBase:
   /**
     * Writes a string to a file asynchronously.
     */
-  def writeStringAsync(path: IOPath, content: String, mode: WriteMode = WriteMode.Create): Future[Unit]
+  def writeStringAsync(
+      path: IOPath,
+      content: String,
+      mode: WriteMode = WriteMode.Create
+  ): Future[Unit]
 
   /**
     * Writes a byte array to a file asynchronously.
     */
-  def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode = WriteMode.Create): Future[Unit]
+  def writeBytesAsync(
+      path: IOPath,
+      content: Array[Byte],
+      mode: WriteMode = WriteMode.Create
+  ): Future[Unit]
 
   /**
     * Lists the contents of a directory asynchronously.
@@ -325,8 +347,8 @@ trait FileSystemBase:
 end FileSystemBase
 
 /**
-  * FileSystem companion object. Platform-specific implementations provide the actual
-  * FileSystem instance.
+  * FileSystem companion object. Platform-specific implementations provide the actual FileSystem
+  * instance.
   */
 object FileSystem extends FileSystemBase:
   // Delegate all operations to the platform-specific implementation
@@ -335,12 +357,13 @@ object FileSystem extends FileSystemBase:
   /**
     * Sets the platform-specific implementation. Called by platform initialization code.
     */
-  private[io] def setImplementation(impl: FileSystemBase): Unit =
-    _impl = impl
+  private[io] def setImplementation(impl: FileSystemBase): Unit = _impl = impl
 
   private def impl: FileSystemBase =
     if _impl == null then
-      throw IllegalStateException("FileSystem not initialized. Platform-specific initialization required.")
+      throw IllegalStateException(
+        "FileSystem not initialized. Platform-specific initialization required."
+      )
     _impl
 
   override def currentDirectory: IOPath = impl.currentDirectory
@@ -354,12 +377,18 @@ object FileSystem extends FileSystemBase:
   override def isDirectory(path: IOPath): Boolean = impl.isDirectory(path)
   override def info(path: IOPath): FileInfo       = impl.info(path)
 
-  override def readString(path: IOPath): String       = impl.readString(path)
-  override def readBytes(path: IOPath): Array[Byte]   = impl.readBytes(path)
-  override def readLines(path: IOPath): Seq[String]   = impl.readLines(path)
+  override def readString(path: IOPath): String     = impl.readString(path)
+  override def readBytes(path: IOPath): Array[Byte] = impl.readBytes(path)
+  override def readLines(path: IOPath): Seq[String] = impl.readLines(path)
 
-  override def writeString(path: IOPath, content: String, mode: WriteMode): Unit     = impl.writeString(path, content, mode)
-  override def writeBytes(path: IOPath, content: Array[Byte], mode: WriteMode): Unit = impl.writeBytes(path, content, mode)
+  override def writeString(path: IOPath, content: String, mode: WriteMode): Unit = impl.writeString(
+    path,
+    content,
+    mode
+  )
+
+  override def writeBytes(path: IOPath, content: Array[Byte], mode: WriteMode): Unit = impl
+    .writeBytes(path, content, mode)
 
   override def list(path: IOPath, options: ListOptions): Seq[IOPath] = impl.list(path, options)
   override def createDirectory(path: IOPath): Unit                   = impl.createDirectory(path)
@@ -367,20 +396,38 @@ object FileSystem extends FileSystemBase:
   override def delete(path: IOPath): Boolean            = impl.delete(path)
   override def deleteRecursively(path: IOPath): Boolean = impl.deleteRecursively(path)
 
-  override def copy(source: IOPath, target: IOPath, options: CopyOptions): Unit = impl.copy(source, target, options)
-  override def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit   = impl.move(source, target, overwrite)
+  override def copy(source: IOPath, target: IOPath, options: CopyOptions): Unit = impl.copy(
+    source,
+    target,
+    options
+  )
+
+  override def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit = impl.move(
+    source,
+    target,
+    overwrite
+  )
 
   override def createTempFile(prefix: String, suffix: String, directory: Option[IOPath]): IOPath =
     impl.createTempFile(prefix, suffix, directory)
-  override def createTempDirectory(prefix: String, directory: Option[IOPath]): IOPath =
-    impl.createTempDirectory(prefix, directory)
 
-  override def readStringAsync(path: IOPath): Future[String]                                     = impl.readStringAsync(path)
-  override def readBytesAsync(path: IOPath): Future[Array[Byte]]                                 = impl.readBytesAsync(path)
-  override def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit]   = impl.writeStringAsync(path, content, mode)
-  override def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] = impl.writeBytesAsync(path, content, mode)
-  override def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]]               = impl.listAsync(path, options)
-  override def infoAsync(path: IOPath): Future[FileInfo]                                         = impl.infoAsync(path)
-  override def existsAsync(path: IOPath): Future[Boolean]                                        = impl.existsAsync(path)
+  override def createTempDirectory(prefix: String, directory: Option[IOPath]): IOPath = impl
+    .createTempDirectory(prefix, directory)
+
+  override def readStringAsync(path: IOPath): Future[String]     = impl.readStringAsync(path)
+  override def readBytesAsync(path: IOPath): Future[Array[Byte]] = impl.readBytesAsync(path)
+  override def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit] = impl
+    .writeStringAsync(path, content, mode)
+
+  override def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] =
+    impl.writeBytesAsync(path, content, mode)
+
+  override def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] = impl.listAsync(
+    path,
+    options
+  )
+
+  override def infoAsync(path: IOPath): Future[FileInfo]  = impl.infoAsync(path)
+  override def existsAsync(path: IOPath): Future[Boolean] = impl.existsAsync(path)
 
 end FileSystem

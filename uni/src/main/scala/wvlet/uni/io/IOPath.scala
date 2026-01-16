@@ -59,6 +59,8 @@ case class IOPath(segments: Seq[String], isAbsolute: Boolean):
     val idx  = name.lastIndexOf('.')
     if idx > 0 then
       name.substring(idx + 1)
+    else if idx == 0 && name.length > 1 then
+      name.substring(1) // Handle dotfiles like .gitignore -> gitignore
     else
       ""
 
@@ -70,6 +72,8 @@ case class IOPath(segments: Seq[String], isAbsolute: Boolean):
     val idx  = name.lastIndexOf('.')
     if idx > 0 then
       name.substring(0, idx)
+    else if idx == 0 then
+      "" // Handle dotfiles like .gitignore
     else
       name
 
@@ -132,14 +136,20 @@ case class IOPath(segments: Seq[String], isAbsolute: Boolean):
     * Normalizes the path by resolving `.` and `..` segments.
     */
   def normalize: IOPath =
-    val normalized = segments.foldLeft(List.empty[String]) { (acc, segment) =>
-      segment match
-        case "."                          => acc
-        case ".." if acc.nonEmpty && acc.last != ".." => acc.dropRight(1)
-        case ".." if !isAbsolute          => acc :+ ".."
-        case ".."                         => acc // Ignore .. at root
-        case s                            => acc :+ s
-    }
+    val normalized =
+      segments.foldLeft(List.empty[String]) { (acc, segment) =>
+        segment match
+          case "." =>
+            acc
+          case ".." if acc.nonEmpty && acc.last != ".." =>
+            acc.dropRight(1)
+          case ".." if !isAbsolute =>
+            acc :+ ".."
+          case ".." =>
+            acc // Ignore .. at root
+          case s =>
+            acc :+ s
+      }
     IOPath(normalized, isAbsolute)
 
   /**

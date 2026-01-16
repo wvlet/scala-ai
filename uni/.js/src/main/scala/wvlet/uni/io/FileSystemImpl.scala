@@ -13,12 +13,17 @@
  */
 package wvlet.uni.io
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.global as g
 import scala.scalajs.js.JSConverters.*
-import scala.scalajs.js.typedarray.{Int8Array, Uint8Array}
-import scala.util.{Failure, Success, Try}
+import scala.scalajs.js.typedarray.Int8Array
+import scala.scalajs.js.typedarray.Uint8Array
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import java.time.Instant
 
 /**
@@ -29,8 +34,7 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   // Detect environment
   private def isNodeEnv: Boolean =
-    js.typeOf(g.process) != "undefined" &&
-      !js.isUndefined(g.process.versions) &&
+    js.typeOf(g.process) != "undefined" && !js.isUndefined(g.process.versions) &&
       !js.isUndefined(g.process.versions.node)
 
   private def isBrowserEnv: Boolean =
@@ -69,16 +73,19 @@ private[io] object FileSystemJS extends FileSystemBase:
   // Sync operations (Node.js only)
   // ============================================================
 
-  private def requireNode(operation: String): Unit =
-    if !isNodeEnv then
-      throw UnsupportedOperationException(s"${operation} is not supported in browser environment. Use async API instead.")
+  private def requireNode(operation: String): Nothing =
+    throw UnsupportedOperationException(
+      s"${operation} is not supported in browser environment. Use async API instead."
+    )
 
   override def exists(path: IOPath): Boolean =
     if isNodeEnv then
       try
         NodeFSModule.statSync(path.path)
         true
-      catch case _: Throwable => false
+      catch
+        case _: Throwable =>
+          false
     else if isBrowserEnv then
       // Browser: check in-memory storage
       BrowserFileSystem.exists(path)
@@ -87,8 +94,11 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def isFile(path: IOPath): Boolean =
     if isNodeEnv then
-      try NodeFSModule.statSync(path.path).isFile()
-      catch case _: Throwable => false
+      try
+        NodeFSModule.statSync(path.path).isFile()
+      catch
+        case _: Throwable =>
+          false
     else if isBrowserEnv then
       BrowserFileSystem.isFile(path)
     else
@@ -96,8 +106,11 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def isDirectory(path: IOPath): Boolean =
     if isNodeEnv then
-      try NodeFSModule.statSync(path.path).isDirectory()
-      catch case _: Throwable => false
+      try
+        NodeFSModule.statSync(path.path).isDirectory()
+      catch
+        case _: Throwable =>
+          false
     else if isBrowserEnv then
       BrowserFileSystem.isDirectory(path)
     else
@@ -106,12 +119,16 @@ private[io] object FileSystemJS extends FileSystemBase:
   override def info(path: IOPath): FileInfo =
     if isNodeEnv then
       try
-        val stats = NodeFSModule.lstatSync(path.path)
+        val stats    = NodeFSModule.lstatSync(path.path)
         val fileType =
-          if stats.isFile() then FileType.File
-          else if stats.isDirectory() then FileType.Directory
-          else if stats.isSymbolicLink() then FileType.SymbolicLink
-          else FileType.Other
+          if stats.isFile() then
+            FileType.File
+          else if stats.isDirectory() then
+            FileType.Directory
+          else if stats.isSymbolicLink() then
+            FileType.SymbolicLink
+          else
+            FileType.Other
 
         FileInfo(
           path = path,
@@ -125,7 +142,9 @@ private[io] object FileSystemJS extends FileSystemBase:
           isExecutable = (stats.mode & 0x49) != 0, // Check executable bits
           isHidden = path.fileName.startsWith(".")
         )
-      catch case _: Throwable => FileInfo.notFound(path)
+      catch
+        case _: Throwable =>
+          FileInfo.notFound(path)
     else if isBrowserEnv then
       BrowserFileSystem.info(path)
     else
@@ -138,7 +157,6 @@ private[io] object FileSystemJS extends FileSystemBase:
       BrowserFileSystem.readString(path)
     else
       requireNode("readString")
-      ""
 
   override def readBytes(path: IOPath): Array[Byte] =
     if isNodeEnv then
@@ -148,10 +166,8 @@ private[io] object FileSystemJS extends FileSystemBase:
       BrowserFileSystem.readBytes(path)
     else
       requireNode("readBytes")
-      Array.emptyByteArray
 
-  override def readLines(path: IOPath): Seq[String] =
-    readString(path).split("\n").toSeq
+  override def readLines(path: IOPath): Seq[String] = readString(path).split("\n").toSeq
 
   override def writeString(path: IOPath, content: String, mode: WriteMode): Unit =
     if isNodeEnv then
@@ -188,8 +204,9 @@ private[io] object FileSystemJS extends FileSystemBase:
     else
       requireNode("writeBytes")
 
-  private def ensureParentDirectory(path: IOPath): Unit =
-    path.parent.foreach { parent =>
+  private def ensureParentDirectory(path: IOPath): Unit = path
+    .parent
+    .foreach { parent =>
       if !exists(parent) then
         createDirectory(parent)
     }
@@ -202,10 +219,12 @@ private[io] object FileSystemJS extends FileSystemBase:
         val dirOptions = js.Dynamic.literal(withFileTypes = true)
         val entries    = NodeFSModule.readdirSync(path.path, dirOptions.asInstanceOf[js.Object])
 
-        var result = entries.toSeq.map { entry =>
-          val dirent = entry.asInstanceOf[NodeDirent]
-          path.resolve(dirent.name)
-        }
+        var result = entries
+          .toSeq
+          .map { entry =>
+            val dirent = entry.asInstanceOf[NodeDirent]
+            path.resolve(dirent.name)
+          }
 
         // Filter hidden files
         if !options.includeHidden then
@@ -225,34 +244,46 @@ private[io] object FileSystemJS extends FileSystemBase:
           }
 
         // Filter by glob pattern
-        options.glob.foreach { pattern =>
-          val regex = globToRegex(pattern)
-          result = result.filter { p =>
-            regex.matches(p.path) || regex.matches(p.fileName)
+        options
+          .glob
+          .foreach { pattern =>
+            val regex = globToRegex(pattern)
+            result = result.filter { p =>
+              regex.matches(p.path) || regex.matches(p.fileName)
+            }
           }
-        }
 
         result
     else if isBrowserEnv then
       BrowserFileSystem.list(path, options)
     else
       requireNode("list")
-      Seq.empty
 
-  private def listRecursive(base: IOPath, current: Seq[IOPath], depth: Int, maxDepth: Int, options: ListOptions): Seq[IOPath] =
+  private def listRecursive(
+      base: IOPath,
+      current: Seq[IOPath],
+      depth: Int,
+      maxDepth: Int,
+      options: ListOptions
+  ): Seq[IOPath] =
     if depth >= maxDepth then
       current
     else
-      val subdirs = current.filter(isDirectory)
+      val subdirs    = current.filter(isDirectory)
       val subentries = subdirs.flatMap { dir =>
         val dirOptions = js.Dynamic.literal(withFileTypes = true)
         try
           val entries = NodeFSModule.readdirSync(dir.path, dirOptions.asInstanceOf[js.Object])
-          entries.toSeq.map { entry =>
-            val dirent = entry.asInstanceOf[NodeDirent]
-            dir.resolve(dirent.name)
-          }.filterNot(p => !options.includeHidden && p.fileName.startsWith("."))
-        catch case _: Throwable => Seq.empty
+          entries
+            .toSeq
+            .map { entry =>
+              val dirent = entry.asInstanceOf[NodeDirent]
+              dir.resolve(dirent.name)
+            }
+            .filterNot(p => !options.includeHidden && p.fileName.startsWith("."))
+        catch
+          case _: Throwable =>
+            Seq.empty
       }
       if subentries.isEmpty then
         current
@@ -286,12 +317,13 @@ private[io] object FileSystemJS extends FileSystemBase:
         else
           NodeFSModule.unlinkSync(path.path)
         true
-      catch case _: Throwable => false
+      catch
+        case _: Throwable =>
+          false
     else if isBrowserEnv then
       BrowserFileSystem.delete(path)
     else
       requireNode("delete")
-      false
 
   override def deleteRecursively(path: IOPath): Boolean =
     if isNodeEnv then
@@ -302,12 +334,13 @@ private[io] object FileSystemJS extends FileSystemBase:
         else
           NodeFSModule.unlinkSync(path.path)
         true
-      catch case _: Throwable => false
+      catch
+        case _: Throwable =>
+          false
     else if isBrowserEnv then
       BrowserFileSystem.deleteRecursively(path)
     else
       requireNode("deleteRecursively")
-      false
 
   override def copy(source: IOPath, target: IOPath, options: CopyOptions): Unit =
     if isNodeEnv then
@@ -315,7 +348,11 @@ private[io] object FileSystemJS extends FileSystemBase:
       if isDirectory(source) && options.recursive then
         copyDirectoryRecursive(source, target, options)
       else
-        val mode = if options.overwrite then 0 else 1 // COPYFILE_EXCL = 1
+        val mode =
+          if options.overwrite then
+            0
+          else
+            1 // COPYFILE_EXCL = 1
         NodeFSModule.copyFileSync(source.path, target.path, mode)
     else if isBrowserEnv then
       BrowserFileSystem.copy(source, target, options)
@@ -331,7 +368,11 @@ private[io] object FileSystemJS extends FileSystemBase:
       if isDirectory(entry) then
         copyDirectoryRecursive(entry, targetEntry, options)
       else
-        val mode = if options.overwrite then 0 else 1
+        val mode =
+          if options.overwrite then
+            0
+          else
+            1
         NodeFSModule.copyFileSync(entry.path, targetEntry.path, mode)
     }
 
@@ -357,7 +398,6 @@ private[io] object FileSystemJS extends FileSystemBase:
       BrowserFileSystem.createTempFile(prefix, suffix, directory)
     else
       requireNode("createTempFile")
-      IOPath.parse("")
 
   override def createTempDirectory(prefix: String, directory: Option[IOPath]): IOPath =
     if isNodeEnv then
@@ -367,7 +407,6 @@ private[io] object FileSystemJS extends FileSystemBase:
       BrowserFileSystem.createTempDirectory(prefix, directory)
     else
       requireNode("createTempDirectory")
-      IOPath.parse("")
 
   // ============================================================
   // Async operations
@@ -392,12 +431,18 @@ private[io] object FileSystemJS extends FileSystemBase:
   override def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit] =
     if isNodeEnv then
       ensureParentDirectoryAsync(path).flatMap { _ =>
-        val flag = mode match
-          case WriteMode.CreateNew => "wx"
-          case WriteMode.Create    => "w"
-          case WriteMode.Append    => "a"
+        val flag =
+          mode match
+            case WriteMode.CreateNew =>
+              "wx"
+            case WriteMode.Create =>
+              "w"
+            case WriteMode.Append =>
+              "a"
         val options = js.Dynamic.literal(flag = flag, encoding = "utf8")
-        promiseToFuture(NodeFSModule.promises.writeFile(path.path, content, options.asInstanceOf[js.Object]))
+        promiseToFuture(
+          NodeFSModule.promises.writeFile(path.path, content, options.asInstanceOf[js.Object])
+        )
       }
     else if isBrowserEnv then
       BrowserFileSystem.writeStringAsync(path, content, mode)
@@ -407,13 +452,19 @@ private[io] object FileSystemJS extends FileSystemBase:
   override def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] =
     if isNodeEnv then
       ensureParentDirectoryAsync(path).flatMap { _ =>
-        val flag = mode match
-          case WriteMode.CreateNew => "wx"
-          case WriteMode.Create    => "w"
-          case WriteMode.Append    => "a"
+        val flag =
+          mode match
+            case WriteMode.CreateNew =>
+              "wx"
+            case WriteMode.Create =>
+              "w"
+            case WriteMode.Append =>
+              "a"
         val buffer  = byteArrayToUint8Array(content)
         val options = js.Dynamic.literal(flag = flag)
-        promiseToFuture(NodeFSModule.promises.writeFile(path.path, buffer, options.asInstanceOf[js.Object]))
+        promiseToFuture(
+          NodeFSModule.promises.writeFile(path.path, buffer, options.asInstanceOf[js.Object])
+        )
       }
     else if isBrowserEnv then
       BrowserFileSystem.writeBytesAsync(path, content, mode)
@@ -424,34 +475,41 @@ private[io] object FileSystemJS extends FileSystemBase:
     path.parent match
       case Some(parent) =>
         existsAsync(parent).flatMap { exists =>
-          if exists then Future.successful(())
+          if exists then
+            Future.successful(())
           else
             val options = js.Dynamic.literal(recursive = true)
-            promiseToFuture(NodeFSModule.promises.mkdir(parent.path, options.asInstanceOf[js.Object]))
+            promiseToFuture(
+              NodeFSModule.promises.mkdir(parent.path, options.asInstanceOf[js.Object])
+            )
         }
-      case None => Future.successful(())
+      case None =>
+        Future.successful(())
 
   override def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] =
     if isNodeEnv then
       val dirOptions = js.Dynamic.literal(withFileTypes = true)
-      promiseToFuture(NodeFSModule.promises.readdir(path.path, dirOptions.asInstanceOf[js.Object])).map { entries =>
-        var result = entries.toSeq.map { entry =>
-          val dirent = entry.asInstanceOf[NodeDirent]
-          path.resolve(dirent.name)
+      promiseToFuture(NodeFSModule.promises.readdir(path.path, dirOptions.asInstanceOf[js.Object]))
+        .map { entries =>
+          var result = entries
+            .toSeq
+            .map { entry =>
+              val dirent = entry.asInstanceOf[NodeDirent]
+              path.resolve(dirent.name)
+            }
+
+          if !options.includeHidden then
+            result = result.filterNot(_.fileName.startsWith("."))
+
+          if options.extensions.nonEmpty then
+            val exts = options.extensions.map(_.toLowerCase).toSet
+            result = result.filter { p =>
+              val ext = p.extension.toLowerCase
+              ext.nonEmpty && exts.contains(ext)
+            }
+
+          result
         }
-
-        if !options.includeHidden then
-          result = result.filterNot(_.fileName.startsWith("."))
-
-        if options.extensions.nonEmpty then
-          val exts = options.extensions.map(_.toLowerCase).toSet
-          result = result.filter { p =>
-            val ext = p.extension.toLowerCase
-            ext.nonEmpty && exts.contains(ext)
-          }
-
-        result
-      }
     else if isBrowserEnv then
       BrowserFileSystem.listAsync(path, options)
     else
@@ -459,26 +517,34 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def infoAsync(path: IOPath): Future[FileInfo] =
     if isNodeEnv then
-      promiseToFuture(NodeFSModule.promises.stat(path.path)).map { stats =>
-        val fileType =
-          if stats.isFile() then FileType.File
-          else if stats.isDirectory() then FileType.Directory
-          else if stats.isSymbolicLink() then FileType.SymbolicLink
-          else FileType.Other
+      promiseToFuture(NodeFSModule.promises.stat(path.path))
+        .map { stats =>
+          val fileType =
+            if stats.isFile() then
+              FileType.File
+            else if stats.isDirectory() then
+              FileType.Directory
+            else if stats.isSymbolicLink() then
+              FileType.SymbolicLink
+            else
+              FileType.Other
 
-        FileInfo(
-          path = path,
-          fileType = fileType,
-          size = stats.size.toLong,
-          lastModified = Some(Instant.ofEpochMilli(stats.mtimeMs.toLong)),
-          lastAccessed = Some(Instant.ofEpochMilli(stats.atimeMs.toLong)),
-          createdAt = Some(Instant.ofEpochMilli(stats.birthtimeMs.toLong)),
-          isReadable = true,
-          isWritable = true,
-          isExecutable = (stats.mode & 0x49) != 0,
-          isHidden = path.fileName.startsWith(".")
-        )
-      }.recover { case _: Throwable => FileInfo.notFound(path) }
+          FileInfo(
+            path = path,
+            fileType = fileType,
+            size = stats.size.toLong,
+            lastModified = Some(Instant.ofEpochMilli(stats.mtimeMs.toLong)),
+            lastAccessed = Some(Instant.ofEpochMilli(stats.atimeMs.toLong)),
+            createdAt = Some(Instant.ofEpochMilli(stats.birthtimeMs.toLong)),
+            isReadable = true,
+            isWritable = true,
+            isExecutable = (stats.mode & 0x49) != 0,
+            isHidden = path.fileName.startsWith(".")
+          )
+        }
+        .recover { case _: Throwable =>
+          FileInfo.notFound(path)
+        }
     else if isBrowserEnv then
       BrowserFileSystem.infoAsync(path)
     else
@@ -488,7 +554,9 @@ private[io] object FileSystemJS extends FileSystemBase:
     if isNodeEnv then
       promiseToFuture(NodeFSModule.promises.access(path.path))
         .map(_ => true)
-        .recover { case _: Throwable => false }
+        .recover { case _: Throwable =>
+          false
+        }
     else if isBrowserEnv then
       BrowserFileSystem.existsAsync(path)
     else
@@ -501,7 +569,10 @@ private[io] object FileSystemJS extends FileSystemBase:
   private def promiseToFuture[T](promise: js.Promise[T]): Future[T] =
     val p = Promise[T]()
     promise.`then`[Unit](
-      { (value: T) => p.success(value); () },
+      { (value: T) =>
+        p.success(value);
+        ()
+      },
       { (error: Any) =>
         p.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
         ()

@@ -102,15 +102,14 @@ object FileInfo:
   /**
     * Creates a FileInfo for a non-existent file.
     */
-  def notFound(path: IOPath): FileInfo =
-    FileInfo(
-      path = path,
-      fileType = FileType.NotFound,
-      size = 0,
-      lastModified = None,
-      isReadable = false,
-      isWritable = false,
-      isExecutable = false
-    )
+  def notFound(path: IOPath): FileInfo = FileInfo(
+    path = path,
+    fileType = FileType.NotFound,
+    size = 0,
+    lastModified = None,
+    isReadable = false,
+    isWritable = false,
+    isExecutable = false
+  )
 
 end FileInfo

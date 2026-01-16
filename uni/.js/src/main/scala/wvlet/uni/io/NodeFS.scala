@@ -45,36 +45,36 @@ private[io] object NodeFSModule extends js.Object:
 
 @js.native
 private[io] trait NodeFSPromises extends js.Object:
-  def readFile(path: String, encoding: String): js.Promise[String]        = js.native
-  def readFile(path: String): js.Promise[js.typedarray.Uint8Array]        = js.native
-  def writeFile(path: String, data: String, options: js.Object): js.Promise[Unit]  = js.native
+  def readFile(path: String, encoding: String): js.Promise[String]                    = js.native
+  def readFile(path: String): js.Promise[js.typedarray.Uint8Array]                    = js.native
+  def writeFile(path: String, data: String, options: js.Object): js.Promise[Unit]     = js.native
   def writeFile(path: String, data: Uint8Array, options: js.Object): js.Promise[Unit] = js.native
-  def readdir(path: String, options: js.Object): js.Promise[js.Array[js.Dynamic]] = js.native
-  def mkdir(path: String, options: js.Object): js.Promise[Unit]           = js.native
-  def rm(path: String, options: js.Object): js.Promise[Unit]              = js.native
-  def stat(path: String): js.Promise[NodeStats]                            = js.native
-  def access(path: String): js.Promise[Unit]                               = js.native
-  def copyFile(src: String, dest: String): js.Promise[Unit]                = js.native
-  def rename(oldPath: String, newPath: String): js.Promise[Unit]           = js.native
-  def mkdtemp(prefix: String): js.Promise[String]                          = js.native
+  def readdir(path: String, options: js.Object): js.Promise[js.Array[js.Dynamic]]     = js.native
+  def mkdir(path: String, options: js.Object): js.Promise[Unit]                       = js.native
+  def rm(path: String, options: js.Object): js.Promise[Unit]                          = js.native
+  def stat(path: String): js.Promise[NodeStats]                                       = js.native
+  def access(path: String): js.Promise[Unit]                                          = js.native
+  def copyFile(src: String, dest: String): js.Promise[Unit]                           = js.native
+  def rename(oldPath: String, newPath: String): js.Promise[Unit]                      = js.native
+  def mkdtemp(prefix: String): js.Promise[String]                                     = js.native
 
 @js.native
 private[io] trait NodeStats extends js.Object:
-  def isFile(): Boolean             = js.native
-  def isDirectory(): Boolean        = js.native
-  def isSymbolicLink(): Boolean     = js.native
-  def size: Double                  = js.native
-  def mtimeMs: Double               = js.native
-  def atimeMs: Double               = js.native
-  def ctimeMs: Double               = js.native
-  def birthtimeMs: Double           = js.native
-  def mode: Int                     = js.native
+  def isFile(): Boolean         = js.native
+  def isDirectory(): Boolean    = js.native
+  def isSymbolicLink(): Boolean = js.native
+  def size: Double              = js.native
+  def mtimeMs: Double           = js.native
+  def atimeMs: Double           = js.native
+  def ctimeMs: Double           = js.native
+  def birthtimeMs: Double       = js.native
+  def mode: Int                 = js.native
 
 @js.native
 private[io] trait NodeDirent extends js.Object:
-  def name: String           = js.native
-  def isFile(): Boolean      = js.native
-  def isDirectory(): Boolean = js.native
+  def name: String              = js.native
+  def isFile(): Boolean         = js.native
+  def isDirectory(): Boolean    = js.native
   def isSymbolicLink(): Boolean = js.native
 
 /**
@@ -83,15 +83,15 @@ private[io] trait NodeDirent extends js.Object:
 @js.native
 @JSImport("path", JSImport.Namespace)
 private[io] object NodePathModule extends js.Object:
-  def sep: String                                   = js.native
-  def join(paths: String*): String                  = js.native
-  def resolve(paths: String*): String               = js.native
-  def dirname(path: String): String                 = js.native
-  def basename(path: String): String                = js.native
-  def extname(path: String): String                 = js.native
-  def isAbsolute(path: String): Boolean             = js.native
-  def relative(from: String, to: String): String    = js.native
-  def normalize(path: String): String               = js.native
+  def sep: String                                = js.native
+  def join(paths: String*): String               = js.native
+  def resolve(paths: String*): String            = js.native
+  def dirname(path: String): String              = js.native
+  def basename(path: String): String             = js.native
+  def extname(path: String): String              = js.native
+  def isAbsolute(path: String): Boolean          = js.native
+  def relative(from: String, to: String): String = js.native
+  def normalize(path: String): String            = js.native
 
 /**
   * Node.js os module facade.

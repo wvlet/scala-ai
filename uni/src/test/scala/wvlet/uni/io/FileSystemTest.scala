@@ -19,14 +19,8 @@ class FileSystemTest extends UniTest:
   // Initialize the file system
   FileSystemInit.init()
 
-  private var testDir: IOPath = _
-
-  override protected def beforeAll(): Unit =
-    testDir = FileSystem.createTempDirectory("fs-test")
-
-  override protected def afterAll(): Unit =
-    if testDir != null then
-      FileSystem.deleteRecursively(testDir)
+  // Create test directory lazily
+  private lazy val testDir: IOPath = FileSystem.createTempDirectory("fs-test")
 
   test("currentDirectory exists") {
     val cwd = FileSystem.currentDirectory
@@ -98,7 +92,8 @@ class FileSystemTest extends UniTest:
     val caught = intercept[Exception] {
       FileSystem.writeString(file, "new content", WriteMode.CreateNew)
     }
-    (caught.getMessage.contains("exists") || caught.isInstanceOf[java.nio.file.FileAlreadyExistsException]) shouldBe true
+    (caught.getMessage.contains("exists") ||
+      caught.isInstanceOf[java.nio.file.FileAlreadyExistsException]) shouldBe true
 
     // Original content should be unchanged
     FileSystem.readString(file) shouldBe "original"
@@ -125,7 +120,8 @@ class FileSystemTest extends UniTest:
     filesDefault.map(_.fileName).toSet shouldBe Set("file1.txt", "file2.txt", "subdir")
 
     val filesWithHidden = FileSystem.list(dir, ListOptions(includeHidden = true))
-    filesWithHidden.map(_.fileName).toSet shouldBe Set("file1.txt", "file2.txt", ".hidden", "subdir")
+    filesWithHidden.map(_.fileName).toSet shouldBe
+      Set("file1.txt", "file2.txt", ".hidden", "subdir")
 
     val txtFiles = FileSystem.list(dir, ListOptions().withExtensions("txt"))
     txtFiles.map(_.fileName).toSet shouldBe Set("file1.txt", "file2.txt")

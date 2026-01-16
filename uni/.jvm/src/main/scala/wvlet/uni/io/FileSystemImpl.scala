@@ -15,20 +15,20 @@ package wvlet.uni.io
 
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.{
-  Files,
-  LinkOption,
-  Path,
-  Paths,
-  StandardCopyOption,
-  StandardOpenOption,
-  FileVisitResult,
-  SimpleFileVisitor
-}
-import java.nio.file.attribute.{BasicFileAttributes, FileTime}
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.file.FileVisitResult
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.util.Comparator
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
 
@@ -46,26 +46,20 @@ private[io] object FileSystemJvm extends FileSystemBase:
 
   private def fromNioPath(path: Path): IOPath = IOPath.parse(path.toString)
 
-  override def currentDirectory: IOPath =
-    IOPath.parse(System.getProperty("user.dir", "."))
+  override def currentDirectory: IOPath = IOPath.parse(System.getProperty("user.dir", "."))
 
-  override def homeDirectory: IOPath =
-    IOPath.parse(System.getProperty("user.home", "."))
+  override def homeDirectory: IOPath = IOPath.parse(System.getProperty("user.home", "."))
 
-  override def tempDirectory: IOPath =
-    IOPath.parse(System.getProperty("java.io.tmpdir", "/tmp"))
+  override def tempDirectory: IOPath = IOPath.parse(System.getProperty("java.io.tmpdir", "/tmp"))
 
   override def isBrowser: Boolean = false
   override def isNode: Boolean    = false
 
-  override def exists(path: IOPath): Boolean =
-    Files.exists(toNioPath(path))
+  override def exists(path: IOPath): Boolean = Files.exists(toNioPath(path))
 
-  override def isFile(path: IOPath): Boolean =
-    Files.isRegularFile(toNioPath(path))
+  override def isFile(path: IOPath): Boolean = Files.isRegularFile(toNioPath(path))
 
-  override def isDirectory(path: IOPath): Boolean =
-    Files.isDirectory(toNioPath(path))
+  override def isDirectory(path: IOPath): Boolean = Files.isDirectory(toNioPath(path))
 
   override def info(path: IOPath): FileInfo =
     val nioPath = toNioPath(path)
@@ -96,11 +90,12 @@ private[io] object FileSystemJvm extends FileSystemBase:
         isHidden = Files.isHidden(nioPath)
       )
 
-  override def readString(path: IOPath): String =
-    Files.readString(toNioPath(path), StandardCharsets.UTF_8)
+  override def readString(path: IOPath): String = Files.readString(
+    toNioPath(path),
+    StandardCharsets.UTF_8
+  )
 
-  override def readBytes(path: IOPath): Array[Byte] =
-    Files.readAllBytes(toNioPath(path))
+  override def readBytes(path: IOPath): Array[Byte] = Files.readAllBytes(toNioPath(path))
 
   override def readLines(path: IOPath): Seq[String] =
     Files.readAllLines(toNioPath(path), StandardCharsets.UTF_8).asScala.toSeq
@@ -112,10 +107,18 @@ private[io] object FileSystemJvm extends FileSystemBase:
     if parent != null && !Files.exists(parent) then
       Files.createDirectories(parent)
 
-    val options = mode match
-      case WriteMode.CreateNew => Array(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
-      case WriteMode.Create    => Array(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)
-      case WriteMode.Append    => Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
+    val options =
+      mode match
+        case WriteMode.CreateNew =>
+          Array(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+        case WriteMode.Create =>
+          Array(
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.WRITE
+          )
+        case WriteMode.Append =>
+          Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
     Files.writeString(nioPath, content, StandardCharsets.UTF_8, options*)
 
@@ -126,10 +129,18 @@ private[io] object FileSystemJvm extends FileSystemBase:
     if parent != null && !Files.exists(parent) then
       Files.createDirectories(parent)
 
-    val options = mode match
-      case WriteMode.CreateNew => Array(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
-      case WriteMode.Create    => Array(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)
-      case WriteMode.Append    => Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
+    val options =
+      mode match
+        case WriteMode.CreateNew =>
+          Array(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+        case WriteMode.Create =>
+          Array(
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.WRITE
+          )
+        case WriteMode.Append =>
+          Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
     Files.write(nioPath, content, options*)
 
@@ -146,15 +157,21 @@ private[io] object FileSystemJvm extends FileSystemBase:
 
       val stream = Files.walk(nioPath, maxDepth)
       try
-        var result = stream.iterator().asScala.toSeq
+        var result = stream
+          .iterator()
+          .asScala
+          .toSeq
           .filter(_ != nioPath) // Exclude the directory itself
           .map(fromNioPath)
 
         // Filter hidden files
         if !options.includeHidden then
           result = result.filterNot { p =>
-            try Files.isHidden(toNioPath(p))
-            catch case _: Exception => false
+            try
+              Files.isHidden(toNioPath(p))
+            catch
+              case _: Exception =>
+                false
           }
 
         // Filter by extension
@@ -166,15 +183,24 @@ private[io] object FileSystemJvm extends FileSystemBase:
           }
 
         // Filter by glob pattern
-        options.glob.foreach { pattern =>
-          val regex = globToRegex(pattern)
-          result = result.filter { p =>
-            regex.matches(p.path) || regex.matches(p.fileName)
+        options
+          .glob
+          .foreach { pattern =>
+            val regex = globToRegex(pattern)
+            result = result.filter { p =>
+              regex.matches(p.path) || regex.matches(p.fileName)
+            }
           }
-        }
 
         result
-      finally stream.close()
+      finally
+        stream.close()
+
+      end try
+
+    end if
+
+  end list
 
   private def globToRegex(glob: String): Regex =
     val regexStr = glob
@@ -185,11 +211,9 @@ private[io] object FileSystemJvm extends FileSystemBase:
       .replace("?", ".")
     ("^" + regexStr + "$").r
 
-  override def createDirectory(path: IOPath): Unit =
-    Files.createDirectories(toNioPath(path))
+  override def createDirectory(path: IOPath): Unit = Files.createDirectories(toNioPath(path))
 
-  override def delete(path: IOPath): Boolean =
-    Files.deleteIfExists(toNioPath(path))
+  override def delete(path: IOPath): Boolean = Files.deleteIfExists(toNioPath(path))
 
   override def deleteRecursively(path: IOPath): Boolean =
     val nioPath = toNioPath(path)
@@ -197,13 +221,15 @@ private[io] object FileSystemJvm extends FileSystemBase:
       false
     else
       if Files.isDirectory(nioPath) then
-        Files.walkFileTree(nioPath, new SimpleFileVisitor[Path]:
-          override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult =
-            Files.delete(file)
-            FileVisitResult.CONTINUE
-          override def postVisitDirectory(dir: Path, exc: java.io.IOException): FileVisitResult =
-            Files.delete(dir)
-            FileVisitResult.CONTINUE
+        Files.walkFileTree(
+          nioPath,
+          new SimpleFileVisitor[Path]:
+            override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult =
+              Files.delete(file)
+              FileVisitResult.CONTINUE
+            override def postVisitDirectory(dir: Path, exc: java.io.IOException): FileVisitResult =
+              Files.delete(dir)
+              FileVisitResult.CONTINUE
         )
       else
         Files.delete(nioPath)
@@ -221,16 +247,18 @@ private[io] object FileSystemJvm extends FileSystemBase:
 
     if Files.isDirectory(sourcePath) && options.recursive then
       // Recursive directory copy
-      Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path]:
-        override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult =
-          val targetDir = targetPath.resolve(sourcePath.relativize(dir))
-          if !Files.exists(targetDir) then
-            Files.createDirectories(targetDir)
-          FileVisitResult.CONTINUE
-        override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult =
-          val targetFile = targetPath.resolve(sourcePath.relativize(file))
-          Files.copy(file, targetFile, copyOptions.toSeq*)
-          FileVisitResult.CONTINUE
+      Files.walkFileTree(
+        sourcePath,
+        new SimpleFileVisitor[Path]:
+          override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult =
+            val targetDir = targetPath.resolve(sourcePath.relativize(dir))
+            if !Files.exists(targetDir) then
+              Files.createDirectories(targetDir)
+            FileVisitResult.CONTINUE
+          override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult =
+            val targetFile = targetPath.resolve(sourcePath.relativize(file))
+            Files.copy(file, targetFile, copyOptions.toSeq*)
+            FileVisitResult.CONTINUE
       )
     else
       // Create parent directories if needed
@@ -238,6 +266,8 @@ private[io] object FileSystemJvm extends FileSystemBase:
       if parent != null && !Files.exists(parent) then
         Files.createDirectories(parent)
       Files.copy(sourcePath, targetPath, copyOptions.toSeq*)
+
+  end copy
 
   override def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit =
     val options =
@@ -263,11 +293,9 @@ private[io] object FileSystemJvm extends FileSystemBase:
     fromNioPath(Files.createTempDirectory(dir, prefix))
 
   // Async operations (wrap sync operations in Future for JVM)
-  override def readStringAsync(path: IOPath): Future[String] =
-    Future(readString(path))
+  override def readStringAsync(path: IOPath): Future[String] = Future(readString(path))
 
-  override def readBytesAsync(path: IOPath): Future[Array[Byte]] =
-    Future(readBytes(path))
+  override def readBytesAsync(path: IOPath): Future[Array[Byte]] = Future(readBytes(path))
 
   override def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit] =
     Future(writeString(path, content, mode))
@@ -275,14 +303,13 @@ private[io] object FileSystemJvm extends FileSystemBase:
   override def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] =
     Future(writeBytes(path, content, mode))
 
-  override def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] =
-    Future(list(path, options))
+  override def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] = Future(
+    list(path, options)
+  )
 
-  override def infoAsync(path: IOPath): Future[FileInfo] =
-    Future(info(path))
+  override def infoAsync(path: IOPath): Future[FileInfo] = Future(info(path))
 
-  override def existsAsync(path: IOPath): Future[Boolean] =
-    Future(exists(path))
+  override def existsAsync(path: IOPath): Future[Boolean] = Future(exists(path))
 
 end FileSystemJvm
 

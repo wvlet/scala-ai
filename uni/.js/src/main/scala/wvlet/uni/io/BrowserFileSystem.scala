@@ -14,10 +14,13 @@
 package wvlet.uni.io
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.global as g
-import scala.scalajs.js.typedarray.{ArrayBuffer, Uint8Array}
+import scala.scalajs.js.typedarray.ArrayBuffer
+import scala.scalajs.js.typedarray.Uint8Array
 import java.time.Instant
 
 /**
@@ -49,25 +52,36 @@ private[io] object BrowserFileSystem:
 
   // Initialize root directory
   storage("/") = MemoryFile(Array.emptyByteArray, isDirectory = true, Instant.now(), Instant.now())
-  storage("/home") = MemoryFile(Array.emptyByteArray, isDirectory = true, Instant.now(), Instant.now())
-  storage("/tmp") = MemoryFile(Array.emptyByteArray, isDirectory = true, Instant.now(), Instant.now())
+  storage("/home") = MemoryFile(
+    Array.emptyByteArray,
+    isDirectory = true,
+    Instant.now(),
+    Instant.now()
+  )
+
+  storage("/tmp") = MemoryFile(
+    Array.emptyByteArray,
+    isDirectory = true,
+    Instant.now(),
+    Instant.now()
+  )
 
   private def normalizePath(path: IOPath): String =
     val p = path.posixPath
-    if p.isEmpty then "/" else p
+    if p.isEmpty then
+      "/"
+    else
+      p
 
   // ============================================================
   // Sync operations
   // ============================================================
 
-  def exists(path: IOPath): Boolean =
-    storage.contains(normalizePath(path))
+  def exists(path: IOPath): Boolean = storage.contains(normalizePath(path))
 
-  def isFile(path: IOPath): Boolean =
-    storage.get(normalizePath(path)).exists(!_.isDirectory)
+  def isFile(path: IOPath): Boolean = storage.get(normalizePath(path)).exists(!_.isDirectory)
 
-  def isDirectory(path: IOPath): Boolean =
-    storage.get(normalizePath(path)).exists(_.isDirectory)
+  def isDirectory(path: IOPath): Boolean = storage.get(normalizePath(path)).exists(_.isDirectory)
 
   def info(path: IOPath): FileInfo =
     val key = normalizePath(path)
@@ -75,7 +89,12 @@ private[io] object BrowserFileSystem:
       case Some(file) =>
         FileInfo(
           path = path,
-          fileType = if file.isDirectory then FileType.Directory else FileType.File,
+          fileType =
+            if file.isDirectory then
+              FileType.Directory
+            else
+              FileType.File
+          ,
           size = file.content.length.toLong,
           lastModified = Some(file.modifiedAt),
           createdAt = Some(file.createdAt),
@@ -107,18 +126,23 @@ private[io] object BrowserFileSystem:
       case None =>
         throw java.io.FileNotFoundException(s"File not found: ${path}")
 
-  def writeString(path: IOPath, content: String, mode: WriteMode): Unit =
-    writeBytes(path, content.getBytes("UTF-8"), mode)
+  def writeString(path: IOPath, content: String, mode: WriteMode): Unit = writeBytes(
+    path,
+    content.getBytes("UTF-8"),
+    mode
+  )
 
   def writeBytes(path: IOPath, content: Array[Byte], mode: WriteMode): Unit =
     val key = normalizePath(path)
     val now = Instant.now()
 
     // Create parent directories
-    path.parent.foreach { parent =>
-      if !exists(parent) then
-        createDirectory(parent)
-    }
+    path
+      .parent
+      .foreach { parent =>
+        if !exists(parent) then
+          createDirectory(parent)
+      }
 
     mode match
       case WriteMode.CreateNew =>
@@ -145,20 +169,27 @@ private[io] object BrowserFileSystem:
           case None =>
             storage(key) = MemoryFile(content.clone(), isDirectory = false, now, now)
 
+  end writeBytes
+
   def list(path: IOPath, options: ListOptions): Seq[IOPath] =
     val key = normalizePath(path)
     if !isDirectory(path) then
       Seq.empty
     else
-      val prefix = if key == "/" then "/" else key + "/"
-      var result = storage.keys
+      val prefix =
+        if key == "/" then
+          "/"
+        else
+          key + "/"
+      var result = storage
+        .keys
         .filter { k =>
           k.startsWith(prefix) && k != key
         }
         .map { k =>
           // Get immediate children only (unless recursive)
           val relativePath = k.stripPrefix(prefix)
-          val childName =
+          val childName    =
             if options.recursive then
               relativePath
             else
@@ -175,12 +206,14 @@ private[io] object BrowserFileSystem:
 
       // Filter by depth for recursive listing
       if options.recursive then
-        options.maxDepth.foreach { maxDepth =>
-          result = result.filter { p =>
-            val depth = p.segments.length - path.segments.length
-            depth <= maxDepth
+        options
+          .maxDepth
+          .foreach { maxDepth =>
+            result = result.filter { p =>
+              val depth = p.segments.length - path.segments.length
+              depth <= maxDepth
+            }
           }
-        }
 
       // Filter by extension
       if options.extensions.nonEmpty then
@@ -192,15 +225,21 @@ private[io] object BrowserFileSystem:
 
       result.sortBy(_.path)
 
+    end if
+
+  end list
+
   def createDirectory(path: IOPath): Unit =
     val key = normalizePath(path)
     val now = Instant.now()
 
     // Create parent directories first
-    path.parent.foreach { parent =>
-      if !exists(parent) then
-        createDirectory(parent)
-    }
+    path
+      .parent
+      .foreach { parent =>
+        if !exists(parent) then
+          createDirectory(parent)
+      }
 
     if !storage.contains(key) then
       storage(key) = MemoryFile(Array.emptyByteArray, isDirectory = true, now, now)
@@ -212,7 +251,11 @@ private[io] object BrowserFileSystem:
     storage.get(key) match
       case Some(file) if file.isDirectory =>
         // Check if directory is empty
-        val prefix = if key == "/" then "/" else key + "/"
+        val prefix =
+          if key == "/" then
+            "/"
+          else
+            key + "/"
         val hasChildren = storage.keys.exists(k => k.startsWith(prefix) && k != key)
         if hasChildren then
           throw java.io.IOException(s"Directory not empty: ${path}")
@@ -227,7 +270,11 @@ private[io] object BrowserFileSystem:
     if !exists(path) then
       false
     else
-      val prefix = if key == "/" then "/" else key + "/"
+      val prefix =
+        if key == "/" then
+          "/"
+        else
+          key + "/"
       // Delete all children first
       val children = storage.keys.filter(k => k.startsWith(prefix)).toSeq
       children.foreach(storage.remove)
@@ -244,27 +291,37 @@ private[io] object BrowserFileSystem:
         throw java.io.FileNotFoundException(s"Source not found: ${source}")
       case Some(sourceFile) if sourceFile.isDirectory && options.recursive =>
         // Copy directory recursively
-        val sourcePrefix = if sourceKey == "/" then "/" else sourceKey + "/"
-        val targetPrefix = if targetKey == "/" then "/" else targetKey + "/"
+        val sourcePrefix =
+          if sourceKey == "/" then
+            "/"
+          else
+            sourceKey + "/"
+        val targetPrefix =
+          if targetKey == "/" then
+            "/"
+          else
+            targetKey + "/"
 
         // Create target directory
         createDirectory(target)
 
         // Copy all children
-        storage.toSeq.foreach { (key, file) =>
-          if key.startsWith(sourcePrefix) then
-            val relativePath = key.stripPrefix(sourcePrefix)
-            val newKey       = targetPrefix + relativePath
-            val newFile =
-              if options.preserveAttributes then
-                file.copy(modifiedAt = now)
-              else
-                MemoryFile(file.content.clone(), file.isDirectory, now, now)
+        storage
+          .toSeq
+          .foreach { (key, file) =>
+            if key.startsWith(sourcePrefix) then
+              val relativePath = key.stripPrefix(sourcePrefix)
+              val newKey       = targetPrefix + relativePath
+              val newFile      =
+                if options.preserveAttributes then
+                  file.copy(modifiedAt = now)
+                else
+                  MemoryFile(file.content.clone(), file.isDirectory, now, now)
 
-            if !options.overwrite && storage.contains(newKey) then
-              throw java.nio.file.FileAlreadyExistsException(newKey)
-            storage(newKey) = newFile
-        }
+              if !options.overwrite && storage.contains(newKey) then
+                throw java.nio.file.FileAlreadyExistsException(newKey)
+              storage(newKey) = newFile
+          }
       case Some(sourceFile) =>
         // Copy single file
         target.parent.foreach(createDirectory)
@@ -278,6 +335,10 @@ private[io] object BrowserFileSystem:
           else
             MemoryFile(sourceFile.content.clone(), sourceFile.isDirectory, now, now)
         storage(targetKey) = newFile
+
+    end match
+
+  end copy
 
   def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit =
     val sourceKey = normalizePath(source)
@@ -293,25 +354,43 @@ private[io] object BrowserFileSystem:
 
     if isDirectory(source) then
       // Move directory and all contents
-      val sourcePrefix = if sourceKey == "/" then "/" else sourceKey + "/"
-      val targetPrefix = if targetKey == "/" then "/" else targetKey + "/"
+      val sourcePrefix =
+        if sourceKey == "/" then
+          "/"
+        else
+          sourceKey + "/"
+      val targetPrefix =
+        if targetKey == "/" then
+          "/"
+        else
+          targetKey + "/"
 
-      val toMove = storage.toSeq.filter { (key, _) =>
-        key == sourceKey || key.startsWith(sourcePrefix)
-      }
+      val toMove = storage
+        .toSeq
+        .filter { (key, _) =>
+          key == sourceKey || key.startsWith(sourcePrefix)
+        }
 
       toMove.foreach { (key, file) =>
         storage.remove(key)
         val newKey =
-          if key == sourceKey then targetKey
-          else targetPrefix + key.stripPrefix(sourcePrefix)
+          if key == sourceKey then
+            targetKey
+          else
+            targetPrefix + key.stripPrefix(sourcePrefix)
         storage(newKey) = file
       }
     else
       // Move single file
-      storage.remove(sourceKey).foreach { file =>
-        storage(targetKey) = file
-      }
+      storage
+        .remove(sourceKey)
+        .foreach { file =>
+          storage(targetKey) = file
+        }
+
+    end if
+
+  end move
 
   private var tempCounter = 0L
 
@@ -337,26 +416,25 @@ private[io] object BrowserFileSystem:
   // Async operations
   // ============================================================
 
-  def readStringAsync(path: IOPath): Future[String] =
-    Future(readString(path))
+  def readStringAsync(path: IOPath): Future[String] = Future(readString(path))
 
-  def readBytesAsync(path: IOPath): Future[Array[Byte]] =
-    Future(readBytes(path))
+  def readBytesAsync(path: IOPath): Future[Array[Byte]] = Future(readBytes(path))
 
-  def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit] =
-    Future(writeString(path, content, mode))
+  def writeStringAsync(path: IOPath, content: String, mode: WriteMode): Future[Unit] = Future(
+    writeString(path, content, mode)
+  )
 
-  def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] =
-    Future(writeBytes(path, content, mode))
+  def writeBytesAsync(path: IOPath, content: Array[Byte], mode: WriteMode): Future[Unit] = Future(
+    writeBytes(path, content, mode)
+  )
 
-  def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] =
-    Future(list(path, options))
+  def listAsync(path: IOPath, options: ListOptions): Future[Seq[IOPath]] = Future(
+    list(path, options)
+  )
 
-  def infoAsync(path: IOPath): Future[FileInfo] =
-    Future(info(path))
+  def infoAsync(path: IOPath): Future[FileInfo] = Future(info(path))
 
-  def existsAsync(path: IOPath): Future[Boolean] =
-    Future(exists(path))
+  def existsAsync(path: IOPath): Future[Boolean] = Future(exists(path))
 
   // ============================================================
   // Browser File System Access API integration
@@ -383,33 +461,40 @@ private[io] object BrowserFileSystem:
         { (handles: js.Array[js.Dynamic]) =>
           if handles.length > 0 then
             val handle = handles(0)
-            handle.getFile().asInstanceOf[js.Promise[js.Dynamic]].`then`[Unit](
-              { (file: js.Dynamic) =>
-                file.arrayBuffer().asInstanceOf[js.Promise[ArrayBuffer]].`then`[Unit](
-                  { (buffer: ArrayBuffer) =>
-                    val bytes = new Uint8Array(buffer)
-                    val arr   = new Array[Byte](bytes.length)
-                    var i     = 0
-                    while i < bytes.length do
-                      arr(i) = bytes(i).toByte
-                      i += 1
-                    promise.success(Some((file.name.asInstanceOf[String], arr)))
-                    ()
-                  },
-                  { (error: Any) =>
-                    promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
-                    ()
-                  }
-                )
-                ()
-              },
-              { (error: Any) =>
-                promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
-                ()
-              }
-            )
+            handle
+              .getFile()
+              .asInstanceOf[js.Promise[js.Dynamic]]
+              .`then`[Unit](
+                { (file: js.Dynamic) =>
+                  file
+                    .arrayBuffer()
+                    .asInstanceOf[js.Promise[ArrayBuffer]]
+                    .`then`[Unit](
+                      { (buffer: ArrayBuffer) =>
+                        val bytes = new Uint8Array(buffer)
+                        val arr   = new Array[Byte](bytes.length)
+                        var i     = 0
+                        while i < bytes.length do
+                          arr(i) = bytes(i).toByte
+                          i += 1
+                        promise.success(Some((file.name.asInstanceOf[String], arr)))
+                        ()
+                      },
+                      { (error: Any) =>
+                        promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
+                        ()
+                      }
+                    )
+                  ()
+                },
+                { (error: Any) =>
+                  promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
+                  ()
+                }
+              )
           else
             promise.success(None)
+          end if
           ()
         },
         { (error: Any) =>
@@ -433,18 +518,34 @@ private[io] object BrowserFileSystem:
 
       picker.`then`[Unit](
         { (handle: js.Dynamic) =>
-          handle.createWritable().asInstanceOf[js.Promise[js.Dynamic]].`then`[Unit](
-            { (writable: js.Dynamic) =>
-              val buffer = new Uint8Array(content.length)
-              var i      = 0
-              while i < content.length do
-                buffer(i) = (content(i) & 0xff).toShort
-                i += 1
-              writable.write(buffer).asInstanceOf[js.Promise[Unit]].`then`[Unit](
-                { (_: Unit) =>
-                  writable.close().asInstanceOf[js.Promise[Unit]].`then`[Unit](
+          handle
+            .createWritable()
+            .asInstanceOf[js.Promise[js.Dynamic]]
+            .`then`[Unit](
+              { (writable: js.Dynamic) =>
+                val buffer = new Uint8Array(content.length)
+                var i      = 0
+                while i < content.length do
+                  buffer(i) = (content(i) & 0xff).toShort
+                  i += 1
+                writable
+                  .write(buffer)
+                  .asInstanceOf[js.Promise[Unit]]
+                  .`then`[Unit](
                     { (_: Unit) =>
-                      promise.success(true)
+                      writable
+                        .close()
+                        .asInstanceOf[js.Promise[Unit]]
+                        .`then`[Unit](
+                          { (_: Unit) =>
+                            promise.success(true)
+                            ()
+                          },
+                          { (error: Any) =>
+                            promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
+                            ()
+                          }
+                        )
                       ()
                     },
                     { (error: Any) =>
@@ -452,20 +553,13 @@ private[io] object BrowserFileSystem:
                       ()
                     }
                   )
-                  ()
-                },
-                { (error: Any) =>
-                  promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
-                  ()
-                }
-              )
-              ()
-            },
-            { (error: Any) =>
-              promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
-              ()
-            }
-          )
+                ()
+              },
+              { (error: Any) =>
+                promise.failure(js.JavaScriptException(error.asInstanceOf[js.Any]))
+                ()
+              }
+            )
           ()
         },
         { (error: Any) =>
