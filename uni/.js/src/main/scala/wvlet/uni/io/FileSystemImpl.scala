@@ -240,7 +240,7 @@ private[io] object FileSystemJS extends FileSystemBase:
           val exts = options.extensions.map(_.toLowerCase).toSet
           result = result.filter { p =>
             val ext = p.extension.toLowerCase
-            isDirectory(p) || (ext.nonEmpty && exts.contains(ext))
+            ext.nonEmpty && exts.contains(ext)
           }
 
         // Filter by glob pattern

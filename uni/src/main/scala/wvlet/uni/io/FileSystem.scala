@@ -16,6 +16,16 @@ package wvlet.uni.io
 import scala.concurrent.Future
 
 /**
+  * Cross-platform exception for file not found errors.
+  */
+class NoSuchFileException(message: String) extends Exception(message)
+
+/**
+  * Cross-platform exception for I/O operation errors.
+  */
+class IOOperationException(message: String) extends Exception(message)
+
+/**
   * Write mode for file operations.
   */
 enum WriteMode:

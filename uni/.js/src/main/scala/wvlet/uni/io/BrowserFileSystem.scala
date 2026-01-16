@@ -112,9 +112,9 @@ private[io] object BrowserFileSystem:
       case Some(file) if !file.isDirectory =>
         new String(file.content, "UTF-8")
       case Some(_) =>
-        throw java.io.IOException(s"Cannot read directory: ${path}")
+        throw IOOperationException(s"Cannot read directory: ${path}")
       case None =>
-        throw java.io.FileNotFoundException(s"File not found: ${path}")
+        throw NoSuchFileException(s"File not found: ${path}")
 
   def readBytes(path: IOPath): Array[Byte] =
     val key = normalizePath(path)
@@ -122,9 +122,9 @@ private[io] object BrowserFileSystem:
       case Some(file) if !file.isDirectory =>
         file.content.clone()
       case Some(_) =>
-        throw java.io.IOException(s"Cannot read directory: ${path}")
+        throw IOOperationException(s"Cannot read directory: ${path}")
       case None =>
-        throw java.io.FileNotFoundException(s"File not found: ${path}")
+        throw NoSuchFileException(s"File not found: ${path}")
 
   def writeString(path: IOPath, content: String, mode: WriteMode): Unit = writeBytes(
     path,
@@ -155,7 +155,7 @@ private[io] object BrowserFileSystem:
           case Some(existing) if !existing.isDirectory =>
             storage(key) = MemoryFile(content.clone(), isDirectory = false, existing.createdAt, now)
           case Some(_) =>
-            throw java.io.IOException(s"Cannot write to directory: ${path}")
+            throw IOOperationException(s"Cannot write to directory: ${path}")
           case None =>
             storage(key) = MemoryFile(content.clone(), isDirectory = false, now, now)
 
@@ -165,7 +165,7 @@ private[io] object BrowserFileSystem:
             val newContent = existing.content ++ content
             storage(key) = MemoryFile(newContent, isDirectory = false, existing.createdAt, now)
           case Some(_) =>
-            throw java.io.IOException(s"Cannot write to directory: ${path}")
+            throw IOOperationException(s"Cannot write to directory: ${path}")
           case None =>
             storage(key) = MemoryFile(content.clone(), isDirectory = false, now, now)
 
@@ -220,7 +220,7 @@ private[io] object BrowserFileSystem:
         val exts = options.extensions.map(_.toLowerCase).toSet
         result = result.filter { p =>
           val ext = p.extension.toLowerCase
-          isDirectory(p) || (ext.nonEmpty && exts.contains(ext))
+          ext.nonEmpty && exts.contains(ext)
         }
 
       result.sortBy(_.path)
@@ -244,7 +244,7 @@ private[io] object BrowserFileSystem:
     if !storage.contains(key) then
       storage(key) = MemoryFile(Array.emptyByteArray, isDirectory = true, now, now)
     else if !isDirectory(path) then
-      throw java.io.IOException(s"Path exists and is not a directory: ${path}")
+      throw IOOperationException(s"Path exists and is not a directory: ${path}")
 
   def delete(path: IOPath): Boolean =
     val key = normalizePath(path)
@@ -258,7 +258,7 @@ private[io] object BrowserFileSystem:
             key + "/"
         val hasChildren = storage.keys.exists(k => k.startsWith(prefix) && k != key)
         if hasChildren then
-          throw java.io.IOException(s"Directory not empty: ${path}")
+          throw IOOperationException(s"Directory not empty: ${path}")
         storage.remove(key).isDefined
       case Some(_) =>
         storage.remove(key).isDefined
@@ -288,7 +288,7 @@ private[io] object BrowserFileSystem:
 
     storage.get(sourceKey) match
       case None =>
-        throw java.io.FileNotFoundException(s"Source not found: ${source}")
+        throw NoSuchFileException(s"Source not found: ${source}")
       case Some(sourceFile) if sourceFile.isDirectory && options.recursive =>
         // Copy directory recursively
         val sourcePrefix =
@@ -345,7 +345,7 @@ private[io] object BrowserFileSystem:
     val targetKey = normalizePath(target)
 
     if !exists(source) then
-      throw java.io.FileNotFoundException(s"Source not found: ${source}")
+      throw NoSuchFileException(s"Source not found: ${source}")
     if !overwrite && exists(target) then
       throw java.nio.file.FileAlreadyExistsException(target.path)
 

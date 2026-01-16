@@ -160,12 +160,12 @@ private[io] object FileSystemNative extends FileSystemBase:
 
       var result = listRecursive(dir, 1)
 
-      // Filter by extension
+      // Filter by extension (exclude directories when filtering by extension)
       if options.extensions.nonEmpty then
         val exts = options.extensions.map(_.toLowerCase).toSet
         result = result.filter { p =>
           val ext = p.extension.toLowerCase
-          toJavaFile(p).isDirectory || (ext.nonEmpty && exts.contains(ext))
+          ext.nonEmpty && exts.contains(ext)
         }
 
       // Filter by glob pattern
