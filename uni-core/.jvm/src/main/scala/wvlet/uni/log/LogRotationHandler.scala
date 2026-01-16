@@ -188,7 +188,7 @@ class LogRotationHandler(
 
   private def findNextIndex(dateStr: String): Int =
     val pattern =
-      s"${new File(fileNameStem).getName}-${dateStr}\\.(\\d+)${java
+      s"${java.util.regex.Pattern.quote(new File(fileNameStem).getName)}-${dateStr}\\.(\\d+)${java
           .util
           .regex
           .Pattern
