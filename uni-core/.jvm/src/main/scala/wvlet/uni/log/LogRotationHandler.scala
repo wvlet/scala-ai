@@ -24,7 +24,9 @@ import java.io.Flushable
 import java.io.OutputStreamWriter
 import java.io.Writer
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.logging as jl
 import java.util.logging.ErrorManager
@@ -95,12 +97,14 @@ class LogRotationHandler(
     if writer == null then
       logDir.mkdirs()
       val append = logFile.exists()
-      currentFileSize =
-        if append then
-          logFile.length()
-        else
-          0L
-      currentDate = LocalDate.now()
+      if append then
+        currentFileSize = logFile.length()
+        // Use file's last modified date to ensure proper rotation after restart
+        currentDate =
+          Instant.ofEpochMilli(logFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDate
+      else
+        currentFileSize = 0L
+        currentDate = LocalDate.now()
       writer =
         new OutputStreamWriter(
           new BufferedOutputStream(new FileOutputStream(logFile, append)),
@@ -148,7 +152,11 @@ class LogRotationHandler(
   private def rotate(): Unit =
     // Close current writer
     if writer != null then
-      Try(writer.close())
+      Try(writer.close()) match
+        case Failure(e) =>
+          reportError(null, toException(e), ErrorManager.CLOSE_FAILURE)
+        case Success(_) =>
+        // Closing succeeded
       writer = null
 
     if logFile.exists() && logFile.length() > 0 then
@@ -166,9 +174,17 @@ class LogRotationHandler(
       if logFile.renameTo(rotatedFile) then
         // Compress the rotated file
         compressFile(rotatedFile)
+      else
+        reportError(
+          s"Failed to rename ${logFile} to ${rotatedFile}",
+          null,
+          ErrorManager.GENERIC_FAILURE
+        )
 
       // Clean up old files
       cleanupOldFiles()
+
+  end rotate
 
   private def findNextIndex(dateStr: String): Int =
     val pattern =
