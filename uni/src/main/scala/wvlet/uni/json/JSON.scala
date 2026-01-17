@@ -203,7 +203,7 @@ object JSON extends LogSupport:
          * 0x7f         : ASCII DELETE
          * 0x80 -> 0x9f : C1 Control Codes
          *
-       * Per RFC4627, section 2.5, we're not technically required to
+         * Per RFC4627, section 2.5, we're not technically required to
          * encode the C1 codes, but we do to be safe.
          */
         case c if ((c >= '\u0000' && c <= '\u001f') || (c >= '\u007f' && c <= '\u009f')) =>

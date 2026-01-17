@@ -23,7 +23,7 @@ class BedrockIntegrationTest extends UniTest:
 
   test("bedrock agent") {
     val runner = createRunner
-    val resp = runner.chat(
+    val resp   = runner.chat(
       "Hello agent",
       new ChatObserver:
         private var hasReasoning                               = false

@@ -140,9 +140,10 @@ class LogRotationHandler(
   private def checkRotation(): Unit =
     val today         = LocalDate.now()
     val needsRotation =
-      writer != null &&
-        ((currentDate != null && !currentDate.equals(today)) ||
-          (maxSizeInBytes != Long.MaxValue && currentFileSize >= maxSizeInBytes))
+      writer != null && (
+        (currentDate != null && !currentDate.equals(today)) ||
+          (maxSizeInBytes != Long.MaxValue && currentFileSize >= maxSizeInBytes)
+      )
 
     if needsRotation then
       rotate()
