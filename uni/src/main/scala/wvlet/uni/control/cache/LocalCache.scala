@@ -382,7 +382,7 @@ end LocalCache
   * LoadingCache implementation that automatically loads values.
   *
   * Supports background refresh via `refreshAfterWrite` - when an entry becomes stale, the old value
-  * is returned immediately while a background thread refreshes the entry.
+  * is returned immediately while a background task refreshes the entry.
   */
 class LocalLoadingCache[K, V](
     config: CacheConfig,
@@ -393,23 +393,17 @@ class LocalLoadingCache[K, V](
     with LoadingCache[K, V]
     with LogSupport:
 
-  import java.util.concurrent.ConcurrentHashMap
-  import scala.jdk.CollectionConverters.*
-
   // Track keys with pending refresh to avoid duplicate refreshes
-  private val pendingRefresh: ConcurrentHashMap.KeySetView[K, java.lang.Boolean] = ConcurrentHashMap
-    .newKeySet[K]()
+  private val pendingRefresh: scala.collection.mutable.Set[K] = scala
+    .collection
+    .mutable
+    .Set
+    .empty[K]
 
-  // Daemon thread for background refresh
-  private lazy val refreshExecutor: java.util.concurrent.ExecutorService = java
-    .util
-    .concurrent
-    .Executors
-    .newSingleThreadExecutor { (r: Runnable) =>
-      val t = new Thread(r, "cache-refresh")
-      t.setDaemon(true)
-      t
-    }
+  private val pendingRefreshLock = new Object
+
+  // Platform-specific executor for background refresh
+  private lazy val refreshExecutor: RefreshExecutor = RefreshExecutor.create()
 
   override def get(key: K): Option[V] =
     val value = super.get(key, loader)
@@ -428,15 +422,24 @@ class LocalLoadingCache[K, V](
 
   private def triggerBackgroundRefresh(key: K): Unit =
     // Only trigger if not already refreshing
-    if pendingRefresh.add(key) then
-      try
-        refreshExecutor.execute { () =>
-          try doRefresh(key)
-          finally pendingRefresh.remove(key)
-        }
-      catch
-        case _: java.util.concurrent.RejectedExecutionException =>
+    val shouldRefresh = pendingRefreshLock.synchronized {
+      if pendingRefresh.contains(key) then
+        false
+      else
+        pendingRefresh.add(key)
+        true
+    }
+    if shouldRefresh then
+      val submitted = refreshExecutor.submit { () =>
+        try doRefresh(key)
+        finally pendingRefreshLock.synchronized {
+            pendingRefresh.remove(key)
+          }
+      }
+      if !submitted then
+        pendingRefreshLock.synchronized {
           pendingRefresh.remove(key)
+        }
 
   private def doRefresh(key: K): Unit =
     try
@@ -447,10 +450,6 @@ class LocalLoadingCache[K, V](
           put(key, value)
         }
     catch
-      case e: InterruptedException =>
-        // Preserve interrupt flag (matching Caffeine behavior)
-        Thread.currentThread().interrupt()
-        warn(s"Interrupted while refreshing cache entry for key '${key}'", e)
       case e: Throwable =>
         // Keep existing value on refresh failure, but log the error
         warn(s"Failed to refresh cache entry for key '${key}': ${e.getMessage}", e)
