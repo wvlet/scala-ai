@@ -104,7 +104,7 @@ object Cache:
     * {{{
     *   val cache = Cache.builder
     *     .withMaximumSize(1000)
-    *     .withExpireAfterWrite(10, TimeUnit.MINUTES)
+    *     .withExpirationAfterWrite(10, TimeUnit.MINUTES)
     *     .build[String, Int]()
     * }}}
     */

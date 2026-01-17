@@ -26,14 +26,14 @@ import scala.concurrent.duration.Duration
   *   // Simple cache
   *   val cache = Cache.builder
   *     .withMaximumSize(1000)
-  *     .withExpireAfterWrite(10, TimeUnit.MINUTES)
-  *     .withRecordStats
+  *     .withExpirationAfterWrite(10, TimeUnit.MINUTES)
+  *     .withStats
   *     .build[String, Int]()
   *
   *   // Loading cache with automatic value computation
   *   val loadingCache = Cache.builder
   *     .withMaximumSize(100)
-  *     .withExpireAfterAccess(5, TimeUnit.MINUTES)
+  *     .withExpirationAfterAccess(5, TimeUnit.MINUTES)
   *     .build((key: String) => computeValue(key))
   * }}}
   *
@@ -86,28 +86,28 @@ case class CacheConfig(
   /**
     * Specifies that entries should expire after a fixed duration since creation or last update.
     */
-  def withExpireAfterWrite(duration: Long, unit: TimeUnit): CacheConfig =
+  def withExpirationAfterWrite(duration: Long, unit: TimeUnit): CacheConfig =
     require(duration >= 0, "duration must not be negative")
     this.copy(expireAfterWriteNanos = Some(unit.toNanos(duration)))
 
   /**
     * Specifies that entries should expire after a fixed duration since creation or last update.
     */
-  def withExpireAfterWrite(duration: Duration): CacheConfig =
-    withExpireAfterWrite(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpirationAfterWrite(duration: Duration): CacheConfig =
+    withExpirationAfterWrite(duration.toNanos, TimeUnit.NANOSECONDS)
 
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
-  def withExpireAfterAccess(duration: Long, unit: TimeUnit): CacheConfig =
+  def withExpirationAfterAccess(duration: Long, unit: TimeUnit): CacheConfig =
     require(duration >= 0, "duration must not be negative")
     this.copy(expireAfterAccessNanos = Some(unit.toNanos(duration)))
 
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
-  def withExpireAfterAccess(duration: Duration): CacheConfig =
-    withExpireAfterAccess(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpirationAfterAccess(duration: Duration): CacheConfig =
+    withExpirationAfterAccess(duration.toNanos, TimeUnit.NANOSECONDS)
 
   /**
     * Sets the initial capacity of the cache.
@@ -119,13 +119,13 @@ case class CacheConfig(
   /**
     * Enables statistics recording.
     */
-  def withRecordStats: CacheConfig =
+  def withStats: CacheConfig =
     this.copy(recordStats = true)
 
   /**
     * Disables statistics recording.
     */
-  def noRecordStats: CacheConfig =
+  def noStats: CacheConfig =
     this.copy(recordStats = false)
 
   /**
