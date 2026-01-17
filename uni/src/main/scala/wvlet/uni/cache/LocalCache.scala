@@ -39,7 +39,11 @@ end CacheEntry
   *
   * Uses a hash map for O(1) lookups and a doubly-linked list for O(1) LRU operations.
   */
-class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
+class LocalCache[K, V](
+    val config: CacheConfig,
+    weigher: Option[(K, V) => Int],
+    removalListener: RemovalListener[K, V]
+) extends Cache[K, V]:
   // Main storage
   private val data: mutable.HashMap[K, CacheEntry[K, V]] =
     mutable.HashMap.empty[K, CacheEntry[K, V]]
@@ -51,13 +55,13 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
   private var currentWeight: Long    = 0
 
   // Statistics counters
-  private val _hitCount          = AtomicLong(0)
-  private val _missCount         = AtomicLong(0)
-  private val _loadSuccessCount  = AtomicLong(0)
-  private val _loadFailureCount  = AtomicLong(0)
+  private val _hitCount           = AtomicLong(0)
+  private val _missCount          = AtomicLong(0)
+  private val _loadSuccessCount   = AtomicLong(0)
+  private val _loadFailureCount   = AtomicLong(0)
   private val _totalLoadTimeNanos = AtomicLong(0)
-  private val _evictionCount     = AtomicLong(0)
-  private val _evictionWeight    = AtomicLong(0)
+  private val _evictionCount      = AtomicLong(0)
+  private val _evictionWeight     = AtomicLong(0)
 
   private def ticker: Ticker = config.ticker
 
@@ -97,7 +101,7 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
     recordMiss()
     val startNanos = ticker.read
     try
-      val value = loader(key)
+      val value         = loader(key)
       val loadTimeNanos = ticker.read - startNanos
       recordLoadSuccess(loadTimeNanos)
       putInternal(key, value)
@@ -210,7 +214,7 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
   // --- Private helper methods ---
 
   private def computeWeight(key: K, value: V): Int =
-    config.weigher match
+    weigher match
       case Some(w) => w(key, value)
       case None    => 1
 
@@ -229,13 +233,11 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
   private def evictIfNeeded(): Unit =
     // Evict based on max size
     config.maxSize.foreach { max =>
-      while currentSize > max && tail != null do
-        removeEntry(tail, RemovalCause.Size)
+      while currentSize > max && tail != null do removeEntry(tail, RemovalCause.Size)
     }
     // Evict based on max weight
     config.maxWeight.foreach { max =>
-      while currentWeight > max && tail != null do
-        removeEntry(tail, RemovalCause.Size)
+      while currentWeight > max && tail != null do removeEntry(tail, RemovalCause.Size)
     }
 
   private def removeEntry(entry: CacheEntry[K, V], cause: RemovalCause): Unit =
@@ -250,7 +252,7 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
 
   private def notifyRemoval(key: K, value: V, cause: RemovalCause): Unit =
     val notification = RemovalNotification(key, value, cause)
-    try config.removalListener.onRemoval(notification)
+    try removalListener.onRemoval(notification)
     catch case _: Throwable => () // Swallow exceptions from listeners
 
   // --- Doubly-linked list operations ---
@@ -296,8 +298,8 @@ class LocalCache[K, V](val config: CacheConfig[K, V]) extends Cache[K, V]:
       _totalLoadTimeNanos.addAndGet(loadTimeNanos)
 
   // Periodic cleanup (only if expiration is configured)
-  private var lastCleanupNanos: Long = 0
-  private val cleanupIntervalNanos: Long = 1000000000L // 1 second
+  private var lastCleanupNanos: Long         = 0
+  private val cleanupIntervalNanos: Long     = 1000000000L // 1 second
 
   private def cleanUpIfNeeded(): Unit =
     if config.hasExpiration then
@@ -311,8 +313,12 @@ end LocalCache
 /**
   * LoadingCache implementation that automatically loads values.
   */
-class LocalLoadingCache[K, V](config: CacheConfig[K, V], loader: K => V)
-    extends LocalCache[K, V](config)
+class LocalLoadingCache[K, V](
+    config: CacheConfig,
+    weigher: Option[(K, V) => Int],
+    removalListener: RemovalListener[K, V],
+    loader: K => V
+) extends LocalCache[K, V](config, weigher, removalListener)
     with LoadingCache[K, V]:
 
   override def get(key: K): Option[V] =
@@ -324,7 +330,6 @@ class LocalLoadingCache[K, V](config: CacheConfig[K, V], loader: K => V)
   }
 
   override def refresh(key: K): Unit = synchronized {
-    val startNanos = config.ticker.read
     try
       val value = loader(key)
       put(key, value)
@@ -337,8 +342,18 @@ class LocalLoadingCache[K, V](config: CacheConfig[K, V], loader: K => V)
 end LocalLoadingCache
 
 object LocalCache:
-  def apply[K, V](config: CacheConfig[K, V]): LocalCache[K, V] = new LocalCache(config)
+  def apply[K, V](
+      config: CacheConfig,
+      weigher: Option[(K, V) => Int],
+      removalListener: RemovalListener[K, V]
+  ): LocalCache[K, V] =
+    new LocalCache(config, weigher, removalListener)
 
 object LocalLoadingCache:
-  def apply[K, V](config: CacheConfig[K, V], loader: K => V): LocalLoadingCache[K, V] =
-    new LocalLoadingCache(config, loader)
+  def apply[K, V](
+      config: CacheConfig,
+      weigher: Option[(K, V) => Int],
+      removalListener: RemovalListener[K, V],
+      loader: K => V
+  ): LocalLoadingCache[K, V] =
+    new LocalLoadingCache(config, weigher, removalListener, loader)

@@ -23,7 +23,7 @@ import scala.collection.mutable.ArrayBuffer
 class CacheTest extends UniTest:
 
   test("basic get and put") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.get("a") shouldBe empty
     cache.put("a", 1)
@@ -34,7 +34,7 @@ class CacheTest extends UniTest:
   }
 
   test("putIfAbsent") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.putIfAbsent("a", 1) shouldBe empty
     cache.get("a") shouldBe Some(1)
@@ -44,7 +44,7 @@ class CacheTest extends UniTest:
   }
 
   test("putAll") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.putAll(Map("a" -> 1, "b" -> 2, "c" -> 3))
     cache.get("a") shouldBe Some(1)
@@ -54,7 +54,7 @@ class CacheTest extends UniTest:
 
   test("get with loader") {
     var loadCount = 0
-    val cache     = CacheBuilder[String, Int]().build()
+    val cache     = Cache.builder.build[String, Int]()
 
     val result = cache.get(
       "a",
@@ -77,7 +77,7 @@ class CacheTest extends UniTest:
   }
 
   test("invalidate") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -89,7 +89,7 @@ class CacheTest extends UniTest:
   }
 
   test("invalidateAll with keys") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.putAll(Map("a" -> 1, "b" -> 2, "c" -> 3))
     cache.invalidateAll(Seq("a", "c"))
@@ -100,7 +100,7 @@ class CacheTest extends UniTest:
   }
 
   test("invalidateAll") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.putAll(Map("a" -> 1, "b" -> 2, "c" -> 3))
     cache.estimatedSize shouldBe 3
@@ -111,7 +111,7 @@ class CacheTest extends UniTest:
   }
 
   test("asMap") {
-    val cache = CacheBuilder[String, Int]().build()
+    val cache = Cache.builder.build[String, Int]()
 
     cache.putAll(Map("a" -> 1, "b" -> 2))
     val map = cache.asMap
@@ -119,9 +119,9 @@ class CacheTest extends UniTest:
   }
 
   test("maximumSize with LRU eviction") {
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(3)
-      .build()
+    val cache = Cache.builder
+      .withMaximumSize(3)
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -138,9 +138,9 @@ class CacheTest extends UniTest:
   }
 
   test("LRU updates on access") {
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(3)
-      .build()
+    val cache = Cache.builder
+      .withMaximumSize(3)
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -159,10 +159,10 @@ class CacheTest extends UniTest:
 
   test("expireAfterWrite") {
     val ticker = Ticker.manualTicker
-    val cache = CacheBuilder[String, Int]()
-      .expireAfterWrite(1, TimeUnit.MINUTES)
+    val cache = Cache.builder
+      .withExpireAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
-      .build()
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.get("a") shouldBe Some(1)
@@ -178,10 +178,10 @@ class CacheTest extends UniTest:
 
   test("expireAfterAccess") {
     val ticker = Ticker.manualTicker
-    val cache = CacheBuilder[String, Int]()
-      .expireAfterAccess(1, TimeUnit.MINUTES)
+    val cache = Cache.builder
+      .withExpireAfterAccess(1, TimeUnit.MINUTES)
       .withTicker(ticker)
-      .build()
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.get("a") shouldBe Some(1)
@@ -200,9 +200,9 @@ class CacheTest extends UniTest:
   }
 
   test("recordStats") {
-    val cache = CacheBuilder[String, Int]()
-      .recordStats()
-      .build()
+    val cache = Cache.builder
+      .withRecordStats
+      .build[String, Int]()
 
     cache.get("a") // miss
     cache.get("a") // miss
@@ -220,10 +220,10 @@ class CacheTest extends UniTest:
 
   test("stats for loader") {
     val ticker = Ticker.manualTicker
-    val cache = CacheBuilder[String, Int]()
-      .recordStats()
+    val cache = Cache.builder
+      .withRecordStats
       .withTicker(ticker)
-      .build()
+      .build[String, Int]()
 
     cache.get(
       "a",
@@ -241,10 +241,10 @@ class CacheTest extends UniTest:
   }
 
   test("eviction stats") {
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(2)
-      .recordStats()
-      .build()
+    val cache = Cache.builder
+      .withMaximumSize(2)
+      .withRecordStats
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -257,10 +257,9 @@ class CacheTest extends UniTest:
 
   test("removalListener") {
     val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(2)
-      .removalListener(n => notifications += n)
-      .build()
+    val cache = Cache.builder
+      .withMaximumSize(2)
+      .buildWithRemovalListener[String, Int](n => notifications += n)
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -277,21 +276,21 @@ class CacheTest extends UniTest:
 
   test("replacement notifies listener") {
     val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
-    val cache = CacheBuilder[String, Int]()
-      .removalListener(n => notifications += n)
-      .build()
+    val cache = Cache.builder
+      .buildWithRemovalListener[String, Int](n => notifications += n)
 
     cache.put("a", 1)
     cache.put("a", 2) // Replace
 
-    notifications.exists(n => n.key == "a" && n.value == 1 && n.cause == RemovalCause.Replaced) shouldBe true
+    notifications.exists(n =>
+      n.key == "a" && n.value == 1 && n.cause == RemovalCause.Replaced
+    ) shouldBe true
   }
 
   test("weigher with maximumWeight") {
-    val cache = CacheBuilder[String, String]()
-      .maximumWeight(10)
-      .weigher((_, v) => v.length)
-      .build()
+    val cache = Cache.builder
+      .withMaximumWeight(10)
+      .build[String, String]((_, v) => v.length)
 
     cache.put("a", "hello") // weight = 5
     cache.put("b", "hi")    // weight = 2, total = 7
@@ -306,10 +305,10 @@ class CacheTest extends UniTest:
 
   test("cleanUp removes expired entries") {
     val ticker = Ticker.manualTicker
-    val cache = CacheBuilder[String, Int]()
-      .expireAfterWrite(1, TimeUnit.MINUTES)
+    val cache = Cache.builder
+      .withExpireAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
-      .build()
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -376,8 +375,8 @@ class LoadingCacheTest extends UniTest:
 
   test("automatic loading") {
     var loadCount = 0
-    val cache = CacheBuilder[String, Int]()
-      .build(key =>
+    val cache = Cache.builder
+      .build((key: String) =>
         loadCount += 1
         key.length
       )
@@ -394,8 +393,8 @@ class LoadingCacheTest extends UniTest:
 
   test("getAll") {
     var loadCount = 0
-    val cache = CacheBuilder[String, Int]()
-      .build(key =>
+    val cache = Cache.builder
+      .build((key: String) =>
         loadCount += 1
         key.length
       )
@@ -409,8 +408,8 @@ class LoadingCacheTest extends UniTest:
 
   test("refresh") {
     var counter = 0
-    val cache = CacheBuilder[String, Int]()
-      .build(_ =>
+    val cache = Cache.builder
+      .build((_: String) =>
         counter += 1
         counter
       )
@@ -425,10 +424,10 @@ class LoadingCacheTest extends UniTest:
   test("loading with expiration") {
     val ticker = Ticker.manualTicker
     var loadCount = 0
-    val cache = CacheBuilder[String, Int]()
-      .expireAfterWrite(1, TimeUnit.MINUTES)
+    val cache = Cache.builder
+      .withExpireAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
-      .build(key =>
+      .build((key: String) =>
         loadCount += 1
         key.length
       )
@@ -450,9 +449,9 @@ class LoadingCacheTest extends UniTest:
 
   test("loading with size limit") {
     var loadCount = 0
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(2)
-      .build(key =>
+    val cache = Cache.builder
+      .withMaximumSize(2)
+      .build((key: String) =>
         loadCount += 1
         key.length
       )
@@ -468,68 +467,58 @@ class LoadingCacheTest extends UniTest:
 
 end LoadingCacheTest
 
-class CacheBuilderTest extends UniTest:
-
-  test("newCache convenience methods") {
-    val cache1 = CacheBuilder.newCache[String, Int]()
-    cache1.put("a", 1)
-    cache1.get("a") shouldBe Some(1)
-
-    val cache2 = CacheBuilder.newCache[String, Int](100)
-    cache2.put("a", 1)
-    cache2.get("a") shouldBe Some(1)
-  }
+class CacheConfigTest extends UniTest:
 
   test("builder validation") {
     // maximumSize must be non-negative
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().maximumSize(-1)
+      Cache.builder.withMaximumSize(-1)
     }
 
     // maximumWeight must be non-negative
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().maximumWeight(-1)
+      Cache.builder.withMaximumWeight(-1)
     }
 
     // Cannot set both maximumSize and maximumWeight
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().maximumSize(100).maximumWeight(100)
+      Cache.builder.withMaximumSize(100).withMaximumWeight(100)
     }
 
     // expireAfterWrite must be non-negative
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().expireAfterWrite(-1, TimeUnit.SECONDS)
+      Cache.builder.withExpireAfterWrite(-1, TimeUnit.SECONDS)
     }
 
     // expireAfterAccess must be non-negative
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().expireAfterAccess(-1, TimeUnit.SECONDS)
+      Cache.builder.withExpireAfterAccess(-1, TimeUnit.SECONDS)
     }
 
     // initialCapacity must be non-negative
     intercept[IllegalArgumentException] {
-      CacheBuilder[String, Int]().initialCapacity(-1)
+      Cache.builder.withInitialCapacity(-1)
     }
   }
 
   test("builder chaining") {
-    val cache = CacheBuilder[String, Int]()
-      .maximumSize(100)
-      .expireAfterWrite(1, TimeUnit.HOURS)
-      .expireAfterAccess(30, TimeUnit.MINUTES)
-      .initialCapacity(16)
-      .recordStats()
-      .build()
+    val cache = Cache.builder
+      .withMaximumSize(100)
+      .withExpireAfterWrite(1, TimeUnit.HOURS)
+      .withExpireAfterAccess(30, TimeUnit.MINUTES)
+      .withInitialCapacity(16)
+      .withRecordStats
+      .build[String, Int]()
 
     cache.put("a", 1)
     cache.get("a") shouldBe Some(1)
   }
 
   test("noRecordStats") {
-    val cache = CacheBuilder[String, Int]()
-      .recordStats()
-      .noRecordStats()
-      .build()
+    val cache = Cache.builder
+      .withRecordStats
+      .noRecordStats
+      .build[String, Int]()
 
     cache.get("a")
     cache.put("a", 1)
@@ -541,4 +530,4 @@ class CacheBuilderTest extends UniTest:
     stats.missCount shouldBe 0
   }
 
-end CacheBuilderTest
+end CacheConfigTest

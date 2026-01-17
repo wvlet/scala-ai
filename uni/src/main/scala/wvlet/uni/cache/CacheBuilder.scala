@@ -19,7 +19,23 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
 /**
-  * Configuration for cache behavior.
+  * Immutable configuration and builder for Cache instances.
+  *
+  * Example usage:
+  * {{{
+  *   // Simple cache
+  *   val cache = Cache.builder
+  *     .withMaximumSize(1000)
+  *     .withExpireAfterWrite(10, TimeUnit.MINUTES)
+  *     .withRecordStats
+  *     .build[String, Int]()
+  *
+  *   // Loading cache with automatic value computation
+  *   val loadingCache = Cache.builder
+  *     .withMaximumSize(100)
+  *     .withExpireAfterAccess(5, TimeUnit.MINUTES)
+  *     .build((key: String) => computeValue(key))
+  * }}}
   *
   * @param maxSize
   *   maximum number of entries (None for unlimited)
@@ -33,166 +49,147 @@ import scala.concurrent.duration.Duration
   *   whether to record statistics
   * @param ticker
   *   ticker for time measurements (for testing)
-  * @param removalListener
-  *   listener for removal notifications
-  * @param weigher
-  *   function to compute the weight of an entry
   * @param maxWeight
   *   maximum total weight (None for size-based eviction)
   */
-case class CacheConfig[K, V](
+case class CacheConfig(
     maxSize: Option[Long] = None,
     expireAfterWriteNanos: Option[Long] = None,
     expireAfterAccessNanos: Option[Long] = None,
     initialCapacity: Int = 16,
     recordStats: Boolean = false,
     ticker: Ticker = Ticker.systemTicker,
-    removalListener: RemovalListener[K, V] = RemovalListener.noop[K, V],
-    weigher: Option[(K, V) => Int] = None,
     maxWeight: Option[Long] = None
 ):
   def hasExpiration: Boolean = expireAfterWriteNanos.isDefined || expireAfterAccessNanos.isDefined
   def hasMaxSize: Boolean    = maxSize.isDefined
-  def hasMaxWeight: Boolean  = maxWeight.isDefined && weigher.isDefined
+  def hasMaxWeight: Boolean  = maxWeight.isDefined
 
-end CacheConfig
-
-/**
-  * Builder for creating Cache instances with fluent API.
-  *
-  * Example usage:
-  * {{{
-  *   val cache = CacheBuilder[String, Int]()
-  *     .maximumSize(1000)
-  *     .expireAfterWrite(10, TimeUnit.MINUTES)
-  *     .recordStats()
-  *     .build()
-  *
-  *   val loadingCache = CacheBuilder[String, Int]()
-  *     .maximumSize(1000)
-  *     .expireAfterAccess(5, TimeUnit.MINUTES)
-  *     .build(key => computeValue(key))
-  * }}}
-  *
-  * @tparam K
-  *   the type of keys
-  * @tparam V
-  *   the type of values
-  */
-case class CacheBuilder[K, V](config: CacheConfig[K, V] = CacheConfig[K, V]()):
+  // --- Builder methods ---
 
   /**
     * Sets the maximum number of entries the cache may contain.
     */
-  def maximumSize(size: Long): CacheBuilder[K, V] =
+  def withMaximumSize(size: Long): CacheConfig =
     require(size >= 0, "maximumSize must not be negative")
-    require(config.maxWeight.isEmpty, "maximumWeight already set")
-    this.copy(config = config.copy(maxSize = Some(size)))
+    require(maxWeight.isEmpty, "maximumWeight already set")
+    this.copy(maxSize = Some(size))
 
   /**
     * Sets the maximum total weight of entries the cache may contain.
     */
-  def maximumWeight(weight: Long): CacheBuilder[K, V] =
+  def withMaximumWeight(weight: Long): CacheConfig =
     require(weight >= 0, "maximumWeight must not be negative")
-    require(config.maxSize.isEmpty, "maximumSize already set")
-    this.copy(config = config.copy(maxWeight = Some(weight)))
-
-  /**
-    * Sets the weigher function for computing entry weights.
-    */
-  def weigher(weigher: (K, V) => Int): CacheBuilder[K, V] =
-    this.copy(config = config.copy(weigher = Some(weigher)))
+    require(maxSize.isEmpty, "maximumSize already set")
+    this.copy(maxWeight = Some(weight))
 
   /**
     * Specifies that entries should expire after a fixed duration since creation or last update.
     */
-  def expireAfterWrite(duration: Long, unit: TimeUnit): CacheBuilder[K, V] =
+  def withExpireAfterWrite(duration: Long, unit: TimeUnit): CacheConfig =
     require(duration >= 0, "duration must not be negative")
-    this.copy(config = config.copy(expireAfterWriteNanos = Some(unit.toNanos(duration))))
+    this.copy(expireAfterWriteNanos = Some(unit.toNanos(duration)))
 
   /**
     * Specifies that entries should expire after a fixed duration since creation or last update.
     */
-  def expireAfterWrite(duration: Duration): CacheBuilder[K, V] =
-    expireAfterWrite(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpireAfterWrite(duration: Duration): CacheConfig =
+    withExpireAfterWrite(duration.toNanos, TimeUnit.NANOSECONDS)
 
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
-  def expireAfterAccess(duration: Long, unit: TimeUnit): CacheBuilder[K, V] =
+  def withExpireAfterAccess(duration: Long, unit: TimeUnit): CacheConfig =
     require(duration >= 0, "duration must not be negative")
-    this.copy(config = config.copy(expireAfterAccessNanos = Some(unit.toNanos(duration))))
+    this.copy(expireAfterAccessNanos = Some(unit.toNanos(duration)))
 
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
-  def expireAfterAccess(duration: Duration): CacheBuilder[K, V] =
-    expireAfterAccess(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpireAfterAccess(duration: Duration): CacheConfig =
+    withExpireAfterAccess(duration.toNanos, TimeUnit.NANOSECONDS)
 
   /**
     * Sets the initial capacity of the cache.
     */
-  def initialCapacity(capacity: Int): CacheBuilder[K, V] =
+  def withInitialCapacity(capacity: Int): CacheConfig =
     require(capacity >= 0, "initialCapacity must not be negative")
-    this.copy(config = config.copy(initialCapacity = capacity))
+    this.copy(initialCapacity = capacity)
 
   /**
     * Enables statistics recording.
     */
-  def recordStats(): CacheBuilder[K, V] =
-    this.copy(config = config.copy(recordStats = true))
+  def withRecordStats: CacheConfig =
+    this.copy(recordStats = true)
 
   /**
     * Disables statistics recording.
     */
-  def noRecordStats(): CacheBuilder[K, V] =
-    this.copy(config = config.copy(recordStats = false))
+  def noRecordStats: CacheConfig =
+    this.copy(recordStats = false)
 
   /**
     * Sets the ticker for time measurements. Use ManualTicker for testing.
     */
-  def withTicker(ticker: Ticker): CacheBuilder[K, V] =
-    this.copy(config = config.copy(ticker = ticker))
+  def withTicker(ticker: Ticker): CacheConfig =
+    this.copy(ticker = ticker)
 
-  /**
-    * Sets the removal listener.
-    */
-  def removalListener(listener: RemovalListener[K, V]): CacheBuilder[K, V] =
-    this.copy(config = config.copy(removalListener = listener))
-
-  /**
-    * Sets the removal listener from a function.
-    */
-  def removalListener(f: RemovalNotification[K, V] => Unit): CacheBuilder[K, V] =
-    removalListener(RemovalListener(f))
+  // --- Build methods ---
 
   /**
     * Builds a cache that does not automatically load values.
     */
-  def build(): Cache[K, V] = LocalCache[K, V](config)
+  def build[K, V](): Cache[K, V] =
+    LocalCache[K, V](this, None, RemovalListener.noop[K, V])
 
   /**
-    * Builds a cache that automatically loads values using the given loader.
+    * Builds a cache with a weigher function for weight-based eviction.
     */
-  def build(loader: K => V): LoadingCache[K, V] = LocalLoadingCache[K, V](config, loader)
-
-end CacheBuilder
-
-object CacheBuilder:
-  /**
-    * Creates a new CacheBuilder.
-    */
-  def apply[K, V](): CacheBuilder[K, V] = CacheBuilder[K, V](CacheConfig[K, V]())
+  def build[K, V](weigher: (K, V) => Int): Cache[K, V] =
+    LocalCache[K, V](this, Some(weigher), RemovalListener.noop[K, V])
 
   /**
-    * Creates a simple cache with default settings.
+    * Builds a cache with a removal listener.
     */
-  def newCache[K, V](): Cache[K, V] = CacheBuilder[K, V]().build()
+  def buildWithRemovalListener[K, V](listener: RemovalListener[K, V]): Cache[K, V] =
+    LocalCache[K, V](this, None, listener)
 
   /**
-    * Creates a simple cache with maximum size.
+    * Builds a cache with a removal listener (from function).
     */
-  def newCache[K, V](maxSize: Long): Cache[K, V] =
-    CacheBuilder[K, V]().maximumSize(maxSize).build()
+  def buildWithRemovalListener[K, V](f: RemovalNotification[K, V] => Unit): Cache[K, V] =
+    LocalCache[K, V](this, None, RemovalListener(f))
 
-end CacheBuilder
+  /**
+    * Builds a cache with both weigher and removal listener.
+    */
+  def build[K, V](weigher: (K, V) => Int, listener: RemovalListener[K, V]): Cache[K, V] =
+    LocalCache[K, V](this, Some(weigher), listener)
+
+  /**
+    * Builds a loading cache that automatically loads values using the given loader.
+    */
+  def build[K, V](loader: K => V): LoadingCache[K, V] =
+    LocalLoadingCache[K, V](this, None, RemovalListener.noop[K, V], loader)
+
+  /**
+    * Builds a loading cache with a weigher function.
+    */
+  def build[K, V](loader: K => V, weigher: (K, V) => Int): LoadingCache[K, V] =
+    LocalLoadingCache[K, V](this, Some(weigher), RemovalListener.noop[K, V], loader)
+
+  /**
+    * Builds a loading cache with a removal listener.
+    */
+  def buildWithRemovalListener[K, V](
+      loader: K => V,
+      listener: RemovalListener[K, V]
+  ): LoadingCache[K, V] =
+    LocalLoadingCache[K, V](this, None, listener, loader)
+
+end CacheConfig
+
+object CacheConfig:
+  val default: CacheConfig = CacheConfig()
+
+end CacheConfig

@@ -96,6 +96,22 @@ trait Cache[K, V]:
 
 end Cache
 
+object Cache:
+  /**
+    * Returns a new cache builder with default settings.
+    *
+    * Example usage:
+    * {{{
+    *   val cache = Cache.builder
+    *     .withMaximumSize(1000)
+    *     .withExpireAfterWrite(10, TimeUnit.MINUTES)
+    *     .build[String, Int]()
+    * }}}
+    */
+  def builder: CacheConfig = CacheConfig.default
+
+end Cache
+
 /**
   * A cache that automatically loads values when they are not present.
   *
