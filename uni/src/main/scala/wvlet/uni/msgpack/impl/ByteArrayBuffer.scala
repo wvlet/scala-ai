@@ -102,22 +102,26 @@ abstract class ByteArrayBufferBase(
   override def readInt(position: Int): Int =
     ensureCapacity(position, 4)
     val pos = offset + position
-    ((a(pos).toInt << 24) |
-      ((a(pos + 1) & 0xff) << 16) |
-      ((a(pos + 2) & 0xff) << 8) |
-      (a(pos + 3) & 0xff))
+    (
+      (a(pos).toInt << 24) |
+        ((a(pos + 1) & 0xff) << 16) |
+        ((a(pos + 2) & 0xff) << 8) |
+        (a(pos + 3) & 0xff)
+    )
 
   override def readLong(position: Int): Long =
     ensureCapacity(position, 8)
     val pos = offset + position
-    ((a(pos).toLong << 56) |
-      ((a(pos + 1).toLong & 0xff) << 48) |
-      ((a(pos + 2).toLong & 0xff) << 40) |
-      ((a(pos + 3).toLong & 0xff) << 32) |
-      ((a(pos + 4).toLong & 0xff) << 24) |
-      ((a(pos + 5).toLong & 0xff) << 16) |
-      ((a(pos + 6).toLong & 0xff) << 8) |
-      (a(pos + 7).toLong & 0xff))
+    (
+      (a(pos).toLong << 56) |
+        ((a(pos + 1).toLong & 0xff) << 48) |
+        ((a(pos + 2).toLong & 0xff) << 40) |
+        ((a(pos + 3).toLong & 0xff) << 32) |
+        ((a(pos + 4).toLong & 0xff) << 24) |
+        ((a(pos + 5).toLong & 0xff) << 16) |
+        ((a(pos + 6).toLong & 0xff) << 8) |
+        (a(pos + 7).toLong & 0xff)
+    )
 
   override def readBytes(position: Int, length: Int): Array[Byte] =
     ensureCapacity(position, length)

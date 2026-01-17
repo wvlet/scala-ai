@@ -646,12 +646,13 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
     .exists(_.flags.is(Flags.Abstract))
 
   private def isPathDependentType(t: TypeRepr): Boolean =
-    !t.typeSymbol.flags.is(Flags.JavaStatic) &&
-      (t match
+    !t.typeSymbol.flags.is(Flags.JavaStatic) && (
+      t match
         case t: TypeBounds =>
           true
         case _ =>
-          false)
+          false
+    )
 
   private def genericTypeFactory: Factory = {
     case t if t =:= TypeRepr.of[Any] =>
