@@ -123,6 +123,9 @@ end Cache
 trait LoadingCache[K, V] extends Cache[K, V]:
   /**
     * Returns the value associated with the key, loading it if necessary.
+    *
+    * Note: This method always returns `Some[V]` when the loader succeeds. If the loader throws an
+    * exception, it will be propagated to the caller. This method never returns `None`.
     */
   def get(key: K): Option[V]
 
@@ -152,7 +155,7 @@ enum RemovalCause:
   case Size
 
   /** The entry expired after write. */
-  case Expired
+  case ExpiredAfterWrite
 
   /** The entry expired after access. */
   case ExpiredAfterAccess
@@ -169,7 +172,7 @@ enum RemovalCause:
   */
 case class RemovalNotification[K, V](key: K, value: V, cause: RemovalCause):
   def wasEvicted: Boolean =
-    cause == RemovalCause.Size || cause == RemovalCause.Expired ||
+    cause == RemovalCause.Size || cause == RemovalCause.ExpiredAfterWrite ||
       cause == RemovalCause.ExpiredAfterAccess
 
 /**

@@ -348,15 +348,55 @@ class CacheTest extends UniTest:
   }
 
   test("RemovalNotification wasEvicted") {
-    val explicit = RemovalNotification("a", 1, RemovalCause.Explicit)
-    val replaced = RemovalNotification("a", 1, RemovalCause.Replaced)
-    val size     = RemovalNotification("a", 1, RemovalCause.Size)
-    val expired  = RemovalNotification("a", 1, RemovalCause.Expired)
+    val explicit           = RemovalNotification("a", 1, RemovalCause.Explicit)
+    val replaced           = RemovalNotification("a", 1, RemovalCause.Replaced)
+    val size               = RemovalNotification("a", 1, RemovalCause.Size)
+    val expiredAfterWrite  = RemovalNotification("a", 1, RemovalCause.ExpiredAfterWrite)
+    val expiredAfterAccess = RemovalNotification("a", 1, RemovalCause.ExpiredAfterAccess)
 
     explicit.wasEvicted shouldBe false
     replaced.wasEvicted shouldBe false
     size.wasEvicted shouldBe true
-    expired.wasEvicted shouldBe true
+    expiredAfterWrite.wasEvicted shouldBe true
+    expiredAfterAccess.wasEvicted shouldBe true
+  }
+
+  test("removalListener for expireAfterWrite") {
+    val ticker        = Ticker.manualTicker
+    val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
+    val cache         = Cache
+      .newBuilder
+      .withExpirationAfterWrite(1, TimeUnit.MINUTES)
+      .withTicker(ticker)
+      .buildWithRemovalListener[String, Int](n => notifications += n)
+
+    cache.put("a", 1)
+    ticker.tick(TimeUnit.MINUTES.toNanos(2))
+    cache.get("a") // Triggers removal of expired entry
+
+    notifications.size shouldBe 1
+    val n = notifications.head
+    n.key shouldBe "a"
+    n.cause shouldBe RemovalCause.ExpiredAfterWrite
+  }
+
+  test("removalListener for expireAfterAccess") {
+    val ticker        = Ticker.manualTicker
+    val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
+    val cache         = Cache
+      .newBuilder
+      .withExpirationAfterAccess(1, TimeUnit.MINUTES)
+      .withTicker(ticker)
+      .buildWithRemovalListener[String, Int](n => notifications += n)
+
+    cache.put("a", 1)
+    ticker.tick(TimeUnit.MINUTES.toNanos(2))
+    cache.get("a") // Triggers removal of expired entry
+
+    notifications.size shouldBe 1
+    val n = notifications.head
+    n.key shouldBe "a"
+    n.cause shouldBe RemovalCause.ExpiredAfterAccess
   }
 
 end CacheTest

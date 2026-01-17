@@ -14,27 +14,25 @@
 package wvlet.uni.control.cache
 
 import wvlet.uni.control.Ticker
+import wvlet.uni.log.LogSupport
 
 import scala.collection.mutable
 
 /**
   * Internal entry that holds the cached value along with metadata.
+  *
+  * Note: All field accesses are protected by synchronized blocks on the LocalCache instance, so
+  * volatile is not needed for memory visibility.
   */
 private[cache] class CacheEntry[K, V](
     val key: K,
-    @volatile
     var value: V,
-    @volatile
     var writeTimeNanos: Long,
-    @volatile
     var accessTimeNanos: Long,
     val weight: Int
 ):
   // For doubly-linked list (LRU tracking)
-  @volatile
   var prev: CacheEntry[K, V] = null
-
-  @volatile
   var next: CacheEntry[K, V] = null
 
 end CacheEntry
@@ -68,15 +66,17 @@ class LocalCache[K, V](
   override def get(key: K): Option[V] = synchronized {
     cleanUpIfNeeded()
     data.get(key) match
-      case Some(entry) if !isExpired(entry) =>
-        recordHit()
-        onAccess(entry)
-        Some(entry.value)
       case Some(entry) =>
-        // Expired entry
-        recordMiss()
-        removeEntry(entry, RemovalCause.Expired)
-        None
+        getExpirationCause(entry) match
+          case Some(cause) =>
+            // Expired entry
+            recordMiss()
+            removeEntry(entry, cause)
+            None
+          case None =>
+            recordHit()
+            onAccess(entry)
+            Some(entry.value)
       case None =>
         recordMiss()
         None
@@ -85,14 +85,16 @@ class LocalCache[K, V](
   override def get(key: K, loader: K => V): V = synchronized {
     cleanUpIfNeeded()
     data.get(key) match
-      case Some(entry) if !isExpired(entry) =>
-        recordHit()
-        onAccess(entry)
-        entry.value
       case Some(entry) =>
-        // Expired entry - remove and reload
-        removeEntry(entry, RemovalCause.Expired)
-        loadAndPut(key, loader)
+        getExpirationCause(entry) match
+          case Some(cause) =>
+            // Expired entry - remove and reload
+            removeEntry(entry, cause)
+            loadAndPut(key, loader)
+          case None =>
+            recordHit()
+            onAccess(entry)
+            entry.value
       case None =>
         loadAndPut(key, loader)
   }
@@ -144,14 +146,16 @@ class LocalCache[K, V](
   override def putIfAbsent(key: K, value: V): Option[V] = synchronized {
     cleanUpIfNeeded()
     data.get(key) match
-      case Some(entry) if !isExpired(entry) =>
-        onAccess(entry)
-        Some(entry.value)
       case Some(entry) =>
-        // Expired - remove and put new
-        removeEntry(entry, RemovalCause.Expired)
-        putInternal(key, value)
-        None
+        getExpirationCause(entry) match
+          case Some(cause) =>
+            // Expired - remove and put new
+            removeEntry(entry, cause)
+            putInternal(key, value)
+            None
+          case None =>
+            onAccess(entry)
+            Some(entry.value)
       case None =>
         putInternal(key, value)
         None
@@ -204,9 +208,16 @@ class LocalCache[K, V](
 
   override def cleanUp(): Unit = synchronized {
     if config.hasExpiration then
-      val expiredEntries = data.values.filter(isExpired).toList
-      expiredEntries.foreach { entry =>
-        removeEntry(entry, RemovalCause.Expired)
+      // Collect expired entries with their causes
+      val expiredEntries =
+        data
+          .values
+          .flatMap { entry =>
+            getExpirationCause(entry).map(cause => (entry, cause))
+          }
+          .toList
+      expiredEntries.foreach { case (entry, cause) =>
+        removeEntry(entry, cause)
       }
   }
 
@@ -221,18 +232,19 @@ class LocalCache[K, V](
       case None =>
         1
 
-  private def isExpired(entry: CacheEntry[K, V]): Boolean =
+  /**
+    * Returns the expiration cause for an entry, or None if not expired.
+    */
+  private def getExpirationCause(entry: CacheEntry[K, V]): Option[RemovalCause] =
     val now = ticker.read
-    config
-      .expireAfterWriteNanos
-      .exists { ttl =>
-        now - entry.writeTimeNanos > ttl
-      } ||
-    config
-      .expireAfterAccessNanos
-      .exists { ttl =>
-        now - entry.accessTimeNanos > ttl
-      }
+    if config.expireAfterWriteNanos.exists(ttl => now - entry.writeTimeNanos > ttl) then
+      Some(RemovalCause.ExpiredAfterWrite)
+    else if config.expireAfterAccessNanos.exists(ttl => now - entry.accessTimeNanos > ttl) then
+      Some(RemovalCause.ExpiredAfterAccess)
+    else
+      None
+
+  private def isExpired(entry: CacheEntry[K, V]): Boolean = getExpirationCause(entry).isDefined
 
   private def onAccess(entry: CacheEntry[K, V]): Unit =
     entry.accessTimeNanos = ticker.read
@@ -341,7 +353,8 @@ class LocalLoadingCache[K, V](
     removalListener: RemovalListener[K, V],
     loader: K => V
 ) extends LocalCache[K, V](config, weigher, removalListener)
-    with LoadingCache[K, V]:
+    with LoadingCache[K, V]
+    with LogSupport:
 
   override def get(key: K): Option[V] =
     super.get(key, loader) match
@@ -358,8 +371,8 @@ class LocalLoadingCache[K, V](
       put(key, value)
     catch
       case e: Throwable =>
-        // Keep existing value on refresh failure
-        ()
+        // Keep existing value on refresh failure, but log the error
+        warn(s"Failed to refresh cache entry for key '${key}': ${e.getMessage}", e)
   }
 
 end LocalLoadingCache

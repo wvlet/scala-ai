@@ -193,6 +193,15 @@ case class CacheConfig(
       listener: RemovalListener[K, V]
   ): LoadingCache[K, V] = LocalLoadingCache[K, V](this, None, listener, loader)
 
+  /**
+    * Builds a loading cache with a loader, weigher, and removal listener.
+    */
+  def build[K, V](
+      loader: K => V,
+      weigher: (K, V) => Int,
+      listener: RemovalListener[K, V]
+  ): LoadingCache[K, V] = LocalLoadingCache[K, V](this, Some(weigher), listener, loader)
+
 end CacheConfig
 
 object CacheConfig:
