@@ -500,6 +500,34 @@ class LoadingCacheTest extends UniTest:
     loadCount shouldBe 4
   }
 
+  test("reject null from loader") {
+    val cache = Cache.newBuilder.build((_: String) => null.asInstanceOf[String])
+
+    // Should throw NullPointerException when loader returns null
+    intercept[NullPointerException] {
+      cache.get("a")
+    }
+  }
+
+  test("refresh ignores null from loader") {
+    var returnNull = false
+    val cache      = Cache
+      .newBuilder
+      .build((key: String) =>
+        if returnNull then
+          null.asInstanceOf[String]
+        else
+          key.toUpperCase
+      )
+
+    cache.get("hello") shouldBe Some("HELLO")
+
+    // Refresh with null should keep existing value
+    returnNull = true
+    cache.refresh("hello")
+    cache.get("hello") shouldBe Some("HELLO") // Still the old value
+  }
+
 end LoadingCacheTest
 
 class CacheConfigTest extends UniTest:

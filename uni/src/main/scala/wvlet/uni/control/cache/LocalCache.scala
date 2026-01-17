@@ -105,10 +105,20 @@ class LocalCache[K, V](
     try
       val value         = loader(key)
       val loadTimeNanos = ticker.read - startNanos
+      // Reject null values (matching Caffeine behavior)
+      if value == null then
+        recordLoadFailure(loadTimeNanos)
+        throw NullPointerException(s"CacheLoader returned null for key '${key}'")
       recordLoadSuccess(loadTimeNanos)
       putInternal(key, value)
       value
     catch
+      case e: InterruptedException =>
+        // Preserve interrupt flag (matching Caffeine behavior)
+        Thread.currentThread().interrupt()
+        val loadTimeNanos = ticker.read - startNanos
+        recordLoadFailure(loadTimeNanos)
+        throw e
       case e: Throwable =>
         val loadTimeNanos = ticker.read - startNanos
         recordLoadFailure(loadTimeNanos)
@@ -368,8 +378,14 @@ class LocalLoadingCache[K, V](
   override def refresh(key: K): Unit = synchronized {
     try
       val value = loader(key)
-      put(key, value)
+      // Reject null values (matching Caffeine behavior)
+      if value != null then
+        put(key, value)
     catch
+      case e: InterruptedException =>
+        // Preserve interrupt flag (matching Caffeine behavior)
+        Thread.currentThread().interrupt()
+        warn(s"Interrupted while refreshing cache entry for key '${key}'", e)
       case e: Throwable =>
         // Keep existing value on refresh failure, but log the error
         warn(s"Failed to refresh cache entry for key '${key}': ${e.getMessage}", e)
