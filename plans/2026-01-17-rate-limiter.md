@@ -135,72 +135,111 @@ The Token Bucket algorithm is chosen for its simplicity and smooth rate limiting
 - **Simple state**: Only need to track tokens and last refill time
 - **Lock-free**: Atomic operations for concurrent access
 
-### Configuration
+### Builder Pattern
 
-```scala
-case class RateLimiterConfig(
-    permitsPerSecond: Double,
-    burstSize: Int = 1,
-    warmupPeriodMillis: Long = 0L
-):
-  require(permitsPerSecond > 0, s"permitsPerSecond must be positive: ${permitsPerSecond}")
-  require(burstSize >= 1, s"burstSize must be at least 1: ${burstSize}")
-  require(warmupPeriodMillis >= 0, s"warmupPeriodMillis must be non-negative: ${warmupPeriodMillis}")
-
-  /** Interval between permits in nanoseconds */
-  def intervalNanos: Long = (1_000_000_000.0 / permitsPerSecond).toLong
-
-  def withPermitsPerSecond(rate: Double): RateLimiterConfig =
-    this.copy(permitsPerSecond = rate)
-
-  def withBurstSize(size: Int): RateLimiterConfig =
-    this.copy(burstSize = size)
-
-  def withWarmupPeriod(millis: Long): RateLimiterConfig =
-    this.copy(warmupPeriodMillis = millis)
-```
-
-### Implementation
+The builder pattern provides flexibility for future extensions and a fluent API:
 
 ```scala
 object RateLimiter:
 
   /**
-    * Create a rate limiter with the given permits per second.
+    * Create a new builder for configuring a rate limiter.
     */
-  def apply(permitsPerSecond: Double): RateLimiter =
-    new TokenBucketRateLimiter(RateLimiterConfig(permitsPerSecond))
-
-  /**
-    * Create a rate limiter from configuration.
-    */
-  def apply(config: RateLimiterConfig): RateLimiter =
-    new TokenBucketRateLimiter(config)
-
-  /**
-    * Create a rate limiter with permits per second and burst size.
-    */
-  def withBurst(permitsPerSecond: Double, burstSize: Int): RateLimiter =
-    new TokenBucketRateLimiter(RateLimiterConfig(permitsPerSecond, burstSize))
-
-  /**
-    * Create a rate limiter wrapped in Rx.
-    */
-  def of(permitsPerSecond: Double): Rx[RateLimiter] =
-    Rx.single(apply(permitsPerSecond))
+  def newBuilder: Builder = Builder()
 
   /**
     * A rate limiter that allows all operations (no limiting).
     */
   def unlimited: RateLimiter = UnlimitedRateLimiter
 
+  /**
+    * Builder for RateLimiter with fluent configuration.
+    */
+  case class Builder(
+      permitsPerSecond: Double = 1.0,
+      burstSize: Int = 1,
+      warmupPeriodMillis: Long = 0L,
+      name: Option[String] = None,
+      metricsEnabled: Boolean = false
+  ):
+    require(permitsPerSecond > 0, s"permitsPerSecond must be positive: ${permitsPerSecond}")
+    require(burstSize >= 1, s"burstSize must be at least 1: ${burstSize}")
+    require(warmupPeriodMillis >= 0, s"warmupPeriodMillis must be non-negative: ${warmupPeriodMillis}")
+
+    /** Set the rate in permits per second */
+    def withPermitsPerSecond(rate: Double): Builder =
+      this.copy(permitsPerSecond = rate)
+
+    /** Set the maximum burst size (bucket capacity) */
+    def withBurstSize(size: Int): Builder =
+      this.copy(burstSize = size)
+
+    /** Set warmup period during which rate gradually increases */
+    def withWarmupPeriod(millis: Long): Builder =
+      this.copy(warmupPeriodMillis = millis)
+
+    /** Set a name for this rate limiter (useful for logging/metrics) */
+    def withName(n: String): Builder =
+      this.copy(name = Some(n))
+
+    /** Disable the name */
+    def noName(): Builder =
+      this.copy(name = None)
+
+    /** Enable metrics collection */
+    def withMetrics(): Builder =
+      this.copy(metricsEnabled = true)
+
+    /** Disable metrics collection */
+    def noMetrics(): Builder =
+      this.copy(metricsEnabled = false)
+
+    /** Interval between permits in nanoseconds */
+    def intervalNanos: Long = (1_000_000_000.0 / permitsPerSecond).toLong
+
+    /** Build the rate limiter */
+    def build(): RateLimiter =
+      if metricsEnabled then
+        new MetricsEnabledRateLimiter(new TokenBucketRateLimiter(this), name)
+      else
+        new TokenBucketRateLimiter(this)
+
+  end Builder
+
 end RateLimiter
+```
+
+### Usage Examples
+
+```scala
+// Simple rate limiter: 10 permits per second
+val limiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(10.0)
+  .build()
+
+// With burst capacity
+val burstyLimiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(100.0)
+  .withBurstSize(50)
+  .build()
+
+// With warmup period and metrics
+val productionLimiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(1000.0)
+  .withBurstSize(100)
+  .withWarmupPeriod(10000)  // 10 second warmup
+  .withName("api-rate-limiter")
+  .withMetrics()
+  .build()
+
+// No rate limiting
+val noLimit = RateLimiter.unlimited
 ```
 
 ### Internal Implementation
 
 ```scala
-private class TokenBucketRateLimiter(config: RateLimiterConfig) extends RateLimiter:
+private class TokenBucketRateLimiter(config: RateLimiter.Builder) extends RateLimiter:
 
   // State: (storedPermits, nextFreeTicketNanos)
   private case class State(storedPermits: Double, nextFreeTicketNanos: Long)
@@ -404,7 +443,10 @@ import wvlet.uni.control.RateLimiter
 import wvlet.uni.agent.{LLMAgent, ChatSession}
 
 // Limit to 10 requests per second for Bedrock
-val rateLimiter = RateLimiter(permitsPerSecond = 10.0)
+val rateLimiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(10.0)
+  .withName("bedrock-rate-limiter")
+  .build()
 
 def chat(session: ChatSession, message: String): Rx[ChatResponse] =
   rateLimiter.withLimit {
@@ -417,7 +459,10 @@ def chat(session: ChatSession, message: String): Rx[ChatResponse] =
 ```scala
 import wvlet.uni.control.{RateLimiter, CircuitBreaker, Retry}
 
-val rateLimiter = RateLimiter(permitsPerSecond = 100.0)
+val rateLimiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(100.0)
+  .withBurstSize(20)
+  .build()
 val circuitBreaker = CircuitBreaker.withConsecutiveFailures(5)
 val retry = Retry.withBackOff(maxRetry = 3)
 
@@ -437,10 +482,12 @@ For LLM APIs that rate limit by tokens:
 
 ```scala
 // Limit to 100,000 tokens per minute
-val tokenRateLimiter = RateLimiter.withBurst(
-  permitsPerSecond = 100000.0 / 60.0,  // ~1666 tokens/sec
-  burstSize = 10000                     // Allow 10K token bursts
-)
+val tokenRateLimiter = RateLimiter.newBuilder
+  .withPermitsPerSecond(100000.0 / 60.0)  // ~1666 tokens/sec
+  .withBurstSize(10000)                    // Allow 10K token bursts
+  .withName("token-rate-limiter")
+  .withMetrics()
+  .build()
 
 def chat(request: ChatRequest): Rx[ChatResponse] =
   // Estimate tokens (or use actual count after response)
@@ -471,7 +518,9 @@ def chat(request: ChatRequest): Rx[ChatResponse] =
 class RateLimiterTest extends AirSpec:
 
   test("acquire at steady rate"):
-    val limiter = RateLimiter(permitsPerSecond = 10.0)
+    val limiter = RateLimiter.newBuilder
+      .withPermitsPerSecond(10.0)
+      .build()
     val startTime = System.nanoTime()
 
     // Acquire 5 permits
@@ -484,15 +533,17 @@ class RateLimiterTest extends AirSpec:
     (elapsed / 1_000_000) shouldBe >= 350L
 
   test("tryAcquire returns false when rate exceeded"):
-    val limiter = RateLimiter(permitsPerSecond = 1.0)
+    val limiter = RateLimiter.newBuilder
+      .withPermitsPerSecond(1.0)
+      .build()
     limiter.tryAcquire.run() shouldBe true
     limiter.tryAcquire.run() shouldBe false
 
   test("burst allows immediate acquisition up to burst size"):
-    val limiter = RateLimiter.withBurst(
-      permitsPerSecond = 1.0,
-      burstSize = 5
-    )
+    val limiter = RateLimiter.newBuilder
+      .withPermitsPerSecond(1.0)
+      .withBurstSize(5)
+      .build()
 
     // Should all succeed immediately
     for _ <- 1 to 5 do
@@ -511,7 +562,9 @@ class RateLimiterTest extends AirSpec:
 
 ```scala
 test("concurrent access"):
-  val limiter = RateLimiter(permitsPerSecond = 100.0)
+  val limiter = RateLimiter.newBuilder
+    .withPermitsPerSecond(100.0)
+    .build()
   val counter = new AtomicInteger(0)
 
   // Launch 10 concurrent threads each trying 100 acquires
@@ -571,9 +624,26 @@ The proposed RateLimiter:
 
 1. **Fills a gap** in the control module for time-based rate limiting
 2. **Uses Token Bucket** for smooth, predictable rate limiting with burst support
-3. **Follows existing patterns** (trait + companion object, `withXXX` configuration)
+3. **Builder pattern** (`RateLimiter.newBuilder.withXXX.build()`) for flexible, extensible configuration
 4. **Integrates with Rx** for non-blocking async waits
 5. **Is cross-platform** compatible (JVM/JS/Native)
 6. **Composes well** with CircuitBreaker and Retry
+7. **Future-proof** with optional metrics, naming, and warmup period support
 
 This design provides a solid foundation for rate limiting in LLM agent applications and other scenarios requiring controlled request rates.
+
+### API Summary
+
+```scala
+// Builder API
+RateLimiter.newBuilder
+  .withPermitsPerSecond(10.0)   // Required: rate limit
+  .withBurstSize(5)              // Optional: burst capacity (default: 1)
+  .withWarmupPeriod(1000)        // Optional: warmup in ms (default: 0)
+  .withName("my-limiter")        // Optional: for logging/metrics
+  .withMetrics()                 // Optional: enable metrics
+  .build()
+
+// Convenience
+RateLimiter.unlimited            // No-op rate limiter
+```
