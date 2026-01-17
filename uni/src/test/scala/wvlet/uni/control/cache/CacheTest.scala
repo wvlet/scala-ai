@@ -15,7 +15,8 @@ package wvlet.uni.control.cache
 
 import wvlet.uni.control.Ticker
 import wvlet.uni.test.UniTest
-import wvlet.uni.test.{empty, defined}
+import wvlet.uni.test.empty
+import wvlet.uni.test.defined
 
 import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ArrayBuffer
@@ -119,9 +120,7 @@ class CacheTest extends UniTest:
   }
 
   test("maximumSize with LRU eviction") {
-    val cache = Cache.newBuilder
-      .withMaximumSize(3)
-      .build[String, Int]()
+    val cache = Cache.newBuilder.withMaximumSize(3).build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -138,9 +137,7 @@ class CacheTest extends UniTest:
   }
 
   test("LRU updates on access") {
-    val cache = Cache.newBuilder
-      .withMaximumSize(3)
-      .build[String, Int]()
+    val cache = Cache.newBuilder.withMaximumSize(3).build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -159,7 +156,8 @@ class CacheTest extends UniTest:
 
   test("expireAfterWrite") {
     val ticker = Ticker.manualTicker
-    val cache = Cache.newBuilder
+    val cache  = Cache
+      .newBuilder
       .withExpirationAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
       .build[String, Int]()
@@ -178,7 +176,8 @@ class CacheTest extends UniTest:
 
   test("expireAfterAccess") {
     val ticker = Ticker.manualTicker
-    val cache = Cache.newBuilder
+    val cache  = Cache
+      .newBuilder
       .withExpirationAfterAccess(1, TimeUnit.MINUTES)
       .withTicker(ticker)
       .build[String, Int]()
@@ -200,9 +199,7 @@ class CacheTest extends UniTest:
   }
 
   test("recordStats") {
-    val cache = Cache.newBuilder
-      .withStats
-      .build[String, Int]()
+    val cache = Cache.newBuilder.withStats.build[String, Int]()
 
     cache.get("a") // miss
     cache.get("a") // miss
@@ -220,10 +217,7 @@ class CacheTest extends UniTest:
 
   test("stats for loader") {
     val ticker = Ticker.manualTicker
-    val cache = Cache.newBuilder
-      .withStats
-      .withTicker(ticker)
-      .build[String, Int]()
+    val cache  = Cache.newBuilder.withStats.withTicker(ticker).build[String, Int]()
 
     cache.get(
       "a",
@@ -241,10 +235,7 @@ class CacheTest extends UniTest:
   }
 
   test("eviction stats") {
-    val cache = Cache.newBuilder
-      .withMaximumSize(2)
-      .withStats
-      .build[String, Int]()
+    val cache = Cache.newBuilder.withMaximumSize(2).withStats.build[String, Int]()
 
     cache.put("a", 1)
     cache.put("b", 2)
@@ -257,7 +248,8 @@ class CacheTest extends UniTest:
 
   test("removalListener") {
     val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
-    val cache = Cache.newBuilder
+    val cache         = Cache
+      .newBuilder
       .withMaximumSize(2)
       .buildWithRemovalListener[String, Int](n => notifications += n)
 
@@ -276,8 +268,7 @@ class CacheTest extends UniTest:
 
   test("replacement notifies listener") {
     val notifications = ArrayBuffer.empty[RemovalNotification[String, Int]]
-    val cache = Cache.newBuilder
-      .buildWithRemovalListener[String, Int](n => notifications += n)
+    val cache = Cache.newBuilder.buildWithRemovalListener[String, Int](n => notifications += n)
 
     cache.put("a", 1)
     cache.put("a", 2) // Replace
@@ -288,9 +279,7 @@ class CacheTest extends UniTest:
   }
 
   test("weigher with maximumWeight") {
-    val cache = Cache.newBuilder
-      .withMaximumWeight(10)
-      .build[String, String]((_, v) => v.length)
+    val cache = Cache.newBuilder.withMaximumWeight(10).build[String, String]((_, v) => v.length)
 
     cache.put("a", "hello") // weight = 5
     cache.put("b", "hi")    // weight = 2, total = 7
@@ -305,7 +294,8 @@ class CacheTest extends UniTest:
 
   test("cleanUp removes expired entries") {
     val ticker = Ticker.manualTicker
-    val cache = Cache.newBuilder
+    val cache  = Cache
+      .newBuilder
       .withExpirationAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
       .build[String, Int]()
@@ -375,7 +365,8 @@ class LoadingCacheTest extends UniTest:
 
   test("automatic loading") {
     var loadCount = 0
-    val cache = Cache.newBuilder
+    val cache     = Cache
+      .newBuilder
       .build((key: String) =>
         loadCount += 1
         key.length
@@ -393,7 +384,8 @@ class LoadingCacheTest extends UniTest:
 
   test("getAll") {
     var loadCount = 0
-    val cache = Cache.newBuilder
+    val cache     = Cache
+      .newBuilder
       .build((key: String) =>
         loadCount += 1
         key.length
@@ -408,7 +400,8 @@ class LoadingCacheTest extends UniTest:
 
   test("refresh") {
     var counter = 0
-    val cache = Cache.newBuilder
+    val cache   = Cache
+      .newBuilder
       .build((_: String) =>
         counter += 1
         counter
@@ -422,9 +415,10 @@ class LoadingCacheTest extends UniTest:
   }
 
   test("loading with expiration") {
-    val ticker = Ticker.manualTicker
+    val ticker    = Ticker.manualTicker
     var loadCount = 0
-    val cache = Cache.newBuilder
+    val cache     = Cache
+      .newBuilder
       .withExpirationAfterWrite(1, TimeUnit.MINUTES)
       .withTicker(ticker)
       .build((key: String) =>
@@ -449,7 +443,8 @@ class LoadingCacheTest extends UniTest:
 
   test("loading with size limit") {
     var loadCount = 0
-    val cache = Cache.newBuilder
+    val cache     = Cache
+      .newBuilder
       .withMaximumSize(2)
       .build((key: String) =>
         loadCount += 1
@@ -502,7 +497,8 @@ class CacheConfigTest extends UniTest:
   }
 
   test("builder chaining") {
-    val cache = Cache.newBuilder
+    val cache = Cache
+      .newBuilder
       .withMaximumSize(100)
       .withExpirationAfterWrite(1, TimeUnit.HOURS)
       .withExpirationAfterAccess(30, TimeUnit.MINUTES)
@@ -515,10 +511,7 @@ class CacheConfigTest extends UniTest:
   }
 
   test("noStats") {
-    val cache = Cache.newBuilder
-      .withStats
-      .noStats
-      .build[String, Int]()
+    val cache = Cache.newBuilder.withStats.noStats.build[String, Int]()
 
     cache.get("a")
     cache.put("a", 1)

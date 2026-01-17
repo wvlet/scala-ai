@@ -144,12 +144,16 @@ end LoadingCache
 enum RemovalCause:
   /** The entry was manually removed by the user. */
   case Explicit
+
   /** The entry was replaced by a new value. */
   case Replaced
+
   /** The entry was removed due to size constraints. */
   case Size
+
   /** The entry expired after write. */
   case Expired
+
   /** The entry expired after access. */
   case ExpiredAfterAccess
 
@@ -164,8 +168,9 @@ enum RemovalCause:
   *   the reason for removal
   */
 case class RemovalNotification[K, V](key: K, value: V, cause: RemovalCause):
-  def wasEvicted: Boolean = cause == RemovalCause.Size || cause == RemovalCause.Expired ||
-    cause == RemovalCause.ExpiredAfterAccess
+  def wasEvicted: Boolean =
+    cause == RemovalCause.Size || cause == RemovalCause.Expired ||
+      cause == RemovalCause.ExpiredAfterAccess
 
 /**
   * Listener for cache entry removals.
@@ -211,15 +216,19 @@ case class CacheStats(
     * The ratio of cache hits to requests, or 1.0 if no requests.
     */
   def hitRate: Double =
-    if requestCount == 0 then 1.0
-    else hitCount.toDouble / requestCount
+    if requestCount == 0 then
+      1.0
+    else
+      hitCount.toDouble / requestCount
 
   /**
     * The ratio of cache misses to requests, or 0.0 if no requests.
     */
   def missRate: Double =
-    if requestCount == 0 then 0.0
-    else missCount.toDouble / requestCount
+    if requestCount == 0 then
+      0.0
+    else
+      missCount.toDouble / requestCount
 
   /**
     * The total number of load operations.
@@ -230,15 +239,19 @@ case class CacheStats(
     * The ratio of load failures to loads, or 0.0 if no loads.
     */
   def loadFailureRate: Double =
-    if loadCount == 0 then 0.0
-    else loadFailureCount.toDouble / loadCount
+    if loadCount == 0 then
+      0.0
+    else
+      loadFailureCount.toDouble / loadCount
 
   /**
     * The average time spent loading values, in nanoseconds.
     */
   def averageLoadPenaltyNanos: Double =
-    if loadCount == 0 then 0.0
-    else totalLoadTimeNanos.toDouble / loadCount
+    if loadCount == 0 then
+      0.0
+    else
+      totalLoadTimeNanos.toDouble / loadCount
 
   /**
     * Returns a new CacheStats that is the difference between this and another.
@@ -287,8 +300,8 @@ object CacheStats:
 end CacheStats
 
 /**
-  * Mutable counter for tracking cache statistics. Thread-safe via AtomicLong.
-  * Use `snapshot()` to get an immutable CacheStats for reporting.
+  * Mutable counter for tracking cache statistics. Thread-safe via AtomicLong. Use `snapshot()` to
+  * get an immutable CacheStats for reporting.
   */
 private[cache] class StatsCounter:
   import java.util.concurrent.atomic.AtomicLong

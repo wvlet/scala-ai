@@ -22,14 +22,20 @@ import scala.collection.mutable
   */
 private[cache] class CacheEntry[K, V](
     val key: K,
-    @volatile var value: V,
-    @volatile var writeTimeNanos: Long,
-    @volatile var accessTimeNanos: Long,
+    @volatile
+    var value: V,
+    @volatile
+    var writeTimeNanos: Long,
+    @volatile
+    var accessTimeNanos: Long,
     val weight: Int
 ):
   // For doubly-linked list (LRU tracking)
-  @volatile var prev: CacheEntry[K, V] = null
-  @volatile var next: CacheEntry[K, V] = null
+  @volatile
+  var prev: CacheEntry[K, V] = null
+
+  @volatile
+  var next: CacheEntry[K, V] = null
 
 end CacheEntry
 
@@ -44,8 +50,9 @@ class LocalCache[K, V](
     removalListener: RemovalListener[K, V]
 ) extends Cache[K, V]:
   // Main storage
-  private val data: mutable.HashMap[K, CacheEntry[K, V]] =
-    mutable.HashMap.empty[K, CacheEntry[K, V]]
+  private val data: mutable.HashMap[K, CacheEntry[K, V]] = mutable
+    .HashMap
+    .empty[K, CacheEntry[K, V]]
 
   // LRU doubly-linked list (head = most recently used, tail = least recently used)
   private var head: CacheEntry[K, V] = null
@@ -151,13 +158,17 @@ class LocalCache[K, V](
   }
 
   override def putAll(entries: Map[K, V]): Unit = synchronized {
-    entries.foreach { case (k, v) => putInternal(k, v) }
+    entries.foreach { case (k, v) =>
+      putInternal(k, v)
+    }
   }
 
   override def invalidate(key: K): Unit = synchronized {
-    data.get(key).foreach { entry =>
-      removeEntry(entry, RemovalCause.Explicit)
-    }
+    data
+      .get(key)
+      .foreach { entry =>
+        removeEntry(entry, RemovalCause.Explicit)
+      }
   }
 
   override def invalidateAll(keys: Iterable[K]): Unit = synchronized {
@@ -165,9 +176,11 @@ class LocalCache[K, V](
   }
 
   override def invalidateAll(): Unit = synchronized {
-    data.values.foreach { entry =>
-      notifyRemoval(entry.key, entry.value, RemovalCause.Explicit)
-    }
+    data
+      .values
+      .foreach { entry =>
+        notifyRemoval(entry.key, entry.value, RemovalCause.Explicit)
+      }
     data.clear()
     head = null
     tail = null
@@ -177,9 +190,12 @@ class LocalCache[K, V](
 
   override def asMap: Map[K, V] = synchronized {
     cleanUpIfNeeded()
-    data.collect {
-      case (k, entry) if !isExpired(entry) => k -> entry.value
-    }.toMap
+    data
+      .collect {
+        case (k, entry) if !isExpired(entry) =>
+          k -> entry.value
+      }
+      .toMap
   }
 
   override def estimatedSize: Long = synchronized {
@@ -200,16 +216,23 @@ class LocalCache[K, V](
 
   private def computeWeight(key: K, value: V): Int =
     weigher match
-      case Some(w) => w(key, value)
-      case None    => 1
+      case Some(w) =>
+        w(key, value)
+      case None =>
+        1
 
   private def isExpired(entry: CacheEntry[K, V]): Boolean =
     val now = ticker.read
-    config.expireAfterWriteNanos.exists { ttl =>
-      now - entry.writeTimeNanos > ttl
-    } || config.expireAfterAccessNanos.exists { ttl =>
-      now - entry.accessTimeNanos > ttl
-    }
+    config
+      .expireAfterWriteNanos
+      .exists { ttl =>
+        now - entry.writeTimeNanos > ttl
+      } ||
+    config
+      .expireAfterAccessNanos
+      .exists { ttl =>
+        now - entry.accessTimeNanos > ttl
+      }
 
   private def onAccess(entry: CacheEntry[K, V]): Unit =
     entry.accessTimeNanos = ticker.read
@@ -217,13 +240,19 @@ class LocalCache[K, V](
 
   private def evictIfNeeded(): Unit =
     // Evict based on max size
-    config.maxSize.foreach { max =>
-      while currentSize > max && tail != null do removeEntry(tail, RemovalCause.Size)
-    }
+    config
+      .maxSize
+      .foreach { max =>
+        while currentSize > max && tail != null do
+          removeEntry(tail, RemovalCause.Size)
+      }
     // Evict based on max weight
-    config.maxWeight.foreach { max =>
-      while currentWeight > max && tail != null do removeEntry(tail, RemovalCause.Size)
-    }
+    config
+      .maxWeight
+      .foreach { max =>
+        while currentWeight > max && tail != null do
+          removeEntry(tail, RemovalCause.Size)
+      }
 
   private def removeEntry(entry: CacheEntry[K, V], cause: RemovalCause): Unit =
     data.remove(entry.key)
@@ -236,17 +265,22 @@ class LocalCache[K, V](
 
   private def notifyRemoval(key: K, value: V, cause: RemovalCause): Unit =
     val notification = RemovalNotification(key, value, cause)
-    try removalListener.onRemoval(notification)
-    catch case _: Throwable => () // Swallow exceptions from listeners
+    try
+      removalListener.onRemoval(notification)
+    catch
+      case _: Throwable =>
+        () // Swallow exceptions from listeners
 
   // --- Doubly-linked list operations ---
 
   private def addToHead(entry: CacheEntry[K, V]): Unit =
     entry.prev = null
     entry.next = head
-    if head != null then head.prev = entry
+    if head != null then
+      head.prev = entry
     head = entry
-    if tail == null then tail = entry
+    if tail == null then
+      tail = entry
 
   private def moveToHead(entry: CacheEntry[K, V]): Unit =
     if entry != head then
@@ -254,11 +288,15 @@ class LocalCache[K, V](
       addToHead(entry)
 
   private def removeFromList(entry: CacheEntry[K, V]): Unit =
-    if entry.prev != null then entry.prev.next = entry.next
-    else head = entry.next
+    if entry.prev != null then
+      entry.prev.next = entry.next
+    else
+      head = entry.next
 
-    if entry.next != null then entry.next.prev = entry.prev
-    else tail = entry.prev
+    if entry.next != null then
+      entry.next.prev = entry.prev
+    else
+      tail = entry.prev
 
     entry.prev = null
     entry.next = null
@@ -266,20 +304,24 @@ class LocalCache[K, V](
   // --- Statistics recording ---
 
   private def recordHit(): Unit =
-    if config.recordStats then statsCounter.recordHit()
+    if config.recordStats then
+      statsCounter.recordHit()
 
   private def recordMiss(): Unit =
-    if config.recordStats then statsCounter.recordMiss()
+    if config.recordStats then
+      statsCounter.recordMiss()
 
   private def recordLoadSuccess(loadTimeNanos: Long): Unit =
-    if config.recordStats then statsCounter.recordLoadSuccess(loadTimeNanos)
+    if config.recordStats then
+      statsCounter.recordLoadSuccess(loadTimeNanos)
 
   private def recordLoadFailure(loadTimeNanos: Long): Unit =
-    if config.recordStats then statsCounter.recordLoadFailure(loadTimeNanos)
+    if config.recordStats then
+      statsCounter.recordLoadFailure(loadTimeNanos)
 
   // Periodic cleanup (only if expiration is configured)
-  private var lastCleanupNanos: Long         = 0
-  private val cleanupIntervalNanos: Long     = 1000000000L // 1 second
+  private var lastCleanupNanos: Long     = 0
+  private val cleanupIntervalNanos: Long = 1000000000L // 1 second
 
   private def cleanUpIfNeeded(): Unit =
     if config.hasExpiration then
@@ -303,7 +345,8 @@ class LocalLoadingCache[K, V](
 
   override def get(key: K): Option[V] =
     super.get(key, loader) match
-      case v => Some(v)
+      case v =>
+        Some(v)
 
   override def getAll(keys: Iterable[K]): Map[K, V] = synchronized {
     keys.map(key => key -> get(key, loader)).toMap
@@ -326,8 +369,7 @@ object LocalCache:
       config: CacheConfig,
       weigher: Option[(K, V) => Int],
       removalListener: RemovalListener[K, V]
-  ): LocalCache[K, V] =
-    new LocalCache(config, weigher, removalListener)
+  ): LocalCache[K, V] = new LocalCache(config, weigher, removalListener)
 
 object LocalLoadingCache:
   def apply[K, V](
@@ -335,5 +377,4 @@ object LocalLoadingCache:
       weigher: Option[(K, V) => Int],
       removalListener: RemovalListener[K, V],
       loader: K => V
-  ): LocalLoadingCache[K, V] =
-    new LocalLoadingCache(config, weigher, removalListener, loader)
+  ): LocalLoadingCache[K, V] = new LocalLoadingCache(config, weigher, removalListener, loader)

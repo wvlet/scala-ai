@@ -93,8 +93,10 @@ case class CacheConfig(
   /**
     * Specifies that entries should expire after a fixed duration since creation or last update.
     */
-  def withExpirationAfterWrite(duration: Duration): CacheConfig =
-    withExpirationAfterWrite(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpirationAfterWrite(duration: Duration): CacheConfig = withExpirationAfterWrite(
+    duration.toNanos,
+    TimeUnit.NANOSECONDS
+  )
 
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
@@ -106,8 +108,10 @@ case class CacheConfig(
   /**
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
-  def withExpirationAfterAccess(duration: Duration): CacheConfig =
-    withExpirationAfterAccess(duration.toNanos, TimeUnit.NANOSECONDS)
+  def withExpirationAfterAccess(duration: Duration): CacheConfig = withExpirationAfterAccess(
+    duration.toNanos,
+    TimeUnit.NANOSECONDS
+  )
 
   /**
     * Sets the initial capacity of the cache.
@@ -119,34 +123,33 @@ case class CacheConfig(
   /**
     * Enables statistics recording.
     */
-  def withStats: CacheConfig =
-    this.copy(recordStats = true)
+  def withStats: CacheConfig = this.copy(recordStats = true)
 
   /**
     * Disables statistics recording.
     */
-  def noStats: CacheConfig =
-    this.copy(recordStats = false)
+  def noStats: CacheConfig = this.copy(recordStats = false)
 
   /**
     * Sets the ticker for time measurements. Use ManualTicker for testing.
     */
-  def withTicker(ticker: Ticker): CacheConfig =
-    this.copy(ticker = ticker)
+  def withTicker(ticker: Ticker): CacheConfig = this.copy(ticker = ticker)
 
   // --- Build methods ---
 
   /**
     * Builds a cache that does not automatically load values.
     */
-  def build[K, V](): Cache[K, V] =
-    LocalCache[K, V](this, None, RemovalListener.noop[K, V])
+  def build[K, V](): Cache[K, V] = LocalCache[K, V](this, None, RemovalListener.noop[K, V])
 
   /**
     * Builds a cache with a weigher function for weight-based eviction.
     */
-  def build[K, V](weigher: (K, V) => Int): Cache[K, V] =
-    LocalCache[K, V](this, Some(weigher), RemovalListener.noop[K, V])
+  def build[K, V](weigher: (K, V) => Int): Cache[K, V] = LocalCache[K, V](
+    this,
+    Some(weigher),
+    RemovalListener.noop[K, V]
+  )
 
   /**
     * Builds a cache with a removal listener.
@@ -169,8 +172,12 @@ case class CacheConfig(
   /**
     * Builds a loading cache that automatically loads values using the given loader.
     */
-  def build[K, V](loader: K => V): LoadingCache[K, V] =
-    LocalLoadingCache[K, V](this, None, RemovalListener.noop[K, V], loader)
+  def build[K, V](loader: K => V): LoadingCache[K, V] = LocalLoadingCache[K, V](
+    this,
+    None,
+    RemovalListener.noop[K, V],
+    loader
+  )
 
   /**
     * Builds a loading cache with a weigher function.
@@ -184,8 +191,7 @@ case class CacheConfig(
   def buildWithRemovalListener[K, V](
       loader: K => V,
       listener: RemovalListener[K, V]
-  ): LoadingCache[K, V] =
-    LocalLoadingCache[K, V](this, None, listener, loader)
+  ): LoadingCache[K, V] = LocalLoadingCache[K, V](this, None, listener, loader)
 
 end CacheConfig
 
