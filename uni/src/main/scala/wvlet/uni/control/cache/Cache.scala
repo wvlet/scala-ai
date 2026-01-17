@@ -285,3 +285,48 @@ object CacheStats:
   )
 
 end CacheStats
+
+/**
+  * Mutable counter for tracking cache statistics. Thread-safe via AtomicLong.
+  * Use `snapshot()` to get an immutable CacheStats for reporting.
+  */
+private[cache] class StatsCounter:
+  import java.util.concurrent.atomic.AtomicLong
+
+  private val _hitCount           = AtomicLong(0)
+  private val _missCount          = AtomicLong(0)
+  private val _loadSuccessCount   = AtomicLong(0)
+  private val _loadFailureCount   = AtomicLong(0)
+  private val _totalLoadTimeNanos = AtomicLong(0)
+  private val _evictionCount      = AtomicLong(0)
+  private val _evictionWeight     = AtomicLong(0)
+
+  def recordHit(): Unit  = _hitCount.incrementAndGet()
+  def recordMiss(): Unit = _missCount.incrementAndGet()
+
+  def recordLoadSuccess(loadTimeNanos: Long): Unit =
+    _loadSuccessCount.incrementAndGet()
+    _totalLoadTimeNanos.addAndGet(loadTimeNanos)
+
+  def recordLoadFailure(loadTimeNanos: Long): Unit =
+    _loadFailureCount.incrementAndGet()
+    _totalLoadTimeNanos.addAndGet(loadTimeNanos)
+
+  def recordEviction(weight: Long): Unit =
+    _evictionCount.incrementAndGet()
+    _evictionWeight.addAndGet(weight)
+
+  /**
+    * Returns an immutable snapshot of the current statistics.
+    */
+  def snapshot(): CacheStats = CacheStats(
+    hitCount = _hitCount.get(),
+    missCount = _missCount.get(),
+    loadSuccessCount = _loadSuccessCount.get(),
+    loadFailureCount = _loadFailureCount.get(),
+    totalLoadTimeNanos = _totalLoadTimeNanos.get(),
+    evictionCount = _evictionCount.get(),
+    evictionWeight = _evictionWeight.get()
+  )
+
+end StatsCounter

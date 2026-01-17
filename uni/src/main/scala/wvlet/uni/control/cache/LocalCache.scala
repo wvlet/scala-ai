@@ -15,7 +15,6 @@ package wvlet.uni.control.cache
 
 import wvlet.uni.control.Ticker
 
-import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable
 
 /**
@@ -54,14 +53,8 @@ class LocalCache[K, V](
   private var currentSize: Long      = 0
   private var currentWeight: Long    = 0
 
-  // Statistics counters
-  private val _hitCount           = AtomicLong(0)
-  private val _missCount          = AtomicLong(0)
-  private val _loadSuccessCount   = AtomicLong(0)
-  private val _loadFailureCount   = AtomicLong(0)
-  private val _totalLoadTimeNanos = AtomicLong(0)
-  private val _evictionCount      = AtomicLong(0)
-  private val _evictionWeight     = AtomicLong(0)
+  // Mutable stats counter (only used when recordStats is enabled)
+  private val statsCounter: StatsCounter = StatsCounter()
 
   private def ticker: Ticker = config.ticker
 
@@ -201,15 +194,7 @@ class LocalCache[K, V](
       }
   }
 
-  override def stats: CacheStats = CacheStats(
-    hitCount = _hitCount.get(),
-    missCount = _missCount.get(),
-    loadSuccessCount = _loadSuccessCount.get(),
-    loadFailureCount = _loadFailureCount.get(),
-    totalLoadTimeNanos = _totalLoadTimeNanos.get(),
-    evictionCount = _evictionCount.get(),
-    evictionWeight = _evictionWeight.get()
-  )
+  override def stats: CacheStats = statsCounter.snapshot()
 
   // --- Private helper methods ---
 
@@ -245,9 +230,8 @@ class LocalCache[K, V](
     removeFromList(entry)
     currentSize -= 1
     currentWeight -= entry.weight
-    if cause == RemovalCause.Size then
-      _evictionCount.incrementAndGet()
-      _evictionWeight.addAndGet(entry.weight)
+    if cause == RemovalCause.Size && config.recordStats then
+      statsCounter.recordEviction(entry.weight)
     notifyRemoval(entry.key, entry.value, cause)
 
   private def notifyRemoval(key: K, value: V, cause: RemovalCause): Unit =
@@ -282,20 +266,16 @@ class LocalCache[K, V](
   // --- Statistics recording ---
 
   private def recordHit(): Unit =
-    if config.recordStats then _hitCount.incrementAndGet()
+    if config.recordStats then statsCounter.recordHit()
 
   private def recordMiss(): Unit =
-    if config.recordStats then _missCount.incrementAndGet()
+    if config.recordStats then statsCounter.recordMiss()
 
   private def recordLoadSuccess(loadTimeNanos: Long): Unit =
-    if config.recordStats then
-      _loadSuccessCount.incrementAndGet()
-      _totalLoadTimeNanos.addAndGet(loadTimeNanos)
+    if config.recordStats then statsCounter.recordLoadSuccess(loadTimeNanos)
 
   private def recordLoadFailure(loadTimeNanos: Long): Unit =
-    if config.recordStats then
-      _loadFailureCount.incrementAndGet()
-      _totalLoadTimeNanos.addAndGet(loadTimeNanos)
+    if config.recordStats then statsCounter.recordLoadFailure(loadTimeNanos)
 
   // Periodic cleanup (only if expiration is configured)
   private var lastCleanupNanos: Long         = 0
