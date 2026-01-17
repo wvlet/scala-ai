@@ -24,14 +24,14 @@ import scala.concurrent.duration.Duration
   * Example usage:
   * {{{
   *   // Simple cache
-  *   val cache = Cache.builder
+  *   val cache = Cache.newBuilder
   *     .withMaximumSize(1000)
   *     .withExpirationAfterWrite(10, TimeUnit.MINUTES)
   *     .withStats
   *     .build[String, Int]()
   *
   *   // Loading cache with automatic value computation
-  *   val loadingCache = Cache.builder
+  *   val loadingCache = Cache.newBuilder
   *     .withMaximumSize(100)
   *     .withExpirationAfterAccess(5, TimeUnit.MINUTES)
   *     .build((key: String) => computeValue(key))

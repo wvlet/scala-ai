@@ -102,13 +102,13 @@ object Cache:
     *
     * Example usage:
     * {{{
-    *   val cache = Cache.builder
+    *   val cache = Cache.newBuilder
     *     .withMaximumSize(1000)
     *     .withExpirationAfterWrite(10, TimeUnit.MINUTES)
     *     .build[String, Int]()
     * }}}
     */
-  def builder: CacheConfig = CacheConfig.default
+  def newBuilder: CacheConfig = CacheConfig.default
 
 end Cache
 
