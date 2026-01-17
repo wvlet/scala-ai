@@ -254,6 +254,30 @@ class LocalCache[K, V](
     else
       None
 
+  /**
+    * Returns true if an entry is stale and eligible for refresh (but not yet expired).
+    */
+  protected def isStaleForRefresh(key: K): Boolean = synchronized {
+    data.get(key) match
+      case Some(entry) =>
+        val now = ticker.read
+        config.refreshAfterWriteNanos.exists(ttl => now - entry.writeTimeNanos > ttl) &&
+        getExpirationCause(entry).isEmpty // Not expired
+      case None =>
+        false
+  }
+
+  /**
+    * Updates the write time of an entry after a successful refresh.
+    */
+  protected def updateWriteTime(key: K): Unit = synchronized {
+    data
+      .get(key)
+      .foreach { entry =>
+        entry.writeTimeNanos = ticker.read
+      }
+  }
+
   private def isExpired(entry: CacheEntry[K, V]): Boolean = getExpirationCause(entry).isDefined
 
   private def onAccess(entry: CacheEntry[K, V]): Unit =
@@ -356,6 +380,9 @@ end LocalCache
 
 /**
   * LoadingCache implementation that automatically loads values.
+  *
+  * Supports background refresh via `refreshAfterWrite` - when an entry becomes stale, the old value
+  * is returned immediately while a background thread refreshes the entry.
   */
 class LocalLoadingCache[K, V](
     config: CacheConfig,
@@ -366,21 +393,59 @@ class LocalLoadingCache[K, V](
     with LoadingCache[K, V]
     with LogSupport:
 
+  import java.util.concurrent.ConcurrentHashMap
+  import scala.jdk.CollectionConverters.*
+
+  // Track keys with pending refresh to avoid duplicate refreshes
+  private val pendingRefresh: ConcurrentHashMap.KeySetView[K, java.lang.Boolean] = ConcurrentHashMap
+    .newKeySet[K]()
+
+  // Daemon thread for background refresh
+  private lazy val refreshExecutor: java.util.concurrent.ExecutorService = java
+    .util
+    .concurrent
+    .Executors
+    .newSingleThreadExecutor { (r: Runnable) =>
+      val t = new Thread(r, "cache-refresh")
+      t.setDaemon(true)
+      t
+    }
+
   override def get(key: K): Option[V] =
-    super.get(key, loader) match
-      case v =>
-        Some(v)
+    val value = super.get(key, loader)
+    // Check if entry is stale and trigger background refresh
+    if config.hasRefresh && isStaleForRefresh(key) then
+      triggerBackgroundRefresh(key)
+    Some(value)
 
   override def getAll(keys: Iterable[K]): Map[K, V] = synchronized {
     keys.map(key => key -> get(key, loader)).toMap
   }
 
   override def refresh(key: K): Unit = synchronized {
+    doRefresh(key)
+  }
+
+  private def triggerBackgroundRefresh(key: K): Unit =
+    // Only trigger if not already refreshing
+    if pendingRefresh.add(key) then
+      try
+        refreshExecutor.execute { () =>
+          try doRefresh(key)
+          finally pendingRefresh.remove(key)
+        }
+      catch
+        case _: java.util.concurrent.RejectedExecutionException =>
+          pendingRefresh.remove(key)
+
+  private def doRefresh(key: K): Unit =
     try
       val value = loader(key)
       // Reject null values (matching Caffeine behavior)
       if value != null then
-        put(key, value)
+        synchronized {
+          put(key, value)
+        }
     catch
       case e: InterruptedException =>
         // Preserve interrupt flag (matching Caffeine behavior)
@@ -389,7 +454,6 @@ class LocalLoadingCache[K, V](
       case e: Throwable =>
         // Keep existing value on refresh failure, but log the error
         warn(s"Failed to refresh cache entry for key '${key}': ${e.getMessage}", e)
-  }
 
 end LocalLoadingCache
 

@@ -56,12 +56,14 @@ case class CacheConfig(
     maxSize: Option[Long] = None,
     expireAfterWriteNanos: Option[Long] = None,
     expireAfterAccessNanos: Option[Long] = None,
+    refreshAfterWriteNanos: Option[Long] = None,
     initialCapacity: Int = 16,
     recordStats: Boolean = false,
     ticker: Ticker = Ticker.systemTicker,
     maxWeight: Option[Long] = None
 ):
   def hasExpiration: Boolean = expireAfterWriteNanos.isDefined || expireAfterAccessNanos.isDefined
+  def hasRefresh: Boolean    = refreshAfterWriteNanos.isDefined
   def hasMaxSize: Boolean    = maxSize.isDefined
   def hasMaxWeight: Boolean  = maxWeight.isDefined
 
@@ -109,6 +111,26 @@ case class CacheConfig(
     * Specifies that entries should expire after a fixed duration since last read or write.
     */
   def withExpirationAfterAccess(duration: Duration): CacheConfig = withExpirationAfterAccess(
+    duration.toNanos,
+    TimeUnit.NANOSECONDS
+  )
+
+  /**
+    * Specifies that entries should be refreshed after a fixed duration since creation or last
+    * update. Unlike expiration, a stale entry will still be returned while a background refresh is
+    * triggered. This is only effective for LoadingCache.
+    *
+    * Note: refreshAfterWrite should be less than expireAfterWrite to be useful.
+    */
+  def withRefreshAfterWrite(duration: Long, unit: TimeUnit): CacheConfig =
+    require(duration >= 0, "duration must not be negative")
+    this.copy(refreshAfterWriteNanos = Some(unit.toNanos(duration)))
+
+  /**
+    * Specifies that entries should be refreshed after a fixed duration since creation or last
+    * update.
+    */
+  def withRefreshAfterWrite(duration: Duration): CacheConfig = withRefreshAfterWrite(
     duration.toNanos,
     TimeUnit.NANOSECONDS
   )
