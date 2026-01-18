@@ -43,22 +43,16 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
   private def sendWithRetry(request: HttpRequest): HttpResponse =
     val retryContext = config
       .retryContext
-      .withResultClassifier[HttpResponse] { response =>
-        if response.status.isRetryable then
-          ResultClass.retryableFailure(HttpException.fromResponse(response))
-        else
-          ResultClass.Succeeded
-      }
-      .withErrorClassifier {
-        case e: HttpException if e.isRetryable =>
-          Retry.retryableFailure(e)
-        case e =>
-          Retry.nonRetryableFailure(e)
-      }
+      .withResultClassifier[HttpResponse](HttpExceptionClassifier.classifyHttpResponse)
+      .withErrorClassifier(HttpExceptionClassifier.classifyExecutionFailure)
 
-    retryContext.run {
-      channel.send(request, config)
-    }
+    try
+      retryContext.run {
+        channel.send(request, config)
+      }
+    catch
+      case e: Retry.MaxRetryException =>
+        throw HttpMaxRetryException.fromCause(e.retryContext, e.retryContext.lastError)
 
   private def handleRedirect(
       originalRequest: HttpRequest,
@@ -142,22 +136,16 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
   private def sendWithRetry(request: HttpRequest): Rx[HttpResponse] =
     val retryContext = config
       .retryContext
-      .withResultClassifier[HttpResponse] { response =>
-        if response.status.isRetryable then
-          ResultClass.retryableFailure(HttpException.fromResponse(response))
-        else
-          ResultClass.Succeeded
-      }
-      .withErrorClassifier {
-        case e: HttpException if e.isRetryable =>
-          Retry.retryableFailure(e)
-        case e =>
-          Retry.nonRetryableFailure(e)
-      }
+      .withResultClassifier[HttpResponse](HttpExceptionClassifier.classifyHttpResponse)
+      .withErrorClassifier(HttpExceptionClassifier.classifyExecutionFailure)
 
-    retryContext.runAsyncWithContext(request) {
-      channel.send(request, config)
-    }
+    retryContext
+      .runAsyncWithContext(request) {
+        channel.send(request, config)
+      }
+      .recover { case e: Retry.MaxRetryException =>
+        throw HttpMaxRetryException.fromCause(e.retryContext, e.retryContext.lastError)
+      }
 
   private def handleRedirect(
       originalRequest: HttpRequest,

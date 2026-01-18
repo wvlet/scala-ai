@@ -118,6 +118,12 @@ enum HttpStatus(val code: Int, val reason: String):
         true
       case RequestTimeout_408 =>
         true
+      case Gone_410 =>
+        // Server may have failed to process the request
+        true
+      case ClientClosedRequest_499 =>
+        // Client may have closed connection prematurely
+        true
       case _ =>
         false
 
