@@ -600,6 +600,23 @@ trait Rx[+A] extends RxOps[A]:
     */
   def startWith[A1 >: A](lst: Seq[A1]): Rx[A1] = Rx.concat(Rx.fromSeq(lst), this)
 
+  /**
+    * Timeout the computation if it doesn't complete within the specified duration. If the timeout
+    * is reached, the computation is cancelled and a TimeoutException is emitted.
+    *
+    * @param duration
+    *   the timeout duration
+    * @param unit
+    *   the time unit for the duration
+    * @return
+    *   an Rx that emits the result or a TimeoutException
+    */
+  def timeout(duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Rx[A] = TimeoutOp(
+    this,
+    duration,
+    unit
+  )
+
 end Rx
 
 /**
@@ -1087,6 +1104,14 @@ object Rx extends LogSupport:
 
   case class ThrottleLastOp[A](input: RxOps[A], interval: Long, unit: TimeUnit)
       extends UnaryRx[A, A]
+
+  case class TimeoutOp[A](input: RxOps[A], duration: Long, unit: TimeUnit) extends UnaryRx[A, A]
+
+  /**
+    * Exception thrown when a timeout occurs.
+    */
+  case class TimeoutException(duration: Long, unit: TimeUnit)
+      extends Exception(s"Operation timed out after ${duration} ${unit.toString.toLowerCase}")
 
   case class CacheOp[A](
       input: RxOps[A],
