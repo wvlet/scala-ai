@@ -13,11 +13,11 @@
  */
 package wvlet.uni.rx
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 import java.util.concurrent.TimeUnit
 import scala.util.Try
 
-class RxTimeoutTest extends AirSpec:
+class RxTimeoutTest extends UniTest:
 
   test("timeout should complete normally if within limit") {
     val result = Rx.delay(10, TimeUnit.MILLISECONDS).map(_ => "done").timeout(100).await

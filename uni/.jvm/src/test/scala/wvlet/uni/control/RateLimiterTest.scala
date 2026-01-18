@@ -13,11 +13,11 @@
  */
 package wvlet.uni.control
 
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-class RateLimiterTest extends AirSpec:
+class RateLimiterTest extends UniTest:
 
   test("fixed window rate limiter") {
     val limiter = RateLimiter.fixedWindow(3, 100, TimeUnit.MILLISECONDS)
