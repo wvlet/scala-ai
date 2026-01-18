@@ -85,7 +85,61 @@ class HttpStatusTest extends UniTest:
     other shouldMatch { case HttpStatus.Other(999) =>
     }
     other.code shouldBe 999
-    other.reason shouldBe "Other(999)"
+    other.reason shouldBe "Unknown (999)"
+  }
+
+  test("should provide category context for Other status codes") {
+    HttpStatus.ofCode(50).reason shouldBe "Unknown (50)"
+    HttpStatus.ofCode(150).reason shouldBe "Unknown 1xx (150)"
+    HttpStatus.ofCode(250).reason shouldBe "Unknown 2xx (250)"
+    HttpStatus.ofCode(350).reason shouldBe "Unknown 3xx (350)"
+    HttpStatus.ofCode(450).reason shouldBe "Unknown 4xx (450)"
+    HttpStatus.ofCode(550).reason shouldBe "Unknown 5xx (550)"
+    HttpStatus.ofCode(650).reason shouldBe "Unknown (650)"
+  }
+
+  test("should detect unknown state codes") {
+    HttpStatus.ofCode(50).isUnknownState shouldBe true
+    HttpStatus.ofCode(99).isUnknownState shouldBe true
+    HttpStatus.Continue_100.isUnknownState shouldBe false
+    HttpStatus.Ok_200.isUnknownState shouldBe false
+    HttpStatus.InternalServerError_500.isUnknownState shouldBe false
+    HttpStatus.ofCode(599).isUnknownState shouldBe false
+    HttpStatus.ofCode(600).isUnknownState shouldBe true
+    HttpStatus.ofCode(999).isUnknownState shouldBe true
+  }
+
+  test("should classify codes using static methods") {
+    // isUnknownState
+    HttpStatus.isUnknownState(50) shouldBe true
+    HttpStatus.isUnknownState(100) shouldBe false
+    HttpStatus.isUnknownState(599) shouldBe false
+    HttpStatus.isUnknownState(600) shouldBe true
+
+    // isInformational
+    HttpStatus.isInformational(100) shouldBe true
+    HttpStatus.isInformational(199) shouldBe true
+    HttpStatus.isInformational(200) shouldBe false
+
+    // isSuccessful
+    HttpStatus.isSuccessful(200) shouldBe true
+    HttpStatus.isSuccessful(299) shouldBe true
+    HttpStatus.isSuccessful(300) shouldBe false
+
+    // isRedirection
+    HttpStatus.isRedirection(300) shouldBe true
+    HttpStatus.isRedirection(399) shouldBe true
+    HttpStatus.isRedirection(400) shouldBe false
+
+    // isClientError
+    HttpStatus.isClientError(400) shouldBe true
+    HttpStatus.isClientError(499) shouldBe true
+    HttpStatus.isClientError(500) shouldBe false
+
+    // isServerError
+    HttpStatus.isServerError(500) shouldBe true
+    HttpStatus.isServerError(599) shouldBe true
+    HttpStatus.isServerError(600) shouldBe false
   }
 
   test("should compare status codes by code value") {

@@ -127,4 +127,78 @@ class HttpContentTest extends UniTest:
     String(bytes, "UTF-8") shouldBe "Hello"
   }
 
+  test("toContentString should return empty string for Empty") {
+    HttpContent.empty.toContentString shouldBe ""
+  }
+
+  test("toContentString should return content for TextContent") {
+    val content = HttpContent.text("Hello World")
+    content.toContentString shouldBe "Hello World"
+  }
+
+  test("toContentString should return decoded string for ByteContent") {
+    val bytes   = "Hello Bytes".getBytes("UTF-8")
+    val content = HttpContent.bytes(bytes)
+    content.toContentString shouldBe "Hello Bytes"
+  }
+
+  test("toContentString should return JSON string for JsonContent") {
+    val json    = JSON.parse("""{"key": "value"}""")
+    val content = HttpContent.json(json)
+    content.toContentString shouldContain "key"
+    content.toContentString shouldContain "value"
+  }
+
+  test("toContentBytes should return empty array for Empty") {
+    val bytes = HttpContent.empty.toContentBytes
+    bytes.length shouldBe 0
+  }
+
+  test("toContentBytes should return bytes for TextContent") {
+    val content = HttpContent.text("Hello")
+    val bytes   = content.toContentBytes
+    String(bytes, "UTF-8") shouldBe "Hello"
+  }
+
+  test("toContentBytes should return bytes for ByteContent") {
+    val originalBytes = Array[Byte](1, 2, 3, 4, 5)
+    val content       = HttpContent.bytes(originalBytes)
+    content.toContentBytes shouldBe originalBytes
+  }
+
+  test("toContentBytes should return bytes for JsonContent") {
+    val json    = JSON.parse("""{"a": 1}""")
+    val content = HttpContent.json(json)
+    val bytes   = content.toContentBytes
+    (bytes.length > 0) shouldBe true
+    String(bytes, "UTF-8") shouldContain "a"
+  }
+
+  test("contentHash should return 0 for Empty") {
+    HttpContent.empty.contentHash shouldBe 0
+  }
+
+  test("contentHash should be consistent for same content") {
+    val content1 = HttpContent.text("Hello")
+    val content2 = HttpContent.text("Hello")
+    content1.contentHash shouldBe content2.contentHash
+  }
+
+  test("contentHash should differ for different content") {
+    val content1 = HttpContent.text("Hello")
+    val content2 = HttpContent.text("World")
+    (content1.contentHash != content2.contentHash) shouldBe true
+  }
+
+  test("contentHash should work for ByteContent") {
+    val content = HttpContent.bytes(Array[Byte](1, 2, 3))
+    (content.contentHash != 0) shouldBe true
+  }
+
+  test("contentHash should work for JsonContent") {
+    val json    = JSON.parse("""{"test": true}""")
+    val content = HttpContent.json(json)
+    (content.contentHash != 0) shouldBe true
+  }
+
 end HttpContentTest

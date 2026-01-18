@@ -91,13 +91,22 @@ enum HttpStatus(val code: Int, val reason: String):
   case NetworkAuthRequired_511     extends HttpStatus(511, "Network Authentication Required")
 
   // Other status holder for non-standard codes
-  case Other(override val code: Int) extends HttpStatus(code, s"Other(${code})")
+  case Other(override val code: Int)
+      extends HttpStatus(
+        code,
+        code match
+          case c if c >= 100 && c < 600 =>
+            s"Unknown ${c / 100}xx (${code})"
+          case _ =>
+            s"Unknown (${code})"
+      )
 
-  def isInformational: Boolean = code >= 100 && code < 200
-  def isSuccessful: Boolean    = code >= 200 && code < 300
-  def isRedirection: Boolean   = code >= 300 && code < 400
-  def isClientError: Boolean   = code >= 400 && code < 500
-  def isServerError: Boolean   = code >= 500 && code < 600
+  def isInformational: Boolean = HttpStatus.isInformational(code)
+  def isSuccessful: Boolean    = HttpStatus.isSuccessful(code)
+  def isRedirection: Boolean   = HttpStatus.isRedirection(code)
+  def isClientError: Boolean   = HttpStatus.isClientError(code)
+  def isServerError: Boolean   = HttpStatus.isServerError(code)
+  def isUnknownState: Boolean  = HttpStatus.isUnknownState(code)
 
   def isRetryable: Boolean =
     this match
@@ -189,5 +198,13 @@ object HttpStatus:
   def ofCode(code: Int): HttpStatus = statusByCode.getOrElse(code, Other(code))
 
   def unapply(code: Int): Option[HttpStatus] = Some(ofCode(code))
+
+  // Static classification methods for use without creating HttpStatus instances
+  def isUnknownState(code: Int): Boolean  = code < 100 || code >= 600
+  def isInformational(code: Int): Boolean = code >= 100 && code < 200
+  def isSuccessful(code: Int): Boolean    = code >= 200 && code < 300
+  def isRedirection(code: Int): Boolean   = code >= 300 && code < 400
+  def isClientError(code: Int): Boolean   = code >= 400 && code < 500
+  def isServerError(code: Int): Boolean   = code >= 500 && code < 600
 
 end HttpStatus
