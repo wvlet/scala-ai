@@ -13,7 +13,7 @@
  */
 package wvlet.uni.control.cache
 
-import wvlet.uni.control.Ticker
+import wvlet.uni.rx.Ticker
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
