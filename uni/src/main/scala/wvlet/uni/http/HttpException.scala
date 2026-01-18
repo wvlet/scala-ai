@@ -29,17 +29,20 @@ enum HttpErrorCode:
   case TooManyRedirects
 
   // Response errors
-  case ClientError  // 4xx
-  case ServerError  // 5xx
+  case ClientError // 4xx
+  case ServerError // 5xx
   case InvalidResponse
   case UnexpectedResponse
 
   // Other errors
   case Unknown
 
-  def isRetryable: Boolean = this match
-    case ConnectionTimeout | ReadTimeout | ServerError => true
-    case _                                             => false
+  def isRetryable: Boolean =
+    this match
+      case ConnectionTimeout | ReadTimeout | ServerError =>
+        true
+      case _ =>
+        false
 
 /**
   * Base exception for all HTTP-related errors.
@@ -59,50 +62,71 @@ class HttpException(
 
   def isRetryable: Boolean = errorCode.isRetryable || status.exists(_.isRetryable)
 
-  def isClientError: Boolean = errorCode == HttpErrorCode.ClientError || status.exists(_.isClientError)
-  def isServerError: Boolean = errorCode == HttpErrorCode.ServerError || status.exists(_.isServerError)
+  def isClientError: Boolean =
+    errorCode == HttpErrorCode.ClientError || status.exists(_.isClientError)
 
-  def retryAfter: Option[Long] =
-    response.flatMap(_.headers.get(HttpHeader.RetryAfter)).flatMap(_.toLongOption)
+  def isServerError: Boolean =
+    errorCode == HttpErrorCode.ServerError || status.exists(_.isServerError)
+
+  def retryAfter: Option[Long] = response
+    .flatMap(_.headers.get(HttpHeader.RetryAfter))
+    .flatMap(_.toLongOption)
 
 object HttpException:
-  def apply(message: String): HttpException =
-    HttpException(message, HttpErrorCode.Unknown)
+  def apply(message: String): HttpException = new HttpException(message, HttpErrorCode.Unknown)
 
   def apply(message: String, errorCode: HttpErrorCode): HttpException =
-    HttpException(message, errorCode, None, None, None, null)
+    new HttpException(message, errorCode)
 
   def apply(message: String, status: HttpStatus): HttpException =
-    val errorCode = if status.isClientError then HttpErrorCode.ClientError
-                    else if status.isServerError then HttpErrorCode.ServerError
-                    else HttpErrorCode.Unknown
-    HttpException(message, errorCode, Some(status), None, None, null)
+    val errorCode =
+      if status.isClientError then
+        HttpErrorCode.ClientError
+      else if status.isServerError then
+        HttpErrorCode.ServerError
+      else
+        HttpErrorCode.Unknown
+    new HttpException(message, errorCode, Some(status))
 
   def apply(message: String, cause: Throwable): HttpException =
-    HttpException(message, HttpErrorCode.Unknown, None, None, None, cause)
+    new HttpException(message, HttpErrorCode.Unknown, None, None, None, cause)
 
   def fromResponse(response: HttpResponse): HttpException =
     val message   = response.contentAsString.getOrElse(response.status.reason)
-    val errorCode = if response.isClientError then HttpErrorCode.ClientError
-                    else if response.isServerError then HttpErrorCode.ServerError
-                    else HttpErrorCode.UnexpectedResponse
-    HttpException(message, errorCode, Some(response.status), None, Some(response), null)
+    val errorCode =
+      if response.isClientError then
+        HttpErrorCode.ClientError
+      else if response.isServerError then
+        HttpErrorCode.ServerError
+      else
+        HttpErrorCode.UnexpectedResponse
+    new HttpException(message, errorCode, Some(response.status), None, Some(response))
 
   // Factory methods for common error codes
   def connectionFailed(message: String, cause: Throwable = null): HttpException =
-    HttpException(message, HttpErrorCode.ConnectionFailed, None, None, None, cause)
+    new HttpException(message, HttpErrorCode.ConnectionFailed, cause = cause)
 
   def connectionTimeout(message: String, cause: Throwable = null): HttpException =
-    HttpException(message, HttpErrorCode.ConnectionTimeout, None, None, None, cause)
+    new HttpException(message, HttpErrorCode.ConnectionTimeout, cause = cause)
 
   def readTimeout(message: String, cause: Throwable = null): HttpException =
-    HttpException(message, HttpErrorCode.ReadTimeout, None, None, None, cause)
+    new HttpException(message, HttpErrorCode.ReadTimeout, cause = cause)
 
   def sslError(message: String, cause: Throwable = null): HttpException =
-    HttpException(message, HttpErrorCode.SslError, None, None, None, cause)
+    new HttpException(message, HttpErrorCode.SslError, cause = cause)
 
-  def clientError(message: String, status: HttpStatus, response: Option[HttpResponse] = None): HttpException =
-    HttpException(message, HttpErrorCode.ClientError, Some(status), None, response, null)
+  def clientError(
+      message: String,
+      status: HttpStatus,
+      response: Option[HttpResponse] = None
+  ): HttpException =
+    new HttpException(message, HttpErrorCode.ClientError, Some(status), None, response)
 
-  def serverError(message: String, status: HttpStatus, response: Option[HttpResponse] = None): HttpException =
-    HttpException(message, HttpErrorCode.ServerError, Some(status), None, response, null)
+  def serverError(
+      message: String,
+      status: HttpStatus,
+      response: Option[HttpResponse] = None
+  ): HttpException =
+    new HttpException(message, HttpErrorCode.ServerError, Some(status), None, response)
+
+end HttpException

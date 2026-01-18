@@ -32,14 +32,13 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should clear base URI") {
-    val config = HttpClientConfig.default
-      .withBaseUri("https://api.example.com")
-      .noBaseUri
+    val config = HttpClientConfig.default.withBaseUri("https://api.example.com").noBaseUri
     config.baseUri shouldBe None
   }
 
   test("should set timeouts") {
-    val config = HttpClientConfig.default
+    val config = HttpClientConfig
+      .default
       .withConnectTimeoutMillis(5000)
       .withReadTimeoutMillis(10000)
     config.connectTimeoutMillis shouldBe 5000
@@ -74,7 +73,8 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should add default headers") {
-    val config = HttpClientConfig.default
+    val config = HttpClientConfig
+      .default
       .addDefaultHeader("Accept", "application/json")
       .addDefaultHeader("X-Custom", "value")
     config.defaultHeaders.get("Accept") shouldBe Some("application/json")
@@ -82,7 +82,8 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should set default header replacing existing") {
-    val config = HttpClientConfig.default
+    val config = HttpClientConfig
+      .default
       .setDefaultHeader("Accept", "text/html")
       .setDefaultHeader("Accept", "application/json")
     config.defaultHeaders.get("Accept") shouldBe Some("application/json")
@@ -151,7 +152,8 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should configure retry settings") {
-    val config = HttpRetryConfig.default
+    val config = HttpRetryConfig
+      .default
       .withMaxRetries(5)
       .withInitialDelayMillis(500)
       .withMaxDelayMillis(60000)
@@ -177,7 +179,11 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should calculate delay with exponential backoff") {
-    val config = HttpRetryConfig(initialDelayMillis = 1000, backoffMultiplier = 2.0, maxDelayMillis = 30000)
+    val config = HttpRetryConfig(
+      initialDelayMillis = 1000,
+      backoffMultiplier = 2.0,
+      maxDelayMillis = 30000
+    )
     config.delayForAttempt(0) shouldBe 1000
     config.delayForAttempt(1) shouldBe 2000
     config.delayForAttempt(2) shouldBe 4000
@@ -185,8 +191,14 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should cap delay at max delay") {
-    val config = HttpRetryConfig(initialDelayMillis = 10000, backoffMultiplier = 2.0, maxDelayMillis = 15000)
+    val config = HttpRetryConfig(
+      initialDelayMillis = 10000,
+      backoffMultiplier = 2.0,
+      maxDelayMillis = 15000
+    )
     config.delayForAttempt(0) shouldBe 10000
     config.delayForAttempt(1) shouldBe 15000 // capped
     config.delayForAttempt(2) shouldBe 15000 // capped
   }
+
+end HttpClientConfigTest

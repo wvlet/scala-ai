@@ -136,6 +136,8 @@ class HttpExceptionTest extends UniTest:
 
   test("should preserve response in exceptions") {
     val response = HttpResponse.badRequest("Invalid data")
-    val e        = HttpException.clientError("Bad request", HttpStatus.BadRequest_400, Some(response))
+    val e = HttpException.clientError("Bad request", HttpStatus.BadRequest_400, Some(response))
     e.response shouldBe Some(response)
   }
+
+end HttpExceptionTest

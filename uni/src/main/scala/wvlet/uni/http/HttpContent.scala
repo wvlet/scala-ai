@@ -13,14 +13,14 @@
  */
 package wvlet.uni.http
 
-import wvlet.uni.json.JSONValue
+import wvlet.uni.json.JSON.JSONValue
 
 /**
   * Represents the body content of an HTTP message
   */
 sealed trait HttpContent:
   def isEmpty: Boolean
-  def nonEmpty: Boolean     = !isEmpty
+  def nonEmpty: Boolean = !isEmpty
   def contentType: Option[ContentType]
   def length: Long
 
@@ -30,20 +30,21 @@ sealed trait HttpContent:
 object HttpContent:
 
   case object Empty extends HttpContent:
-    def isEmpty: Boolean                = true
+    def isEmpty: Boolean                 = true
     def contentType: Option[ContentType] = None
-    def length: Long                    = 0
-    def asString: Option[String]        = None
-    def asBytes: Option[Array[Byte]]    = None
+    def length: Long                     = 0
+    def asString: Option[String]         = None
+    def asBytes: Option[Array[Byte]]     = None
 
   case class TextContent(
       text: String,
       override val contentType: Option[ContentType] = Some(ContentType.TextPlain)
   ) extends HttpContent:
-    def isEmpty: Boolean             = text.isEmpty
-    def length: Long                 = text.getBytes("UTF-8").length.toLong
-    def asString: Option[String]     = Some(text)
-    def asBytes: Option[Array[Byte]] = Some(text.getBytes("UTF-8"))
+    def isEmpty: Boolean                     = text.isEmpty
+    private lazy val bytesCache: Array[Byte] = text.getBytes("UTF-8")
+    val length: Long                         = bytesCache.length.toLong
+    def asString: Option[String]             = Some(text)
+    def asBytes: Option[Array[Byte]]         = Some(bytesCache)
 
   case class ByteContent(
       bytes: Array[Byte],
@@ -58,33 +59,45 @@ object HttpContent:
       json: JSONValue,
       override val contentType: Option[ContentType] = Some(ContentType.ApplicationJson)
   ) extends HttpContent:
-    def isEmpty: Boolean             = false
-    def length: Long                 = json.toJSON.getBytes("UTF-8").length.toLong
-    def asString: Option[String]     = Some(json.toJSON)
-    def asBytes: Option[Array[Byte]] = Some(json.toJSON.getBytes("UTF-8"))
+    def isEmpty: Boolean                     = false
+    private lazy val jsonString: String      = json.toJSON
+    private lazy val bytesCache: Array[Byte] = jsonString.getBytes("UTF-8")
+    val length: Long                         = bytesCache.length.toLong
+    def asString: Option[String]             = Some(jsonString)
+    def asBytes: Option[Array[Byte]]         = Some(bytesCache)
 
   def empty: HttpContent = Empty
 
   def text(s: String): HttpContent =
-    if s.isEmpty then Empty else TextContent(s)
+    if s.isEmpty then
+      Empty
+    else
+      TextContent(s)
 
   def text(s: String, contentType: ContentType): HttpContent =
-    if s.isEmpty then Empty else TextContent(s, Some(contentType))
+    if s.isEmpty then
+      Empty
+    else
+      TextContent(s, Some(contentType))
 
   def bytes(b: Array[Byte]): HttpContent =
-    if b.isEmpty then Empty else ByteContent(b)
+    if b.isEmpty then
+      Empty
+    else
+      ByteContent(b)
 
   def bytes(b: Array[Byte], contentType: ContentType): HttpContent =
-    if b.isEmpty then Empty else ByteContent(b, Some(contentType))
+    if b.isEmpty then
+      Empty
+    else
+      ByteContent(b, Some(contentType))
 
-  def json(j: JSONValue): HttpContent =
-    JsonContent(j)
+  def json(j: JSONValue): HttpContent = JsonContent(j)
 
-  def json(s: String): HttpContent =
-    TextContent(s, Some(ContentType.ApplicationJson))
+  def json(s: String): HttpContent = TextContent(s, Some(ContentType.ApplicationJson))
 
-  def html(s: String): HttpContent =
-    TextContent(s, Some(ContentType.TextHtml))
+  def html(s: String): HttpContent = TextContent(s, Some(ContentType.TextHtml))
 
-  def xml(s: String): HttpContent =
-    TextContent(s, Some(ContentType.ApplicationXml))
+  def xml(s: String): HttpContent = TextContent(s, Some(ContentType.ApplicationXml))
+
+end HttpContent

@@ -24,10 +24,7 @@ class HttpHeadersTest extends UniTest:
   }
 
   test("should create headers from tuples") {
-    val headers = HttpHeaders(
-      "Content-Type" -> "application/json",
-      "Accept"       -> "text/html"
-    )
+    val headers = HttpHeaders("Content-Type" -> "application/json", "Accept" -> "text/html")
     headers.size shouldBe 2
     headers.get("Content-Type") shouldBe Some("application/json")
     headers.get("Accept") shouldBe Some("text/html")
@@ -41,29 +38,34 @@ class HttpHeadersTest extends UniTest:
   }
 
   test("should add headers") {
-    val headers = HttpHeaders.empty
+    val headers = HttpHeaders
+      .empty
       .add("Content-Type", "application/json")
       .add("Accept", "text/html")
     headers.size shouldBe 2
   }
 
   test("should allow multiple values for same header name") {
-    val headers = HttpHeaders.empty
+    val headers = HttpHeaders
+      .empty
       .add("Set-Cookie", "cookie1=value1")
       .add("Set-Cookie", "cookie2=value2")
     headers.getAll("Set-Cookie") shouldBe Seq("cookie1=value1", "cookie2=value2")
   }
 
   test("should set header replacing existing") {
-    val headers = HttpHeaders("Content-Type" -> "text/plain")
-      .set("Content-Type", "application/json")
+    val headers = HttpHeaders("Content-Type" -> "text/plain").set(
+      "Content-Type",
+      "application/json"
+    )
     headers.size shouldBe 1
     headers.get("Content-Type") shouldBe Some("application/json")
   }
 
   test("should remove headers") {
-    val headers = HttpHeaders("Content-Type" -> "application/json", "Accept" -> "text/html")
-      .remove("Content-Type")
+    val headers = HttpHeaders("Content-Type" -> "application/json", "Accept" -> "text/html").remove(
+      "Content-Type"
+    )
     headers.size shouldBe 1
     headers.contains("Content-Type") shouldBe false
     headers.contains("Accept") shouldBe true
@@ -124,7 +126,8 @@ class HttpHeadersTest extends UniTest:
   }
 
   test("should convert to multi-map") {
-    val headers = HttpHeaders.empty
+    val headers = HttpHeaders
+      .empty
       .add("Set-Cookie", "cookie1=value1")
       .add("Set-Cookie", "cookie2=value2")
     val multiMap = headers.toMultiMap
@@ -166,3 +169,5 @@ class HttpHeadersTest extends UniTest:
     HttpHeader.Cookie shouldBe "Cookie"
     HttpHeader.SetCookie shouldBe "Set-Cookie"
   }
+
+end HttpHeadersTest

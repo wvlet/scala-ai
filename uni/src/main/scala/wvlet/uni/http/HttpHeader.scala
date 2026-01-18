@@ -17,8 +17,7 @@ package wvlet.uni.http
   * An HTTP header name-value pair
   */
 case class HttpHeader(name: String, value: String):
-  def nameEquals(other: String): Boolean =
-    name.equalsIgnoreCase(other)
+  def nameEquals(other: String): Boolean = name.equalsIgnoreCase(other)
 
   override def toString: String = s"${name}: ${value}"
 
@@ -102,5 +101,7 @@ object HttpHeader:
   val XRealIP: String         = "X-Real-IP"
 
   // Custom headers
-  val XRequestId: String    = "X-Request-Id"
+  val XRequestId: String     = "X-Request-Id"
   val XCorrelationId: String = "X-Correlation-Id"
+
+end HttpHeader

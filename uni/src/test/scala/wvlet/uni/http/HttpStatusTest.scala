@@ -82,7 +82,8 @@ class HttpStatusTest extends UniTest:
 
   test("should handle unknown status codes") {
     val unknown = HttpStatus.ofCode(999)
-    unknown shouldMatch { case HttpStatus.Unknown(999) => }
+    unknown shouldMatch { case HttpStatus.Unknown(999) =>
+    }
     unknown.code shouldBe 999
     unknown.reason shouldBe "Unknown"
   }
@@ -98,3 +99,5 @@ class HttpStatusTest extends UniTest:
     HttpStatus.NotFound_404.toString shouldBe "404 Not Found"
     HttpStatus.InternalServerError_500.toString shouldBe "500 Internal Server Error"
   }
+
+end HttpStatusTest

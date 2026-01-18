@@ -16,8 +16,8 @@ package wvlet.uni.http
 /**
   * MIME type representation for Content-Type headers.
   *
-  * ContentType is represented as a simple string wrapper for common cases, with parsing support for extracting
-  * parameters like charset.
+  * ContentType is represented as a simple string wrapper for common cases, with parsing support for
+  * extracting parameters like charset.
   */
 opaque type ContentType = String
 
@@ -77,8 +77,10 @@ object ContentType:
   val FontOtf: ContentType   = "font/otf"
 
   def parse(value: String): Option[ContentType] =
-    if value.isEmpty then None
-    else Some(value)
+    if value.isEmpty then
+      None
+    else
+      Some(value)
 
   def unapply(value: String): Option[ContentType] = parse(value)
 
@@ -87,39 +89,50 @@ object ContentType:
 
     def mediaType: String =
       val idx = ct.indexOf('/')
-      if idx >= 0 then ct.substring(0, idx).toLowerCase else ct.toLowerCase
+      if idx >= 0 then
+        ct.substring(0, idx).toLowerCase
+      else
+        ct.toLowerCase
 
     def subType: String =
       val slashIdx     = ct.indexOf('/')
       val semicolonIdx = ct.indexOf(';')
-      if slashIdx < 0 then ""
-      else if semicolonIdx < 0 then ct.substring(slashIdx + 1).trim.toLowerCase
-      else ct.substring(slashIdx + 1, semicolonIdx).trim.toLowerCase
+      if slashIdx < 0 then
+        ""
+      else if semicolonIdx < 0 then
+        ct.substring(slashIdx + 1).trim.toLowerCase
+      else
+        ct.substring(slashIdx + 1, semicolonIdx).trim.toLowerCase
 
     def fullType: String =
       val semicolonIdx = ct.indexOf(';')
-      val base         = if semicolonIdx < 0 then ct else ct.substring(0, semicolonIdx)
+      val base         =
+        if semicolonIdx < 0 then
+          ct
+        else
+          ct.substring(0, semicolonIdx)
       base.trim.toLowerCase
 
     def charset: Option[String] =
       val lower = ct.toLowerCase
       val idx   = lower.indexOf("charset=")
-      if idx < 0 then None
+      if idx < 0 then
+        None
       else
         val start = idx + 8
-        val end   = ct.indexOf(';', start) match
-          case -1 => ct.length
-          case n  => n
+        val end   =
+          ct.indexOf(';', start) match
+            case -1 =>
+              ct.length
+            case n =>
+              n
         Some(ct.substring(start, end).trim.stripPrefix("\"").stripSuffix("\""))
 
-    def withCharset(cs: String): ContentType =
-      s"${fullType}; charset=${cs}"
+    def withCharset(cs: String): ContentType = s"${fullType}; charset=${cs}"
 
-    def withUtf8Charset: ContentType =
-      withCharset("UTF-8")
+    def withUtf8Charset: ContentType = withCharset("UTF-8")
 
-    def withBoundary(boundary: String): ContentType =
-      s"${fullType}; boundary=${boundary}"
+    def withBoundary(boundary: String): ContentType = s"${fullType}; boundary=${boundary}"
 
     def isText: Boolean        = mediaType == "text"
     def isApplication: Boolean = mediaType == "application"
@@ -129,9 +142,13 @@ object ContentType:
     def isVideo: Boolean       = mediaType == "video"
     def isFont: Boolean        = mediaType == "font"
 
-    def isJson: Boolean = fullType == "application/json" ||
-      (mediaType == "application" && subType.endsWith("+json"))
+    def isJson: Boolean =
+      fullType == "application/json" || (mediaType == "application" && subType.endsWith("+json"))
 
-    def isXml: Boolean = fullType == "application/xml" ||
-      fullType == "text/xml" ||
-      (mediaType == "application" && subType.endsWith("+xml"))
+    def isXml: Boolean =
+      fullType == "application/xml" || fullType == "text/xml" ||
+        (mediaType == "application" && subType.endsWith("+xml"))
+
+  end extension
+
+end ContentType

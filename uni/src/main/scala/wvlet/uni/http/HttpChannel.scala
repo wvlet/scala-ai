@@ -18,11 +18,11 @@ import wvlet.uni.rx.Rx
 /**
   * Low-level HTTP channel interface for platform-specific implementations.
   *
-  * HttpChannel handles the actual HTTP communication. Platform-specific implementations (JVM, Scala.js, Scala Native)
-  * should implement this interface.
+  * HttpChannel handles the actual HTTP communication. Platform-specific implementations (JVM,
+  * Scala.js, Scala Native) should implement this interface.
   *
-  * The high-level HttpSyncClient and HttpAsyncClient use HttpChannel internally to perform HTTP requests, adding
-  * features like retry, redirect handling, and configuration management on top.
+  * The high-level HttpSyncClient and HttpAsyncClient use HttpChannel internally to perform HTTP
+  * requests, adding features like retry, redirect handling, and configuration management on top.
   *
   * Implementations:
   *   - JVM: URLConnection, OkHttp, Netty, etc.
@@ -31,7 +31,8 @@ import wvlet.uni.rx.Rx
   */
 trait HttpChannel extends AutoCloseable:
   /**
-    * Send an HTTP request and return the response. This is the core method that platform implementations must provide.
+    * Send an HTTP request and return the response. This is the core method that platform
+    * implementations must provide.
     *
     * This method should:
     *   - Establish connection to the server

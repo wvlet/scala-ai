@@ -169,22 +169,20 @@ class HttpResponseTest extends UniTest:
   }
 
   test("should add headers") {
-    val response = HttpResponse.ok
-      .addHeader("X-Custom", "value")
+    val response = HttpResponse.ok.addHeader("X-Custom", "value")
     response.headers.get("X-Custom") shouldBe Some("value")
   }
 
   test("should set headers") {
-    val response = HttpResponse.ok
+    val response = HttpResponse
+      .ok
       .setHeader("Content-Type", "text/html")
       .setHeader("Content-Type", "application/json")
     response.headers.get("Content-Type") shouldBe Some("application/json")
   }
 
   test("should remove headers") {
-    val response = HttpResponse.ok
-      .addHeader("X-Custom", "value")
-      .removeHeader("X-Custom")
+    val response = HttpResponse.ok.addHeader("X-Custom", "value").removeHeader("X-Custom")
     response.headers.contains("X-Custom") shouldBe false
   }
 
@@ -235,3 +233,5 @@ class HttpResponseTest extends UniTest:
     modified.status shouldBe HttpStatus.Created_201
     response.status shouldBe HttpStatus.Ok_200 // original unchanged
   }
+
+end HttpResponseTest

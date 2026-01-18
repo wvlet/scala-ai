@@ -106,8 +106,10 @@ class ContentTypeTest extends UniTest:
 
   test("should support pattern matching with unapply") {
     "application/json" match
-      case ContentType(ct) => ct.fullType shouldBe "application/json"
-      case _               => fail("Should match")
+      case ContentType(ct) =>
+        ct.fullType shouldBe "application/json"
+      case _ =>
+        fail("Should match")
   }
 
   test("should get raw value") {
@@ -120,3 +122,5 @@ class ContentTypeTest extends UniTest:
     ct.mediaType shouldBe "application"
     ct.subType shouldBe "vnd.custom+json"
   }
+
+end ContentTypeTest

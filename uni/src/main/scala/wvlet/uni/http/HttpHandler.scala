@@ -13,6 +13,8 @@
  */
 package wvlet.uni.http
 
+import scala.annotation.targetName
+
 /**
   * Handler for processing HTTP requests on the server side
   */
@@ -33,10 +35,7 @@ trait HttpFilter:
   def andThen(other: HttpFilter): HttpFilter =
     val self = this
     (request: HttpRequest, next: HttpHandler) =>
-      self.apply(
-        request,
-        (req: HttpRequest) => other.apply(req, next)
-      )
+      self.apply(request, (req: HttpRequest) => other.apply(req, next))
 
 object HttpFilter:
   val identity: HttpFilter = (request, next) => next.handle(request)
@@ -45,29 +44,24 @@ object HttpFilter:
     (request: HttpRequest, next: HttpHandler) => f(request, next)
 
   def chain(filters: Seq[HttpFilter]): HttpFilter =
-    filters.foldRight(identity) { (filter, acc) => filter.andThen(acc) }
+    filters.foldRight(identity) { (filter, acc) =>
+      filter.andThen(acc)
+    }
 
-  def chain(filters: HttpFilter*): HttpFilter =
-    chain(filters.toSeq)
+  @targetName("chainVarargs")
+  def chain(filters: HttpFilter*): HttpFilter = chain(filters.toSeq)
 
 /**
   * Context for handling HTTP requests with additional metadata
   */
-case class HttpContext(
-    request: HttpRequest,
-    attributes: Map[String, Any] = Map.empty
-):
-  def get[T](key: String): Option[T] =
-    attributes.get(key).map(_.asInstanceOf[T])
+case class HttpContext(request: HttpRequest, attributes: Map[String, Any] = Map.empty):
+  def get[T](key: String): Option[T] = attributes.get(key).map(_.asInstanceOf[T])
 
-  def getOrElse[T](key: String, default: => T): T =
-    get[T](key).getOrElse(default)
+  def getOrElse[T](key: String, default: => T): T = get[T](key).getOrElse(default)
 
-  def set(key: String, value: Any): HttpContext =
-    copy(attributes = attributes + (key -> value))
+  def set(key: String, value: Any): HttpContext = copy(attributes = attributes + (key -> value))
 
-  def remove(key: String): HttpContext =
-    copy(attributes = attributes - key)
+  def remove(key: String): HttpContext = copy(attributes = attributes - key)
 
 object HttpContext:
   def apply(request: HttpRequest): HttpContext = HttpContext(request, Map.empty)

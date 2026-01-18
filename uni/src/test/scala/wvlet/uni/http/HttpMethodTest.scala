@@ -58,15 +58,20 @@ class HttpMethodTest extends UniTest:
 
   test("should support pattern matching with unapply") {
     "GET" match
-      case HttpMethod(method) => method shouldBe HttpMethod.GET
-      case _                  => fail("Should match")
+      case HttpMethod(method) =>
+        method shouldBe HttpMethod.GET
+      case _ =>
+        fail("Should match")
 
     "INVALID" match
-      case HttpMethod(_) => fail("Should not match")
-      case _             => // expected
+      case HttpMethod(_) =>
+        fail("Should not match")
+      case _ => // expected
   }
 
   test("should format as string") {
     HttpMethod.GET.toString shouldBe "GET"
     HttpMethod.POST.toString shouldBe "POST"
   }
+
+end HttpMethodTest

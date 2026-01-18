@@ -99,21 +99,95 @@ enum HttpStatus(val code: Int, val reason: String):
   def isClientError: Boolean   = code >= 400 && code < 500
   def isServerError: Boolean   = code >= 500 && code < 600
 
-  def isRetryable: Boolean = this match
-    case ServiceUnavailable_503 => true
-    case GatewayTimeout_504     => true
-    case TooManyRequests_429    => true
-    case RequestTimeout_408     => true
-    case _                      => false
+  def isRetryable: Boolean =
+    this match
+      case ServiceUnavailable_503 =>
+        true
+      case GatewayTimeout_504 =>
+        true
+      case TooManyRequests_429 =>
+        true
+      case RequestTimeout_408 =>
+        true
+      case _ =>
+        false
 
   override def toString: String = s"${code} ${reason}"
 
+end HttpStatus
+
 object HttpStatus:
-  private val statusByCode: Map[Int, HttpStatus] =
-    values.collect { case s if !s.isInstanceOf[Unknown] => s.code -> s }.toMap
+  // All known status codes (excluding Unknown which is parameterized)
+  val knownStatuses: Seq[HttpStatus] = Seq(
+    Continue_100,
+    SwitchingProtocols_101,
+    Processing_102,
+    EarlyHints_103,
+    Ok_200,
+    Created_201,
+    Accepted_202,
+    NonAuthoritativeInfo_203,
+    NoContent_204,
+    ResetContent_205,
+    PartialContent_206,
+    MultiStatus_207,
+    AlreadyReported_208,
+    IMUsed_226,
+    MultipleChoices_300,
+    MovedPermanently_301,
+    Found_302,
+    SeeOther_303,
+    NotModified_304,
+    UseProxy_305,
+    TemporaryRedirect_307,
+    PermanentRedirect_308,
+    BadRequest_400,
+    Unauthorized_401,
+    PaymentRequired_402,
+    Forbidden_403,
+    NotFound_404,
+    MethodNotAllowed_405,
+    NotAcceptable_406,
+    ProxyAuthRequired_407,
+    RequestTimeout_408,
+    Conflict_409,
+    Gone_410,
+    LengthRequired_411,
+    PreconditionFailed_412,
+    PayloadTooLarge_413,
+    UriTooLong_414,
+    UnsupportedMediaType_415,
+    RangeNotSatisfiable_416,
+    ExpectationFailed_417,
+    ImATeapot_418,
+    MisdirectedRequest_421,
+    UnprocessableEntity_422,
+    Locked_423,
+    FailedDependency_424,
+    TooEarly_425,
+    UpgradeRequired_426,
+    PreconditionRequired_428,
+    TooManyRequests_429,
+    HeaderFieldsTooLarge_431,
+    UnavailableForLegal_451,
+    ClientClosedRequest_499,
+    InternalServerError_500,
+    NotImplemented_501,
+    BadGateway_502,
+    ServiceUnavailable_503,
+    GatewayTimeout_504,
+    HttpVersionNotSupported_505,
+    VariantAlsoNegotiates_506,
+    InsufficientStorage_507,
+    LoopDetected_508,
+    NotExtended_510,
+    NetworkAuthRequired_511
+  )
 
-  def ofCode(code: Int): HttpStatus =
-    statusByCode.getOrElse(code, Unknown(code))
+  private val statusByCode: Map[Int, HttpStatus] = knownStatuses.map(s => s.code -> s).toMap
 
-  def unapply(code: Int): Option[HttpStatus] =
-    Some(ofCode(code))
+  def ofCode(code: Int): HttpStatus = statusByCode.getOrElse(code, Unknown(code))
+
+  def unapply(code: Int): Option[HttpStatus] = Some(ofCode(code))
+
+end HttpStatus

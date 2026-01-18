@@ -148,9 +148,7 @@ class HttpRequestTest extends UniTest:
   }
 
   test("should set content type") {
-    val request = HttpRequest
-      .post("/api/users")
-      .withContentType(ContentType.ApplicationJson)
+    val request = HttpRequest.post("/api/users").withContentType(ContentType.ApplicationJson)
     request.headers.get("Content-Type") shouldBe Some("application/json")
   }
 
@@ -198,3 +196,5 @@ class HttpRequestTest extends UniTest:
     modified.uri shouldBe "/api/posts"
     request.uri shouldBe "/api/users" // original unchanged
   }
+
+end HttpRequestTest

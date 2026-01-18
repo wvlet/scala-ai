@@ -126,3 +126,5 @@ class HttpContentTest extends UniTest:
     val bytes   = content.asBytes.get
     String(bytes, "UTF-8") shouldBe "Hello"
   }
+
+end HttpContentTest

@@ -27,18 +27,23 @@ enum HttpMethod(val name: String):
   case TRACE   extends HttpMethod("TRACE")
   case CONNECT extends HttpMethod("CONNECT")
 
-  def isSafe: Boolean = this match
-    case GET | HEAD | OPTIONS | TRACE => true
-    case _                            => false
+  def isSafe: Boolean =
+    this match
+      case GET | HEAD | OPTIONS | TRACE =>
+        true
+      case _ =>
+        false
 
-  def isIdempotent: Boolean = this match
-    case POST => false
-    case _    => true
+  def isIdempotent: Boolean =
+    this match
+      case POST =>
+        false
+      case _ =>
+        true
 
   override def toString: String = name
 
 object HttpMethod:
-  def of(name: String): Option[HttpMethod] =
-    values.find(_.name.equalsIgnoreCase(name))
+  def of(name: String): Option[HttpMethod] = values.find(_.name.equalsIgnoreCase(name))
 
   def unapply(name: String): Option[HttpMethod] = of(name)

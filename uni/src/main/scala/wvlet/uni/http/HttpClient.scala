@@ -83,7 +83,8 @@ trait HttpAsyncClient extends AutoCloseable:
   def config: HttpClientConfig
 
   /**
-    * Send an HTTP request asynchronously, returning an Rx stream. Retries automatically based on config.
+    * Send an HTTP request asynchronously, returning an Rx stream. Retries automatically based on
+    * config.
     */
   def send(request: HttpRequest): Rx[HttpResponse]
 
@@ -108,3 +109,5 @@ trait HttpAsyncClient extends AutoCloseable:
   def withConfig(config: HttpClientConfig): HttpAsyncClient
 
   def close(): Unit = ()
+
+end HttpAsyncClient

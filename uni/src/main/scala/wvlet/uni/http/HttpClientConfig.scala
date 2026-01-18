@@ -14,7 +14,7 @@
 package wvlet.uni.http
 
 /**
-  * Configuration for HTTP clients
+  * Configuration for HTTP clients. Includes channel factory for creating platform-specific clients.
   */
 case class HttpClientConfig(
     baseUri: Option[String] = None,
@@ -24,10 +24,11 @@ case class HttpClientConfig(
     maxRedirects: Int = 10,
     retryConfig: HttpRetryConfig = HttpRetryConfig.default,
     defaultHeaders: HttpHeaders = HttpHeaders.empty,
-    userAgent: Option[String] = None
+    userAgent: Option[String] = None,
+    channelFactory: HttpChannelFactory = HttpClientConfig.NoOpChannelFactory
 ):
-  def withBaseUri(uri: String): HttpClientConfig   = copy(baseUri = Some(uri))
-  def noBaseUri: HttpClientConfig                  = copy(baseUri = None)
+  def withBaseUri(uri: String): HttpClientConfig = copy(baseUri = Some(uri))
+  def noBaseUri: HttpClientConfig                = copy(baseUri = None)
 
   def withConnectTimeoutMillis(millis: Long): HttpClientConfig = copy(connectTimeoutMillis = millis)
   def withReadTimeoutMillis(millis: Long): HttpClientConfig    = copy(readTimeoutMillis = millis)
@@ -42,34 +43,74 @@ case class HttpClientConfig(
 
   def withDefaultHeaders(h: HttpHeaders): HttpClientConfig = copy(defaultHeaders = h)
 
-  def addDefaultHeader(name: String, value: String): HttpClientConfig =
-    copy(defaultHeaders = defaultHeaders.add(name, value))
+  def addDefaultHeader(name: String, value: String): HttpClientConfig = copy(defaultHeaders =
+    defaultHeaders.add(name, value)
+  )
 
-  def setDefaultHeader(name: String, value: String): HttpClientConfig =
-    copy(defaultHeaders = defaultHeaders.set(name, value))
+  def setDefaultHeader(name: String, value: String): HttpClientConfig = copy(defaultHeaders =
+    defaultHeaders.set(name, value)
+  )
 
   def withUserAgent(ua: String): HttpClientConfig = copy(userAgent = Some(ua))
   def noUserAgent: HttpClientConfig               = copy(userAgent = None)
 
-  def withContentType(ct: ContentType): HttpClientConfig =
-    setDefaultHeader(HttpHeader.ContentType, ct.toString)
+  def withContentType(ct: ContentType): HttpClientConfig = setDefaultHeader(
+    HttpHeader.ContentType,
+    ct.toString
+  )
 
-  def withAccept(accept: String): HttpClientConfig =
-    setDefaultHeader(HttpHeader.Accept, accept)
+  def withAccept(accept: String): HttpClientConfig = setDefaultHeader(HttpHeader.Accept, accept)
 
-  def withAcceptJson: HttpClientConfig =
-    withAccept(ContentType.ApplicationJson.toString)
+  def withAcceptJson: HttpClientConfig = withAccept(ContentType.ApplicationJson.toString)
+
+  def withChannelFactory(factory: HttpChannelFactory): HttpClientConfig = copy(channelFactory =
+    factory
+  )
+
+  def withMaxRetry(maxRetries: Int): HttpClientConfig = copy(retryConfig =
+    retryConfig.withMaxRetries(maxRetries)
+  )
 
   def resolveUri(uri: String): String =
     baseUri match
       case Some(base) if !uri.startsWith("http://") && !uri.startsWith("https://") =>
-        if base.endsWith("/") && uri.startsWith("/") then s"${base.dropRight(1)}${uri}"
-        else if !base.endsWith("/") && !uri.startsWith("/") then s"${base}/${uri}"
-        else s"${base}${uri}"
-      case _ => uri
+        if base.endsWith("/") && uri.startsWith("/") then
+          s"${base.dropRight(1)}${uri}"
+        else if !base.endsWith("/") && !uri.startsWith("/") then
+          s"${base}/${uri}"
+        else
+          s"${base}${uri}"
+      case _ =>
+        uri
+
+  /**
+    * Create a new synchronous HTTP client with this configuration.
+    */
+  def newSyncClient: HttpSyncClient = DefaultHttpSyncClient(this, channelFactory.newChannel)
+
+  /**
+    * Create a new asynchronous HTTP client with this configuration.
+    */
+  def newAsyncClient: HttpAsyncClient = DefaultHttpAsyncClient(this, channelFactory.newAsyncChannel)
+
+end HttpClientConfig
 
 object HttpClientConfig:
   val default: HttpClientConfig = HttpClientConfig()
+
+  /**
+    * No-op channel factory used when no platform-specific implementation is available
+    */
+  private[http] object NoOpChannelFactory extends HttpChannelFactory:
+    def newChannel: HttpChannel =
+      throw NotImplementedError(
+        "No HttpChannel implementation available. Import a platform-specific module."
+      )
+
+    def newAsyncChannel: HttpAsyncChannel =
+      throw NotImplementedError(
+        "No HttpAsyncChannel implementation available. Import a platform-specific module."
+      )
 
 /**
   * Configuration for HTTP request retry behavior
@@ -81,14 +122,15 @@ case class HttpRetryConfig(
     backoffMultiplier: Double = 2.0,
     retryableStatuses: Set[Int] = Set(408, 429, 500, 502, 503, 504)
 ):
-  def withMaxRetries(max: Int): HttpRetryConfig               = copy(maxRetries = max)
-  def withInitialDelayMillis(millis: Long): HttpRetryConfig   = copy(initialDelayMillis = millis)
-  def withMaxDelayMillis(millis: Long): HttpRetryConfig       = copy(maxDelayMillis = millis)
-  def withBackoffMultiplier(mult: Double): HttpRetryConfig    = copy(backoffMultiplier = mult)
-  def withRetryableStatuses(statuses: Set[Int]): HttpRetryConfig = copy(retryableStatuses = statuses)
+  def withMaxRetries(max: Int): HttpRetryConfig                  = copy(maxRetries = max)
+  def withInitialDelayMillis(millis: Long): HttpRetryConfig      = copy(initialDelayMillis = millis)
+  def withMaxDelayMillis(millis: Long): HttpRetryConfig          = copy(maxDelayMillis = millis)
+  def withBackoffMultiplier(mult: Double): HttpRetryConfig       = copy(backoffMultiplier = mult)
+  def withRetryableStatuses(statuses: Set[Int]): HttpRetryConfig = copy(retryableStatuses =
+    statuses
+  )
 
-  def isRetryable(status: HttpStatus): Boolean =
-    retryableStatuses.contains(status.code)
+  def isRetryable(status: HttpStatus): Boolean = retryableStatuses.contains(status.code)
 
   def delayForAttempt(attempt: Int): Long =
     val delay = initialDelayMillis * Math.pow(backoffMultiplier, attempt.toDouble)

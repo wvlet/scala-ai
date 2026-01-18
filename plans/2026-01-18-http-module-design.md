@@ -226,82 +226,94 @@ object HttpStatus:
 
 ### 3. ContentType
 
+ContentType is implemented as an opaque type wrapping a string for efficiency. This avoids object allocation overhead while still providing type safety and extension methods.
+
 ```scala
 package wvlet.uni.http
 
-case class ContentType(
-    mediaType: String,
-    subType: String,
-    charset: Option[String] = None,
-    parameters: Map[String, String] = Map.empty
-):
-  def fullType: String = s"${mediaType}/${subType}"
-
-  def withCharset(cs: String): ContentType = copy(charset = Some(cs))
-  def noCharset: ContentType = copy(charset = None)
-
-  def withParameter(key: String, value: String): ContentType =
-    copy(parameters = parameters + (key -> value))
-
-  override def toString: String =
-    val base = fullType
-    val charsetPart = charset.map(c => s"; charset=${c}").getOrElse("")
-    val paramsPart = parameters.map { case (k, v) => s"; ${k}=${v}" }.mkString
-    base + charsetPart + paramsPart
+opaque type ContentType = String
 
 object ContentType:
+  // Constructor
+  def apply(value: String): ContentType = value
+
   // Application types
-  val ApplicationJson: ContentType       = ContentType("application", "json")
-  val ApplicationXml: ContentType        = ContentType("application", "xml")
-  val ApplicationFormUrlEncoded: ContentType = ContentType("application", "x-www-form-urlencoded")
-  val ApplicationOctetStream: ContentType = ContentType("application", "octet-stream")
-  val ApplicationMsgPack: ContentType    = ContentType("application", "msgpack")
-  val ApplicationPdf: ContentType        = ContentType("application", "pdf")
-  val ApplicationZip: ContentType        = ContentType("application", "zip")
-  val ApplicationGzip: ContentType       = ContentType("application", "gzip")
+  val ApplicationJson: ContentType           = "application/json"
+  val ApplicationXml: ContentType            = "application/xml"
+  val ApplicationFormUrlEncoded: ContentType = "application/x-www-form-urlencoded"
+  val ApplicationOctetStream: ContentType    = "application/octet-stream"
+  val ApplicationMsgPack: ContentType        = "application/msgpack"
+  val ApplicationPdf: ContentType            = "application/pdf"
+  val ApplicationZip: ContentType            = "application/zip"
+  val ApplicationGzip: ContentType           = "application/gzip"
 
   // Text types
-  val TextPlain: ContentType             = ContentType("text", "plain")
-  val TextHtml: ContentType              = ContentType("text", "html")
-  val TextCss: ContentType               = ContentType("text", "css")
-  val TextJavaScript: ContentType        = ContentType("text", "javascript")
-  val TextCsv: ContentType               = ContentType("text", "csv")
-  val TextXml: ContentType               = ContentType("text", "xml")
+  val TextPlain: ContentType       = "text/plain"
+  val TextHtml: ContentType        = "text/html"
+  val TextCss: ContentType         = "text/css"
+  val TextJavaScript: ContentType  = "text/javascript"
+  val TextCsv: ContentType         = "text/csv"
+  val TextXml: ContentType         = "text/xml"
+  val TextEventStream: ContentType = "text/event-stream"
 
   // Multipart types
-  val MultipartFormData: ContentType     = ContentType("multipart", "form-data")
-  val MultipartMixed: ContentType        = ContentType("multipart", "mixed")
+  val MultipartFormData: ContentType = "multipart/form-data"
+  val MultipartMixed: ContentType    = "multipart/mixed"
 
   // Image types
-  val ImagePng: ContentType              = ContentType("image", "png")
-  val ImageJpeg: ContentType             = ContentType("image", "jpeg")
-  val ImageGif: ContentType              = ContentType("image", "gif")
-  val ImageWebp: ContentType             = ContentType("image", "webp")
-  val ImageSvg: ContentType              = ContentType("image", "svg+xml")
+  val ImagePng: ContentType  = "image/png"
+  val ImageJpeg: ContentType = "image/jpeg"
+  val ImageGif: ContentType  = "image/gif"
+  val ImageWebp: ContentType = "image/webp"
+  val ImageSvg: ContentType  = "image/svg+xml"
 
   // Audio types
-  val AudioMpeg: ContentType             = ContentType("audio", "mpeg")
-  val AudioOgg: ContentType              = ContentType("audio", "ogg")
-  val AudioWav: ContentType              = ContentType("audio", "wav")
+  val AudioMpeg: ContentType = "audio/mpeg"
+  val AudioOgg: ContentType  = "audio/ogg"
+  val AudioWav: ContentType  = "audio/wav"
 
   // Video types
-  val VideoMp4: ContentType              = ContentType("video", "mp4")
-  val VideoWebm: ContentType             = ContentType("video", "webm")
+  val VideoMp4: ContentType  = "video/mp4"
+  val VideoWebm: ContentType = "video/webm"
 
   def parse(value: String): Option[ContentType] =
-    value.split(";").toList match
-      case typePart :: rest =>
-        typePart.trim.split("/").toList match
-          case mediaType :: subType :: Nil =>
-            val params = rest.map(_.trim).flatMap { p =>
-              p.split("=", 2).toList match
-                case k :: v :: Nil => Some(k.trim.toLowerCase -> v.trim)
-                case _             => None
-            }.toMap
-            val charset = params.get("charset")
-            Some(ContentType(mediaType.trim, subType.trim, charset, params - "charset"))
-          case _ => None
-      case _ => None
+    if value.isEmpty then None
+    else Some(value)
+
+  extension (ct: ContentType)
+    def value: String = ct
+
+    def mediaType: String =
+      val idx = ct.indexOf('/')
+      if idx >= 0 then ct.substring(0, idx).toLowerCase else ct.toLowerCase
+
+    def subType: String =
+      val slashIdx     = ct.indexOf('/')
+      val semicolonIdx = ct.indexOf(';')
+      if slashIdx < 0 then ""
+      else if semicolonIdx < 0 then ct.substring(slashIdx + 1).trim.toLowerCase
+      else ct.substring(slashIdx + 1, semicolonIdx).trim.toLowerCase
+
+    def fullType: String =
+      val semicolonIdx = ct.indexOf(';')
+      val base = if semicolonIdx < 0 then ct else ct.substring(0, semicolonIdx)
+      base.trim.toLowerCase
+
+    def charset: Option[String] =
+      val lower = ct.toLowerCase
+      val idx   = lower.indexOf("charset=")
+      if idx < 0 then None
+      else
+        val start = idx + 8
+        val end = ct.indexOf(';', start) match
+          case -1 => ct.length
+          case n  => n
+        Some(ct.substring(start, end).trim.stripPrefix("\"").stripSuffix("\""))
+
+    def withCharset(cs: String): ContentType = s"${fullType}; charset=${cs}"
+
+    def isJson: Boolean = fullType == "application/json"
+    def isXml: Boolean  = fullType == "application/xml" || fullType == "text/xml"
 ```
 
 ### 4. HttpHeader and HttpHeaders
@@ -711,11 +723,39 @@ object HttpFilter:
 
 ### 12. HttpException
 
+Instead of a deep exception hierarchy, we use a single `HttpException` class with an `HttpErrorCode` enum to categorize errors. This simplifies error handling while still providing detailed error information.
+
 ```scala
 package wvlet.uni.http
 
+enum HttpErrorCode:
+  // Connection errors
+  case ConnectionFailed
+  case ConnectionTimeout
+  case ReadTimeout
+  case SslError
+
+  // Request errors
+  case InvalidRequest
+  case RequestCancelled
+  case TooManyRedirects
+
+  // Response errors
+  case ClientError  // 4xx
+  case ServerError  // 5xx
+  case InvalidResponse
+  case UnexpectedResponse
+
+  // Other errors
+  case Unknown
+
+  def isRetryable: Boolean = this match
+    case ConnectionTimeout | ReadTimeout | ServerError => true
+    case _                                             => false
+
 class HttpException(
     message: String,
+    val errorCode: HttpErrorCode = HttpErrorCode.Unknown,
     val status: Option[HttpStatus] = None,
     val request: Option[HttpRequest] = None,
     val response: Option[HttpResponse] = None,
@@ -724,80 +764,46 @@ class HttpException(
 
   def statusCode: Option[Int] = status.map(_.code)
 
-  def isRetryable: Boolean = status.exists(_.isRetryable)
+  def isRetryable: Boolean = errorCode.isRetryable || status.exists(_.isRetryable)
+
+  def isClientError: Boolean = errorCode == HttpErrorCode.ClientError || status.exists(_.isClientError)
+  def isServerError: Boolean = errorCode == HttpErrorCode.ServerError || status.exists(_.isServerError)
 
 object HttpException:
   def apply(message: String): HttpException =
-    HttpException(message)
+    HttpException(message, HttpErrorCode.Unknown)
+
+  def apply(message: String, errorCode: HttpErrorCode): HttpException =
+    HttpException(message, errorCode, None, None, None, null)
+
   def apply(message: String, status: HttpStatus): HttpException =
-    HttpException(message, Some(status))
-  def apply(message: String, response: HttpResponse): HttpException =
-    HttpException(message, Some(response.status), None, Some(response))
+    val errorCode = if status.isClientError then HttpErrorCode.ClientError
+                    else if status.isServerError then HttpErrorCode.ServerError
+                    else HttpErrorCode.Unknown
+    HttpException(message, errorCode, Some(status), None, None, null)
 
-// Connection-related exceptions
-class HttpConnectionException(
-    message: String,
-    cause: Throwable = null
-) extends HttpException(message, cause = cause)
+  def fromResponse(response: HttpResponse): HttpException =
+    val message   = response.contentAsString.getOrElse(response.status.reason)
+    val errorCode = if response.isClientError then HttpErrorCode.ClientError
+                    else if response.isServerError then HttpErrorCode.ServerError
+                    else HttpErrorCode.UnexpectedResponse
+    HttpException(message, errorCode, Some(response.status), None, Some(response), null)
 
-class HttpTimeoutException(
-    message: String,
-    cause: Throwable = null
-) extends HttpException(message, cause = cause)
+  // Factory methods for common error codes
+  def connectionFailed(message: String, cause: Throwable = null): HttpException =
+    HttpException(message, HttpErrorCode.ConnectionFailed, None, None, None, cause)
 
-class HttpConnectTimeoutException(
-    message: String,
-    cause: Throwable = null
-) extends HttpTimeoutException(message, cause)
+  def connectionTimeout(message: String, cause: Throwable = null): HttpException =
+    HttpException(message, HttpErrorCode.ConnectionTimeout, None, None, None, cause)
 
-class HttpReadTimeoutException(
-    message: String,
-    cause: Throwable = null
-) extends HttpTimeoutException(message, cause)
+  def readTimeout(message: String, cause: Throwable = null): HttpException =
+    HttpException(message, HttpErrorCode.ReadTimeout, None, None, None, cause)
 
-// Status-based exceptions
-class HttpClientErrorException(
-    message: String,
-    override val status: Option[HttpStatus],
-    override val response: Option[HttpResponse] = None,
-    cause: Throwable = null
-) extends HttpException(message, status, None, response, cause)
+  def clientError(message: String, status: HttpStatus, response: Option[HttpResponse] = None): HttpException =
+    HttpException(message, HttpErrorCode.ClientError, Some(status), None, response, null)
 
-class HttpServerErrorException(
-    message: String,
-    override val status: Option[HttpStatus],
-    override val response: Option[HttpResponse] = None,
-    cause: Throwable = null
-) extends HttpException(message, status, None, response, cause)
-
-// Specific client errors
-class HttpBadRequestException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.BadRequest_400), response)
-
-class HttpUnauthorizedException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.Unauthorized_401), response)
-
-class HttpForbiddenException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.Forbidden_403), response)
-
-class HttpNotFoundException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.NotFound_404), response)
-
-class HttpConflictException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.Conflict_409), response)
-
-class HttpTooManyRequestsException(message: String, response: Option[HttpResponse] = None)
-  extends HttpClientErrorException(message, Some(HttpStatus.TooManyRequests_429), response)
-
-// Specific server errors
-class HttpInternalServerErrorException(message: String, response: Option[HttpResponse] = None)
-  extends HttpServerErrorException(message, Some(HttpStatus.InternalServerError_500), response)
-
-class HttpServiceUnavailableException(message: String, response: Option[HttpResponse] = None)
-  extends HttpServerErrorException(message, Some(HttpStatus.ServiceUnavailable_503), response)
-
-class HttpGatewayTimeoutException(message: String, response: Option[HttpResponse] = None)
-  extends HttpServerErrorException(message, Some(HttpStatus.GatewayTimeout_504), response)
+  def serverError(message: String, status: HttpStatus, response: Option[HttpResponse] = None): HttpException =
+    HttpException(message, HttpErrorCode.ServerError, Some(status), None, response, null)
 ```
 
 ## Usage Examples
@@ -855,11 +861,11 @@ try
   val response = client.get("/resource")
   // process response
 catch
-  case e: HttpNotFoundException =>
-    println("Resource not found")
-  case e: HttpTimeoutException =>
+  case e: HttpException if e.errorCode == HttpErrorCode.ConnectionTimeout =>
     println("Request timed out, retrying...")
-  case e: HttpServerErrorException =>
+  case e: HttpException if e.status.exists(_.code == 404) =>
+    println("Resource not found")
+  case e: HttpException if e.isServerError =>
     if e.isRetryable then
       println("Server error, will retry")
 ```

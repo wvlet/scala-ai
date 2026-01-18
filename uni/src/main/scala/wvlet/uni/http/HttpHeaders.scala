@@ -13,77 +13,89 @@
  */
 package wvlet.uni.http
 
+import scala.annotation.targetName
+
 /**
-  * A collection of HTTP headers that preserves insertion order and supports multiple values per header name
+  * A collection of HTTP headers that preserves insertion order and supports multiple values per
+  * header name
   */
 case class HttpHeaders(entries: Seq[HttpHeader]):
-  def get(name: String): Option[String] =
-    entries.find(_.nameEquals(name)).map(_.value)
+  def get(name: String): Option[String] = entries.find(_.nameEquals(name)).map(_.value)
 
-  def getAll(name: String): Seq[String] =
-    entries.filter(_.nameEquals(name)).map(_.value)
+  def getAll(name: String): Seq[String] = entries.filter(_.nameEquals(name)).map(_.value)
 
-  def getOrElse(name: String, default: => String): String =
-    get(name).getOrElse(default)
+  def getOrElse(name: String, default: => String): String = get(name).getOrElse(default)
 
-  def contains(name: String): Boolean =
-    entries.exists(_.nameEquals(name))
+  def contains(name: String): Boolean = entries.exists(_.nameEquals(name))
 
-  def add(name: String, value: String): HttpHeaders =
-    HttpHeaders(entries :+ HttpHeader(name, value))
+  def add(name: String, value: String): HttpHeaders = HttpHeaders(
+    entries :+ HttpHeader(name, value)
+  )
 
-  def addAll(headers: HttpHeaders): HttpHeaders =
-    HttpHeaders(entries ++ headers.entries)
+  def addAll(headers: HttpHeaders): HttpHeaders = HttpHeaders(entries ++ headers.entries)
 
-  def addAll(headers: Seq[(String, String)]): HttpHeaders =
-    HttpHeaders(entries ++ headers.map { case (n, v) => HttpHeader(n, v) })
+  def addAll(headers: Seq[(String, String)]): HttpHeaders = HttpHeaders(
+    entries ++
+      headers.map { case (n, v) =>
+        HttpHeader(n, v)
+      }
+  )
 
-  def set(name: String, value: String): HttpHeaders =
-    HttpHeaders(entries.filterNot(_.nameEquals(name)) :+ HttpHeader(name, value))
+  def set(name: String, value: String): HttpHeaders = HttpHeaders(
+    entries.filterNot(_.nameEquals(name)) :+ HttpHeader(name, value)
+  )
 
-  def remove(name: String): HttpHeaders =
-    HttpHeaders(entries.filterNot(_.nameEquals(name)))
+  def remove(name: String): HttpHeaders = HttpHeaders(entries.filterNot(_.nameEquals(name)))
 
-  def contentType: Option[ContentType] =
-    get(HttpHeader.ContentType).flatMap(ContentType.parse)
+  def contentType: Option[ContentType] = get(HttpHeader.ContentType).flatMap(ContentType.parse)
 
-  def contentLength: Option[Long] =
-    get(HttpHeader.ContentLength).flatMap(_.toLongOption)
+  def contentLength: Option[Long] = get(HttpHeader.ContentLength).flatMap(_.toLongOption)
 
-  def host: Option[String]        = get(HttpHeader.Host)
-  def userAgent: Option[String]   = get(HttpHeader.UserAgent)
+  def host: Option[String]          = get(HttpHeader.Host)
+  def userAgent: Option[String]     = get(HttpHeader.UserAgent)
   def authorization: Option[String] = get(HttpHeader.Authorization)
-  def accept: Option[String]      = get(HttpHeader.Accept)
+  def accept: Option[String]        = get(HttpHeader.Accept)
 
   def isEmpty: Boolean  = entries.isEmpty
   def nonEmpty: Boolean = entries.nonEmpty
   def size: Int         = entries.size
 
-  def toSeq: Seq[(String, String)] =
-    entries.map(h => (h.name, h.value))
+  def toSeq: Seq[(String, String)] = entries.map(h => (h.name, h.value))
 
-  def toMap: Map[String, String] =
-    entries.map(h => h.name -> h.value).toMap
+  def toMap: Map[String, String] = entries.map(h => h.name -> h.value).toMap
 
-  def toMultiMap: Map[String, Seq[String]] =
-    entries.groupBy(_.name.toLowerCase).map { case (_, vs) =>
+  def toMultiMap: Map[String, Seq[String]] = entries
+    .groupBy(_.name.toLowerCase)
+    .map { case (_, vs) =>
       vs.head.name -> vs.map(_.value)
     }
 
-  override def toString: String =
-    entries.map(_.toString).mkString("\r\n")
+  override def toString: String = entries.map(_.toString).mkString("\r\n")
+
+end HttpHeaders
 
 object HttpHeaders:
   val empty: HttpHeaders = HttpHeaders(Seq.empty)
 
-  def apply(headers: (String, String)*): HttpHeaders =
-    HttpHeaders(headers.map { case (n, v) => HttpHeader(n, v) })
+  @targetName("applyFromTuples")
+  def apply(headers: (String, String)*): HttpHeaders = HttpHeaders(
+    headers.map { case (n, v) =>
+      HttpHeader(n, v)
+    }
+  )
 
-  def of(headers: (String, String)*): HttpHeaders =
-    apply(headers*)
+  def of(headers: (String, String)*): HttpHeaders = apply(headers*)
 
-  def fromMap(map: Map[String, String]): HttpHeaders =
-    HttpHeaders(map.toSeq.map { case (n, v) => HttpHeader(n, v) })
+  def fromMap(map: Map[String, String]): HttpHeaders = HttpHeaders(
+    map
+      .toSeq
+      .map { case (n, v) =>
+        HttpHeader(n, v)
+      }
+  )
 
-  def fromSeq(headers: Seq[(String, String)]): HttpHeaders =
-    HttpHeaders(headers.map { case (n, v) => HttpHeader(n, v) })
+  def fromSeq(headers: Seq[(String, String)]): HttpHeaders = HttpHeaders(
+    headers.map { case (n, v) =>
+      HttpHeader(n, v)
+    }
+  )
