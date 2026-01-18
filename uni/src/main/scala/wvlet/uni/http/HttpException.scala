@@ -72,6 +72,11 @@ class HttpException(
     .flatMap(_.headers.get(HttpHeader.RetryAfter))
     .flatMap(_.toLongOption)
 
+  /**
+    * Get the response content as a string for use in exception classification.
+    */
+  def contentAsString: Option[String] = response.flatMap(_.contentAsString)
+
 object HttpException:
   def apply(message: String): HttpException = new HttpException(message, HttpErrorCode.Unknown)
 
