@@ -81,11 +81,11 @@ class HttpStatusTest extends UniTest:
   }
 
   test("should handle unknown status codes") {
-    val unknown = HttpStatus.ofCode(999)
-    unknown shouldMatch { case HttpStatus.Unknown(999) =>
+    val other = HttpStatus.ofCode(999)
+    other shouldMatch { case HttpStatus.Other(999) =>
     }
-    unknown.code shouldBe 999
-    unknown.reason shouldBe "Unknown"
+    other.code shouldBe 999
+    other.reason shouldBe "Other(999)"
   }
 
   test("should compare status codes by code value") {

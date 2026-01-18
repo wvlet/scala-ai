@@ -14,9 +14,11 @@
 package wvlet.uni
 
 package object http:
-  // Type aliases for backwards compatibility with HttpRequest/HttpResponse naming
+  // Type aliases for backwards compatibility
   type HttpRequest  = Request
   type HttpResponse = Response
+  type HttpHeaders  = HttpMultiMap
 
   val HttpRequest  = Request
   val HttpResponse = Response
+  val HttpHeaders  = HttpMultiMap

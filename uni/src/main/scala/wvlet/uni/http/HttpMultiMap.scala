@@ -17,7 +17,7 @@ package wvlet.uni.http
   * An immutable, case-insensitive multi-map for HTTP headers and query parameters. Supports
   * multiple values per key while providing case-insensitive key lookup.
   */
-case class HttpMultiMap private (
+class HttpMultiMap private (
     private val underlying: Map[String, Seq[String]],
     private val originalKeys: Map[String, String]
 ):
@@ -56,7 +56,7 @@ case class HttpMultiMap private (
         originalKeys
       else
         originalKeys + (lowerKey -> key)
-    HttpMultiMap(underlying + (lowerKey -> (existingVals :+ value)), newOrigKeys)
+    HttpMultiMap.create(underlying + (lowerKey -> (existingVals :+ value)), newOrigKeys)
 
   /**
     * Set a key to a single value, replacing any existing values
@@ -68,14 +68,14 @@ case class HttpMultiMap private (
         originalKeys
       else
         originalKeys + (lowerKey -> key)
-    HttpMultiMap(underlying + (lowerKey -> Seq(value)), newOrigKeys)
+    HttpMultiMap.create(underlying + (lowerKey -> Seq(value)), newOrigKeys)
 
   /**
     * Remove all values for a key (case-insensitive)
     */
   def remove(key: String): HttpMultiMap =
     val lowerKey = key.toLowerCase
-    HttpMultiMap(underlying - lowerKey, originalKeys - lowerKey)
+    HttpMultiMap.create(underlying - lowerKey, originalKeys - lowerKey)
 
   /**
     * Add a key-value pair (alias for add)
@@ -121,7 +121,12 @@ case class HttpMultiMap private (
 end HttpMultiMap
 
 object HttpMultiMap:
-  val empty: HttpMultiMap = HttpMultiMap(Map.empty, Map.empty)
+  private[http] def create(
+      underlying: Map[String, Seq[String]],
+      originalKeys: Map[String, String]
+  ): HttpMultiMap = new HttpMultiMap(underlying, originalKeys)
+
+  val empty: HttpMultiMap = create(Map.empty, Map.empty)
 
   def apply(entries: (String, String)*): HttpMultiMap =
     entries.foldLeft(empty) { case (acc, (k, v)) =>

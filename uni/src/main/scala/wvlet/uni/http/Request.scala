@@ -22,7 +22,7 @@ import wvlet.uni.util.URLEncoder
 case class Request(
     method: HttpMethod,
     uri: String,
-    headers: HttpHeaders = HttpHeaders.empty,
+    headers: HttpMultiMap = HttpMultiMap.empty,
     content: HttpContent = HttpContent.Empty,
     queryParams: Map[String, Seq[String]] = Map.empty
 ):
@@ -41,11 +41,18 @@ case class Request(
     else
       None
 
-  def host: Option[String]      = headers.host
-  def userAgent: Option[String] = headers.userAgent
+  def host: Option[String]      = headers.get(HttpHeader.Host)
+  def userAgent: Option[String] = headers.get(HttpHeader.UserAgent)
 
-  def contentType: Option[ContentType]        = content.contentType.orElse(headers.contentType)
-  def contentLength: Option[Long]             = headers.contentLength.orElse(Some(content.length))
+  def contentType: Option[ContentType] = content
+    .contentType
+    .orElse(headers.get(HttpHeader.ContentType).flatMap(ContentType.parse))
+
+  def contentLength: Option[Long] = headers
+    .get(HttpHeader.ContentLength)
+    .flatMap(_.toLongOption)
+    .orElse(Some(content.length))
+
   def header(name: String): Option[String]    = headers.get(name)
   def headerValues(name: String): Seq[String] = headers.getAll(name)
   def hasHeader(name: String): Boolean        = headers.contains(name)
@@ -73,7 +80,7 @@ case class Request(
   // Builder methods
   def withMethod(m: HttpMethod): Request                         = copy(method = m)
   def withUri(u: String): Request                                = copy(uri = u)
-  def withHeaders(h: HttpHeaders): Request                       = copy(headers = h)
+  def withHeaders(h: HttpMultiMap): Request                      = copy(headers = h)
   def withContent(c: HttpContent): Request                       = copy(content = c)
   def withQueryParams(params: Map[String, Seq[String]]): Request = copy(queryParams = params)
 
@@ -125,7 +132,7 @@ object Request:
   def apply(method: HttpMethod, uri: String): Request = Request(
     method,
     uri,
-    HttpHeaders.empty,
+    HttpMultiMap.empty,
     HttpContent.Empty,
     Map.empty
   )

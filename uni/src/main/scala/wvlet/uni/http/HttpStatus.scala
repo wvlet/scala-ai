@@ -90,8 +90,8 @@ enum HttpStatus(val code: Int, val reason: String):
   case NotExtended_510             extends HttpStatus(510, "Not Extended")
   case NetworkAuthRequired_511     extends HttpStatus(511, "Network Authentication Required")
 
-  // Unknown status holder for non-standard codes
-  case Unknown(override val code: Int) extends HttpStatus(code, "Unknown")
+  // Other status holder for non-standard codes
+  case Other(override val code: Int) extends HttpStatus(code, s"Other(${code})")
 
   def isInformational: Boolean = code >= 100 && code < 200
   def isSuccessful: Boolean    = code >= 200 && code < 300
@@ -117,7 +117,7 @@ enum HttpStatus(val code: Int, val reason: String):
 end HttpStatus
 
 object HttpStatus:
-  // All known status codes (excluding Unknown which is parameterized)
+  // All known status codes (excluding Other which is parameterized)
   val knownStatuses: Seq[HttpStatus] = Seq(
     Continue_100,
     SwitchingProtocols_101,
@@ -186,7 +186,7 @@ object HttpStatus:
 
   private val statusByCode: Map[Int, HttpStatus] = knownStatuses.map(s => s.code -> s).toMap
 
-  def ofCode(code: Int): HttpStatus = statusByCode.getOrElse(code, Unknown(code))
+  def ofCode(code: Int): HttpStatus = statusByCode.getOrElse(code, Other(code))
 
   def unapply(code: Int): Option[HttpStatus] = Some(ofCode(code))
 

@@ -21,7 +21,7 @@ import wvlet.uni.json.JSON.JSONValue
   */
 case class Response(
     status: HttpStatus,
-    headers: HttpHeaders = HttpHeaders.empty,
+    headers: HttpMultiMap = HttpMultiMap.empty,
     content: HttpContent = HttpContent.Empty
 ):
 
@@ -34,8 +34,15 @@ case class Response(
   def statusCode: Int = status.code
   def reason: String  = status.reason
 
-  def contentType: Option[ContentType]        = content.contentType.orElse(headers.contentType)
-  def contentLength: Option[Long]             = headers.contentLength.orElse(Some(content.length))
+  def contentType: Option[ContentType] = content
+    .contentType
+    .orElse(headers.get(HttpHeader.ContentType).flatMap(ContentType.parse))
+
+  def contentLength: Option[Long] = headers
+    .get(HttpHeader.ContentLength)
+    .flatMap(_.toLongOption)
+    .orElse(Some(content.length))
+
   def header(name: String): Option[String]    = headers.get(name)
   def headerValues(name: String): Seq[String] = headers.getAll(name)
   def hasHeader(name: String): Boolean        = headers.contains(name)
@@ -61,9 +68,9 @@ case class Response(
   def location: Option[String] = headers.get(HttpHeader.Location)
 
   // Builder methods
-  def withStatus(s: HttpStatus): Response   = copy(status = s)
-  def withHeaders(h: HttpHeaders): Response = copy(headers = h)
-  def withContent(c: HttpContent): Response = copy(content = c)
+  def withStatus(s: HttpStatus): Response    = copy(status = s)
+  def withHeaders(h: HttpMultiMap): Response = copy(headers = h)
+  def withContent(c: HttpContent): Response  = copy(content = c)
 
   def addHeader(name: String, value: String): Response = copy(headers = headers.add(name, value))
 
@@ -88,7 +95,7 @@ case class Response(
 end Response
 
 object Response:
-  def apply(status: HttpStatus): Response = Response(status, HttpHeaders.empty, HttpContent.Empty)
+  def apply(status: HttpStatus): Response = Response(status, HttpMultiMap.empty, HttpContent.Empty)
 
   // 2xx Success responses
   def ok: Response                       = Response(HttpStatus.Ok_200)
