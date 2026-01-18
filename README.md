@@ -24,15 +24,6 @@
 
 ## Package Structure
 
-### uni-core (foundational)
-
-| Package | Purpose |
-|---------|---------|
-| `wvlet.uni.log` | Performant, structured logging |
-| `wvlet.uni.rx` | Reactive primitives (Rx, RxVar, Ticker) |
-
-### uni
-
 | Package | Purpose |
 |---------|---------|
 | `wvlet.uni.cli` | Terminal styling, progress bars |
@@ -42,8 +33,9 @@
 | `wvlet.uni.http` | HTTP client/server |
 | `wvlet.uni.io` | Cross-platform file system abstraction |
 | `wvlet.uni.json` | JSON parsing |
+| `wvlet.uni.log` | Performant, structured logging |
 | `wvlet.uni.msgpack` | MessagePack serialization |
-| `wvlet.uni.rx` | Extended reactive features |
+| `wvlet.uni.rx` | Reactive primitives (Rx, RxVar, Ticker) |
 | `wvlet.uni.surface` | Type introspection |
 | `wvlet.uni.util` | ULID, Base64, StopWatch, etc. |
 | `wvlet.uni.weaver` | Object serialization |
