@@ -95,28 +95,18 @@ enum HttpStatus(val code: Int, val reason: String):
       extends HttpStatus(
         code,
         code match
-          case c if c < 100 =>
-            s"Unknown (${code})"
-          case c if c < 200 =>
-            s"Unknown 1xx (${code})"
-          case c if c < 300 =>
-            s"Unknown 2xx (${code})"
-          case c if c < 400 =>
-            s"Unknown 3xx (${code})"
-          case c if c < 500 =>
-            s"Unknown 4xx (${code})"
-          case c if c < 600 =>
-            s"Unknown 5xx (${code})"
+          case c if c >= 100 && c < 600 =>
+            s"Unknown ${c / 100}xx (${code})"
           case _ =>
             s"Unknown (${code})"
       )
 
-  def isInformational: Boolean = code >= 100 && code < 200
-  def isSuccessful: Boolean    = code >= 200 && code < 300
-  def isRedirection: Boolean   = code >= 300 && code < 400
-  def isClientError: Boolean   = code >= 400 && code < 500
-  def isServerError: Boolean   = code >= 500 && code < 600
-  def isUnknownState: Boolean  = code < 100 || code >= 600
+  def isInformational: Boolean = HttpStatus.isInformational(code)
+  def isSuccessful: Boolean    = HttpStatus.isSuccessful(code)
+  def isRedirection: Boolean   = HttpStatus.isRedirection(code)
+  def isClientError: Boolean   = HttpStatus.isClientError(code)
+  def isServerError: Boolean   = HttpStatus.isServerError(code)
+  def isUnknownState: Boolean  = HttpStatus.isUnknownState(code)
 
   def isRetryable: Boolean =
     this match
