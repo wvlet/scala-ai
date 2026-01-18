@@ -61,8 +61,6 @@ private[http] object HttpCompat extends HttpCompatApi:
       e match
         case _: BindException =>
           retryableFailure(e)
-        case _: ConnectException =>
-          retryableFailure(e)
         case _: NoRouteToHostException =>
           retryableFailure(e)
         case _: PortUnreachableException =>
