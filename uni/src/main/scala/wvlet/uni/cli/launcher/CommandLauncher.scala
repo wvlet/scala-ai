@@ -230,7 +230,15 @@ class CommandLauncher(
       values.map(v => convertSingle(v, elemSurface)).toList
     else if targetSurface.isArray then
       val elemSurface = targetSurface.typeArgs.headOption.getOrElse(Primitive.String)
-      values.map(v => convertSingle(v, elemSurface)).toArray
+      val converted   = values.map(v => convertSingle(v, elemSurface))
+      // Create a properly typed array using reflection to avoid ClassCastException
+      val arr = java.lang.reflect.Array.newInstance(elemSurface.rawType, converted.size)
+      converted
+        .zipWithIndex
+        .foreach { case (v, i) =>
+          java.lang.reflect.Array.set(arr, i, v)
+        }
+      arr
     else if values.nonEmpty then
       convertSingle(values.head, targetSurface)
     else
@@ -268,7 +276,8 @@ class CommandLauncher(
       case _ if surface.isSeq =>
         Nil
       case _ if surface.isArray =>
-        Array.empty[Any]
+        val elemType = surface.typeArgs.headOption.getOrElse(wvlet.uni.surface.AnyRefSurface)
+        java.lang.reflect.Array.newInstance(elemType.rawType, 0)
       case _ =>
         null
 

@@ -85,10 +85,9 @@ object KeyValue:
 |------|---------|
 | `Launcher.scala` | Entry point: `Launcher.of[A]`, `execute(args)` |
 | `CommandLauncher.scala` | Wraps single command, handles execution |
-| `OptionParser.scala` | Parses CLI args using schema |
+| `OptionParser.scala` | Parses CLI args using schema, returns `ParseResult` |
 | `OptionSchema.scala` | Builds schema from Surface annotations |
 | `CLOption.scala` | Option/argument item definitions |
-| `ParseTree.scala` | Hierarchical parsed data (pure Scala) |
 | `HelpPrinter.scala` | Help message generation using `Chalk` |
 | `CommandLineTokenizer.scala` | Tokenizes command line strings |
 | `KeyValue.scala` | Key-value pair type |

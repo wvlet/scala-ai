@@ -75,9 +75,7 @@ case class CLOption(prefixes: Seq[String], description: String, param: Option[Pa
   override def isKeyValue: Boolean = param.exists { p =>
     val s         = p.surface
     val innerType =
-      if s.isOption then
-        s.typeArgs.headOption.getOrElse(s)
-      else if s.isSeq || s.isArray then
+      if s.isOption || s.isSeq || s.isArray then
         s.typeArgs.headOption.getOrElse(s)
       else
         s

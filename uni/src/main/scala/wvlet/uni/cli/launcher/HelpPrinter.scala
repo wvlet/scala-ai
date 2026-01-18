@@ -57,6 +57,14 @@ class DefaultHelpPrinter extends HelpPrinter:
       else
         s
 
+    // Built-in help option (always shown)
+    val allOptions =
+      CLOption(
+        prefixes = Seq("-h", "--help"),
+        description = "Display this help message",
+        param = None
+      ) +: options
+
     // Usage line
     sb.append(s"${cyan("usage")}: ")
     usage match
@@ -65,7 +73,8 @@ class DefaultHelpPrinter extends HelpPrinter:
       case None =>
         val parts = Seq.newBuilder[String]
         parts += commandName
-        if options.nonEmpty then
+        // Always show [options] since help is always available
+        if allOptions.nonEmpty then
           parts += s"[${cyan("options")}]"
         arguments.foreach(arg => parts += s"[${arg.name}]")
         if subCommands.nonEmpty then
@@ -76,14 +85,6 @@ class DefaultHelpPrinter extends HelpPrinter:
     // Description
     if description.nonEmpty then
       sb.append(s"\n  ${description}\n")
-
-    // Built-in help option (always shown)
-    val allOptions =
-      CLOption(
-        prefixes = Seq("-h", "--help"),
-        description = "Display this help message",
-        param = None
-      ) +: options
 
     // Options section
     if allOptions.nonEmpty then
