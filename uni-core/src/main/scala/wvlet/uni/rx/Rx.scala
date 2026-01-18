@@ -601,15 +601,20 @@ trait Rx[+A] extends RxOps[A]:
   def startWith[A1 >: A](lst: Seq[A1]): Rx[A1] = Rx.concat(Rx.fromSeq(lst), this)
 
   /**
-    * Timeout the computation if it doesn't complete within the specified duration. If the timeout
-    * is reached, the computation is cancelled and a TimeoutException is emitted.
+    * Timeout the computation if no event is received within the specified duration. The timeout
+    * applies only until the first event arrives; once the first event is received, the timeout is
+    * cancelled and subsequent events are passed through without timeout. If the timeout is reached
+    * before the first event, the computation is cancelled and a TimeoutException is emitted.
+    *
+    * Note: This operator is designed for single-value or first-event timeout scenarios. For
+    * timeout-between-emissions behavior, consider using other operators like throttle or sample.
     *
     * @param duration
     *   the timeout duration
     * @param unit
     *   the time unit for the duration
     * @return
-    *   an Rx that emits the result or a TimeoutException
+    *   an Rx that emits events or a TimeoutException if the first event doesn't arrive in time
     */
   def timeout(duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Rx[A] = TimeoutOp(
     this,

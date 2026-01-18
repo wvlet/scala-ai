@@ -306,7 +306,8 @@ object RateLimiter:
     */
   private class FixedWindowRateLimiter(maxOperations: Int, windowNanos: Long, ticker: Ticker)
       extends RateLimiter:
-    private val lock         = ReentrantLock()
+    // Fair lock prevents thread starvation under high contention
+    private val lock         = ReentrantLock(true)
     private var windowStart  = ticker.read
     private var currentCount = 0L
 
@@ -395,7 +396,8 @@ object RateLimiter:
     */
   private class SlidingWindowRateLimiter(maxOperations: Int, windowNanos: Long, ticker: Ticker)
       extends RateLimiter:
-    private val lock       = ReentrantLock()
+    // Fair lock prevents thread starvation under high contention
+    private val lock       = ReentrantLock(true)
     private val timestamps = ArrayDeque[Long]()
 
     override def ratePerSecond: Double = maxOperations.toDouble * 1_000_000_000.0 / windowNanos
