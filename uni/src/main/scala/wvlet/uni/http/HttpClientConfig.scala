@@ -33,8 +33,8 @@ case class HttpClientConfig(
   def withConnectTimeoutMillis(millis: Long): HttpClientConfig = copy(connectTimeoutMillis = millis)
   def withReadTimeoutMillis(millis: Long): HttpClientConfig    = copy(readTimeoutMillis = millis)
 
-  def withFollowRedirects(follow: Boolean): HttpClientConfig = copy(followRedirects = follow)
-  def noFollowRedirects: HttpClientConfig                    = copy(followRedirects = false)
+  def withFollowRedirects: HttpClientConfig = copy(followRedirects = true)
+  def noFollowRedirects: HttpClientConfig   = copy(followRedirects = false)
 
   def withMaxRedirects(max: Int): HttpClientConfig = copy(maxRedirects = max)
 

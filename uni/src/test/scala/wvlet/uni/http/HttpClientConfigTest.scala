@@ -46,11 +46,11 @@ class HttpClientConfigTest extends UniTest:
   }
 
   test("should configure redirects") {
-    val config1 = HttpClientConfig.default.withFollowRedirects(false)
+    val config1 = HttpClientConfig.default.noFollowRedirects
     config1.followRedirects shouldBe false
 
-    val config2 = HttpClientConfig.default.noFollowRedirects
-    config2.followRedirects shouldBe false
+    val config2 = config1.withFollowRedirects
+    config2.followRedirects shouldBe true
 
     val config3 = HttpClientConfig.default.withMaxRedirects(5)
     config3.maxRedirects shouldBe 5
