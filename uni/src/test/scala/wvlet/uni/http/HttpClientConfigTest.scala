@@ -66,52 +66,36 @@ class HttpClientConfigTest extends UniTest:
     config2.retryConfig.initialDelayMillis shouldBe 500
   }
 
-  test("should set default headers") {
-    val headers = HttpHeaders("Accept" -> "application/json")
-    val config  = HttpClientConfig.default.withDefaultHeaders(headers)
-    config.defaultHeaders.get("Accept") shouldBe Some("application/json")
+  test("should set request filter") {
+    val filter = (req: HttpRequest) => req.addHeader("X-Custom", "value")
+    val config = HttpClientConfig.default.withRequestFilter(filter)
+
+    val request  = HttpRequest.get("/test")
+    val filtered = config.requestFilter(request)
+    filtered.header("X-Custom") shouldBe Some("value")
   }
 
-  test("should add default headers") {
+  test("should add request filter") {
+    val filter1 = (req: HttpRequest) => req.addHeader("X-First", "1")
+    val filter2 = (req: HttpRequest) => req.addHeader("X-Second", "2")
+    val config  = HttpClientConfig.default.withRequestFilter(filter1).addRequestFilter(filter2)
+
+    val request  = HttpRequest.get("/test")
+    val filtered = config.requestFilter(request)
+    filtered.header("X-First") shouldBe Some("1")
+    filtered.header("X-Second") shouldBe Some("2")
+  }
+
+  test("should chain request filters") {
     val config = HttpClientConfig
       .default
-      .addDefaultHeader("Accept", "application/json")
-      .addDefaultHeader("X-Custom", "value")
-    config.defaultHeaders.get("Accept") shouldBe Some("application/json")
-    config.defaultHeaders.get("X-Custom") shouldBe Some("value")
-  }
+      .addRequestFilter(_.addHeader("Accept", "application/json"))
+      .addRequestFilter(_.addHeader("User-Agent", "MyApp/1.0"))
 
-  test("should set default header replacing existing") {
-    val config = HttpClientConfig
-      .default
-      .setDefaultHeader("Accept", "text/html")
-      .setDefaultHeader("Accept", "application/json")
-    config.defaultHeaders.get("Accept") shouldBe Some("application/json")
-  }
-
-  test("should set user agent") {
-    val config = HttpClientConfig.default.withUserAgent("MyApp/1.0")
-    config.userAgent shouldBe Some("MyApp/1.0")
-  }
-
-  test("should clear user agent") {
-    val config = HttpClientConfig.default.withUserAgent("MyApp/1.0").noUserAgent
-    config.userAgent shouldBe None
-  }
-
-  test("should set content type") {
-    val config = HttpClientConfig.default.withContentType(ContentType.ApplicationJson)
-    config.defaultHeaders.get("Content-Type") shouldBe Some("application/json")
-  }
-
-  test("should set accept header") {
-    val config = HttpClientConfig.default.withAccept("application/json")
-    config.defaultHeaders.get("Accept") shouldBe Some("application/json")
-  }
-
-  test("should set accept JSON") {
-    val config = HttpClientConfig.default.withAcceptJson
-    config.defaultHeaders.get("Accept") shouldBe Some("application/json")
+    val request  = HttpRequest.get("/test")
+    val filtered = config.requestFilter(request)
+    filtered.header("Accept") shouldBe Some("application/json")
+    filtered.header("User-Agent") shouldBe Some("MyApp/1.0")
   }
 
   test("should resolve URI with base URI") {

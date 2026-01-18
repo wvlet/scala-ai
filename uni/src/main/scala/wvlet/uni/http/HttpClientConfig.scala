@@ -23,8 +23,7 @@ case class HttpClientConfig(
     followRedirects: Boolean = true,
     maxRedirects: Int = 10,
     retryConfig: HttpRetryConfig = HttpRetryConfig.default,
-    defaultHeaders: HttpHeaders = HttpHeaders.empty,
-    userAgent: Option[String] = None,
+    requestFilter: HttpRequest => HttpRequest = identity,
     channelFactory: HttpChannelFactory = HttpClientConfig.NoOpChannelFactory
 ):
   def withBaseUri(uri: String): HttpClientConfig = copy(baseUri = Some(uri))
@@ -41,27 +40,13 @@ case class HttpClientConfig(
   def withRetryConfig(config: HttpRetryConfig): HttpClientConfig = copy(retryConfig = config)
   def noRetry: HttpClientConfig = copy(retryConfig = HttpRetryConfig.noRetry)
 
-  def withDefaultHeaders(h: HttpHeaders): HttpClientConfig = copy(defaultHeaders = h)
-
-  def addDefaultHeader(name: String, value: String): HttpClientConfig = copy(defaultHeaders =
-    defaultHeaders.add(name, value)
+  def withRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig = copy(requestFilter =
+    filter
   )
 
-  def setDefaultHeader(name: String, value: String): HttpClientConfig = copy(defaultHeaders =
-    defaultHeaders.set(name, value)
+  def addRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig = copy(requestFilter =
+    requestFilter.andThen(filter)
   )
-
-  def withUserAgent(ua: String): HttpClientConfig = copy(userAgent = Some(ua))
-  def noUserAgent: HttpClientConfig               = copy(userAgent = None)
-
-  def withContentType(ct: ContentType): HttpClientConfig = setDefaultHeader(
-    HttpHeader.ContentType,
-    ct.value
-  )
-
-  def withAccept(accept: String): HttpClientConfig = setDefaultHeader(HttpHeader.Accept, accept)
-
-  def withAcceptJson: HttpClientConfig = withAccept(ContentType.ApplicationJson.value)
 
   def withChannelFactory(factory: HttpChannelFactory): HttpClientConfig = copy(channelFactory =
     factory

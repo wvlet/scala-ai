@@ -547,40 +547,46 @@ import scala.concurrent.duration.*
 
 case class HttpClientConfig(
     baseUri: Option[String] = None,
-    connectTimeout: Duration = 30.seconds,
-    readTimeout: Duration = 60.seconds,
+    connectTimeoutMillis: Long = 30000,
+    readTimeoutMillis: Long = 60000,
     followRedirects: Boolean = true,
     maxRedirects: Int = 10,
-    retryCount: Int = 3,
-    retryWaitMillis: Long = 1000,
-    defaultHeaders: HttpHeaders = HttpHeaders.empty,
-    userAgent: Option[String] = None
+    retryConfig: HttpRetryConfig = HttpRetryConfig.default,
+    requestFilter: HttpRequest => HttpRequest = identity
 ):
   def withBaseUri(uri: String): HttpClientConfig = copy(baseUri = Some(uri))
   def noBaseUri: HttpClientConfig = copy(baseUri = None)
 
-  def withConnectTimeout(t: Duration): HttpClientConfig = copy(connectTimeout = t)
-  def withReadTimeout(t: Duration): HttpClientConfig = copy(readTimeout = t)
+  def withConnectTimeoutMillis(millis: Long): HttpClientConfig = copy(connectTimeoutMillis = millis)
+  def withReadTimeoutMillis(millis: Long): HttpClientConfig = copy(readTimeoutMillis = millis)
 
   def withFollowRedirects: HttpClientConfig = copy(followRedirects = true)
   def noFollowRedirects: HttpClientConfig = copy(followRedirects = false)
 
   def withMaxRedirects(max: Int): HttpClientConfig = copy(maxRedirects = max)
 
-  def withRetryCount(count: Int): HttpClientConfig = copy(retryCount = count)
-  def noRetry: HttpClientConfig = copy(retryCount = 0)
+  def withRetryConfig(config: HttpRetryConfig): HttpClientConfig = copy(retryConfig = config)
+  def noRetry: HttpClientConfig = copy(retryConfig = HttpRetryConfig.noRetry)
 
-  def withRetryWaitMillis(millis: Long): HttpClientConfig = copy(retryWaitMillis = millis)
-
-  def withDefaultHeaders(h: HttpHeaders): HttpClientConfig = copy(defaultHeaders = h)
-  def addDefaultHeader(name: String, value: String): HttpClientConfig =
-    copy(defaultHeaders = defaultHeaders.add(name, value))
-
-  def withUserAgent(ua: String): HttpClientConfig = copy(userAgent = Some(ua))
-  def noUserAgent: HttpClientConfig = copy(userAgent = None)
+  def withRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig =
+    copy(requestFilter = filter)
+  def addRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig =
+    copy(requestFilter = requestFilter.andThen(filter))
 
 object HttpClientConfig:
   val default: HttpClientConfig = HttpClientConfig()
+
+case class HttpRetryConfig(
+    maxRetries: Int = 3,
+    initialDelayMillis: Long = 1000,
+    maxDelayMillis: Long = 30000,
+    backoffMultiplier: Double = 2.0
+):
+  def withMaxRetries(max: Int): HttpRetryConfig = copy(maxRetries = max)
+
+object HttpRetryConfig:
+  val default: HttpRetryConfig = HttpRetryConfig()
+  val noRetry: HttpRetryConfig = HttpRetryConfig(maxRetries = 0)
 ```
 
 ### 9. HttpClient (Sync)

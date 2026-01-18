@@ -29,26 +29,7 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
 
   private def prepareRequest(request: HttpRequest): HttpRequest =
     val uri = config.resolveUri(request.uri)
-    var req = request.withUri(uri)
-
-    // Apply default headers
-    config
-      .defaultHeaders
-      .entries
-      .foreach { header =>
-        if !req.headers.contains(header.name) then
-          req = req.addHeader(header.name, header.value)
-      }
-
-    // Apply user agent if set and not already present
-    config
-      .userAgent
-      .foreach { ua =>
-        if !req.headers.contains(HttpHeader.UserAgent) then
-          req = req.addHeader(HttpHeader.UserAgent, ua)
-      }
-
-    req
+    config.requestFilter(request.withUri(uri))
 
   private def sendWithRetry(request: HttpRequest): HttpResponse = sendWithRetryLoop(
     request,
@@ -143,26 +124,7 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
 
   private def prepareRequest(request: HttpRequest): HttpRequest =
     val uri = config.resolveUri(request.uri)
-    var req = request.withUri(uri)
-
-    // Apply default headers
-    config
-      .defaultHeaders
-      .entries
-      .foreach { header =>
-        if !req.headers.contains(header.name) then
-          req = req.addHeader(header.name, header.value)
-      }
-
-    // Apply user agent if set and not already present
-    config
-      .userAgent
-      .foreach { ua =>
-        if !req.headers.contains(HttpHeader.UserAgent) then
-          req = req.addHeader(HttpHeader.UserAgent, ua)
-      }
-
-    req
+    config.requestFilter(request.withUri(uri))
 
   private def sendWithRetry(request: HttpRequest, attempt: Int): Rx[HttpResponse] =
     sendWithRetryLoop(request, attempt, redirectCount = 0)
