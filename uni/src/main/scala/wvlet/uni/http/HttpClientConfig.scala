@@ -56,12 +56,12 @@ case class HttpClientConfig(
 
   def withContentType(ct: ContentType): HttpClientConfig = setDefaultHeader(
     HttpHeader.ContentType,
-    ct.toString
+    ct.value
   )
 
   def withAccept(accept: String): HttpClientConfig = setDefaultHeader(HttpHeader.Accept, accept)
 
-  def withAcceptJson: HttpClientConfig = withAccept(ContentType.ApplicationJson.toString)
+  def withAcceptJson: HttpClientConfig = withAccept(ContentType.ApplicationJson.value)
 
   def withChannelFactory(factory: HttpChannelFactory): HttpClientConfig = copy(channelFactory =
     factory
