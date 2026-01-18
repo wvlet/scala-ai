@@ -18,23 +18,24 @@ import wvlet.uni.rx.Rx
 /**
   * Synchronous HTTP client interface.
   *
-  * Retry is enabled by default. Use `withNoRetry` to disable.
+  * Retry is enabled by default. Use `noRetry` to disable.
   *
   * Example:
   * {{{
-  * val client = HttpClient.create()
+  * // Create client via Http.client
+  * val client = Http.client.newSyncClient
   *
   * // Simple request with default retry
   * val response = client.send(HttpRequest.get("/api/users"))
   *
   * // Disable retry for specific request
-  * val response = client.withNoRetry.send(request)
+  * val response = client.noRetry.send(request)
   *
   * // Custom retry configuration
   * val response = client.withMaxRetry(5).send(request)
   * }}}
   */
-trait HttpClient extends AutoCloseable:
+trait HttpSyncClient extends AutoCloseable:
   def config: HttpClientConfig
 
   /**
@@ -45,28 +46,29 @@ trait HttpClient extends AutoCloseable:
   /**
     * Return a new client with retry disabled
     */
-  def withNoRetry: HttpClient
+  def noRetry: HttpSyncClient
 
   /**
     * Return a new client with specified max retry count
     */
-  def withMaxRetry(maxRetries: Int): HttpClient
+  def withMaxRetry(maxRetries: Int): HttpSyncClient
 
   /**
     * Return a new client with specified config
     */
-  def withConfig(config: HttpClientConfig): HttpClient
+  def withConfig(config: HttpClientConfig): HttpSyncClient
 
   def close(): Unit = ()
 
 /**
   * Asynchronous HTTP client interface using Rx.
   *
-  * Retry is enabled by default. Use `withNoRetry` to disable.
+  * Retry is enabled by default. Use `noRetry` to disable.
   *
   * Example:
   * {{{
-  * val client = AsyncHttpClient.create()
+  * // Create client via Http.client
+  * val client = Http.client.newAsyncClient
   *
   * // Simple async request
   * client.send(HttpRequest.get("/api/users"))
@@ -74,10 +76,10 @@ trait HttpClient extends AutoCloseable:
   *   .run(println)
   *
   * // Disable retry
-  * client.withNoRetry.send(request)
+  * client.noRetry.send(request)
   * }}}
   */
-trait AsyncHttpClient extends AutoCloseable:
+trait HttpAsyncClient extends AutoCloseable:
   def config: HttpClientConfig
 
   /**
@@ -86,27 +88,23 @@ trait AsyncHttpClient extends AutoCloseable:
   def send(request: HttpRequest): Rx[HttpResponse]
 
   /**
+    * Send an HTTP request and stream the response as an Rx of byte chunks
+    */
+  def sendStreaming(request: HttpRequest): Rx[Array[Byte]]
+
+  /**
     * Return a new client with retry disabled
     */
-  def withNoRetry: AsyncHttpClient
+  def noRetry: HttpAsyncClient
 
   /**
     * Return a new client with specified max retry count
     */
-  def withMaxRetry(maxRetries: Int): AsyncHttpClient
+  def withMaxRetry(maxRetries: Int): HttpAsyncClient
 
   /**
     * Return a new client with specified config
     */
-  def withConfig(config: HttpClientConfig): AsyncHttpClient
+  def withConfig(config: HttpClientConfig): HttpAsyncClient
 
   def close(): Unit = ()
-
-/**
-  * HTTP client that supports streaming responses using Rx
-  */
-trait StreamingHttpClient extends AsyncHttpClient:
-  /**
-    * Send an HTTP request and stream the response as an Rx of byte chunks
-    */
-  def sendStreaming(request: HttpRequest): Rx[Array[Byte]]
