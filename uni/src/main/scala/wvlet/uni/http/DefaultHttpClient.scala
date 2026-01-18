@@ -13,7 +13,8 @@
  */
 package wvlet.uni.http
 
-import java.util.concurrent.TimeUnit
+import wvlet.uni.control.ResultClass
+import wvlet.uni.control.Retry
 import wvlet.uni.rx.Rx
 
 /**
@@ -25,42 +26,39 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
 
   override def send(request: HttpRequest): HttpResponse =
     val resolvedRequest = prepareRequest(request)
-    sendWithRetry(resolvedRequest)
+    sendWithRedirectHandling(resolvedRequest, redirectCount = 0)
 
   private def prepareRequest(request: HttpRequest): HttpRequest =
     val uri = config.resolveUri(request.uri)
     config.requestFilter(request.withUri(uri))
 
-  private def sendWithRetry(request: HttpRequest): HttpResponse = sendWithRetryLoop(
-    request,
-    attempt = 0,
-    redirectCount = 0
-  )
+  private def sendWithRedirectHandling(request: HttpRequest, redirectCount: Int): HttpResponse =
+    val response = sendWithRetry(request)
 
-  private def sendWithRetryLoop(
-      request: HttpRequest,
-      attempt: Int,
-      redirectCount: Int
-  ): HttpResponse =
-    val maxAttempts = config.retryConfig.maxRetries + 1
-    try
-      val response = channel.send(request, config)
+    if config.followRedirects && response.isRedirection then
+      handleRedirect(request, response, redirectCount)
+    else
+      response
 
-      // Handle redirects - redirected requests also go through retry logic
-      if config.followRedirects && response.isRedirection then
-        handleRedirect(request, response, redirectCount)
-      // Check if we should retry based on status
-      else if attempt < maxAttempts - 1 && config.retryConfig.isRetryable(response.status) then
-        val delay = config.retryConfig.delayForAttempt(attempt)
-        Thread.sleep(delay)
-        sendWithRetryLoop(request, attempt + 1, redirectCount)
-      else
-        response
-    catch
-      case e: HttpException if e.isRetryable && attempt < maxAttempts - 1 =>
-        val delay = config.retryConfig.delayForAttempt(attempt)
-        Thread.sleep(delay)
-        sendWithRetryLoop(request, attempt + 1, redirectCount)
+  private def sendWithRetry(request: HttpRequest): HttpResponse =
+    val retryContext = config
+      .retryContext
+      .withResultClassifier[HttpResponse] { response =>
+        if response.status.isRetryable then
+          ResultClass.retryableFailure(HttpException.fromResponse(response))
+        else
+          ResultClass.Succeeded
+      }
+      .withErrorClassifier {
+        case e: HttpException if e.isRetryable =>
+          Retry.retryableFailure(e)
+        case e =>
+          Retry.nonRetryableFailure(e)
+      }
+
+    retryContext.run {
+      channel.send(request, config)
+    }
 
   private def handleRedirect(
       originalRequest: HttpRequest,
@@ -83,8 +81,7 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
             else
               originalRequest.method
           )
-        // Redirected requests go through retry logic with reset attempt counter
-        sendWithRetryLoop(redirectRequest, attempt = 0, redirectCount + 1)
+        sendWithRedirectHandling(redirectRequest, redirectCount + 1)
       case None =>
         throw HttpException(
           "Redirect response missing Location header",
@@ -94,7 +91,7 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
   override def noRetry: HttpSyncClient = DefaultHttpSyncClient(config.noRetry, channel)
 
   override def withMaxRetry(maxRetries: Int): HttpSyncClient = DefaultHttpSyncClient(
-    config.withRetryConfig(config.retryConfig.withMaxRetries(maxRetries)),
+    config.withMaxRetry(maxRetries),
     channel
   )
 
@@ -116,7 +113,7 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
 
   override def send(request: HttpRequest): Rx[HttpResponse] =
     val resolvedRequest = prepareRequest(request)
-    sendWithRetry(resolvedRequest, 0)
+    sendWithRedirectHandling(resolvedRequest, redirectCount = 0)
 
   override def sendStreaming(request: HttpRequest): Rx[Array[Byte]] =
     val resolvedRequest = prepareRequest(request)
@@ -126,30 +123,32 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
     val uri = config.resolveUri(request.uri)
     config.requestFilter(request.withUri(uri))
 
-  private def sendWithRetry(request: HttpRequest, attempt: Int): Rx[HttpResponse] =
-    sendWithRetryLoop(request, attempt, redirectCount = 0)
-
-  private def sendWithRetryLoop(
-      request: HttpRequest,
-      attempt: Int,
-      redirectCount: Int
-  ): Rx[HttpResponse] = channel
-    .send(request, config)
-    .flatMap { response =>
+  private def sendWithRedirectHandling(request: HttpRequest, redirectCount: Int): Rx[HttpResponse] =
+    sendWithRetry(request).flatMap { response =>
       if config.followRedirects && response.isRedirection then
         handleRedirect(request, response, redirectCount)
-      else if attempt < config.retryConfig.maxRetries &&
-        config.retryConfig.isRetryable(response.status)
-      then
-        Rx.delay(config.retryConfig.delayForAttempt(attempt), TimeUnit.MILLISECONDS)
-          .flatMap(_ => sendWithRetryLoop(request, attempt + 1, redirectCount))
       else
         Rx.single(response)
     }
-    .recoverWith {
-      case e: HttpException if e.isRetryable && attempt < config.retryConfig.maxRetries =>
-        Rx.delay(config.retryConfig.delayForAttempt(attempt), TimeUnit.MILLISECONDS)
-          .flatMap(_ => sendWithRetryLoop(request, attempt + 1, redirectCount))
+
+  private def sendWithRetry(request: HttpRequest): Rx[HttpResponse] =
+    val retryContext = config
+      .retryContext
+      .withResultClassifier[HttpResponse] { response =>
+        if response.status.isRetryable then
+          ResultClass.retryableFailure(HttpException.fromResponse(response))
+        else
+          ResultClass.Succeeded
+      }
+      .withErrorClassifier {
+        case e: HttpException if e.isRetryable =>
+          Retry.retryableFailure(e)
+        case e =>
+          Retry.nonRetryableFailure(e)
+      }
+
+    retryContext.runAsyncWithContext(request) {
+      channel.send(request, config)
     }
 
   private def handleRedirect(
@@ -175,8 +174,7 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
               else
                 originalRequest.method
             )
-          // Redirected requests go through retry logic with reset attempt counter
-          sendWithRetryLoop(redirectRequest, attempt = 0, redirectCount + 1)
+          sendWithRedirectHandling(redirectRequest, redirectCount + 1)
         case None =>
           Rx.exception(
             HttpException(
@@ -188,7 +186,7 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
   override def noRetry: HttpAsyncClient = DefaultHttpAsyncClient(config.noRetry, channel)
 
   override def withMaxRetry(maxRetries: Int): HttpAsyncClient = DefaultHttpAsyncClient(
-    config.withRetryConfig(config.retryConfig.withMaxRetries(maxRetries)),
+    config.withMaxRetry(maxRetries),
     channel
   )
 

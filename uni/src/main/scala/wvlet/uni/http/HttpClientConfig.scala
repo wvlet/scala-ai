@@ -13,6 +13,9 @@
  */
 package wvlet.uni.http
 
+import wvlet.uni.control.Retry
+import wvlet.uni.control.Retry.RetryContext
+
 /**
   * Configuration for HTTP clients. Includes channel factory for creating platform-specific clients.
   */
@@ -22,7 +25,10 @@ case class HttpClientConfig(
     readTimeoutMillis: Long = 60000,
     followRedirects: Boolean = true,
     maxRedirects: Int = 10,
-    retryConfig: HttpRetryConfig = HttpRetryConfig.default,
+    retryContext: RetryContext =
+      Retry
+        .withBackOff(maxRetry = 3, initialIntervalMillis = 1000, maxIntervalMillis = 30000)
+        .noRetryLogging,
     requestFilter: HttpRequest => HttpRequest = identity,
     channelFactory: HttpChannelFactory = HttpClientConfig.NoOpChannelFactory
 ):
@@ -37,8 +43,8 @@ case class HttpClientConfig(
 
   def withMaxRedirects(max: Int): HttpClientConfig = copy(maxRedirects = max)
 
-  def withRetryConfig(config: HttpRetryConfig): HttpClientConfig = copy(retryConfig = config)
-  def noRetry: HttpClientConfig = copy(retryConfig = HttpRetryConfig.noRetry)
+  def withRetryContext(ctx: RetryContext): HttpClientConfig = copy(retryContext = ctx)
+  def noRetry: HttpClientConfig = copy(retryContext = retryContext.noRetry)
 
   def withRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig = copy(requestFilter =
     filter
@@ -52,8 +58,8 @@ case class HttpClientConfig(
     factory
   )
 
-  def withMaxRetry(maxRetries: Int): HttpClientConfig = copy(retryConfig =
-    retryConfig.withMaxRetries(maxRetries)
+  def withMaxRetry(maxRetries: Int): HttpClientConfig = copy(retryContext =
+    retryContext.withMaxRetry(maxRetries)
   )
 
   def resolveUri(uri: String): String =
@@ -96,31 +102,3 @@ object HttpClientConfig:
       throw NotImplementedError(
         "No HttpAsyncChannel implementation available. Import a platform-specific module."
       )
-
-/**
-  * Configuration for HTTP request retry behavior
-  */
-case class HttpRetryConfig(
-    maxRetries: Int = 3,
-    initialDelayMillis: Long = 1000,
-    maxDelayMillis: Long = 30000,
-    backoffMultiplier: Double = 2.0,
-    retryableStatuses: Set[Int] = Set(408, 429, 500, 502, 503, 504)
-):
-  def withMaxRetries(max: Int): HttpRetryConfig                  = copy(maxRetries = max)
-  def withInitialDelayMillis(millis: Long): HttpRetryConfig      = copy(initialDelayMillis = millis)
-  def withMaxDelayMillis(millis: Long): HttpRetryConfig          = copy(maxDelayMillis = millis)
-  def withBackoffMultiplier(mult: Double): HttpRetryConfig       = copy(backoffMultiplier = mult)
-  def withRetryableStatuses(statuses: Set[Int]): HttpRetryConfig = copy(retryableStatuses =
-    statuses
-  )
-
-  def isRetryable(status: HttpStatus): Boolean = retryableStatuses.contains(status.code)
-
-  def delayForAttempt(attempt: Int): Long =
-    val delay = initialDelayMillis * Math.pow(backoffMultiplier, attempt.toDouble)
-    Math.min(delay.toLong, maxDelayMillis)
-
-object HttpRetryConfig:
-  val default: HttpRetryConfig = HttpRetryConfig()
-  val noRetry: HttpRetryConfig = HttpRetryConfig(maxRetries = 0)

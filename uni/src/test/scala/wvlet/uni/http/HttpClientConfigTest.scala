@@ -58,12 +58,10 @@ class HttpClientConfigTest extends UniTest:
 
   test("should configure retry") {
     val config1 = HttpClientConfig.default.noRetry
-    config1.retryConfig.maxRetries shouldBe 0
+    config1.retryContext.maxRetry shouldBe 0
 
-    val retryConfig = HttpRetryConfig(maxRetries = 5, initialDelayMillis = 500)
-    val config2     = HttpClientConfig.default.withRetryConfig(retryConfig)
-    config2.retryConfig.maxRetries shouldBe 5
-    config2.retryConfig.initialDelayMillis shouldBe 500
+    val config2 = HttpClientConfig.default.withMaxRetry(5)
+    config2.retryContext.maxRetry shouldBe 5
   }
 
   test("should set request filter") {
@@ -121,68 +119,21 @@ class HttpClientConfigTest extends UniTest:
     config.resolveUri("/users") shouldBe "/users"
   }
 
-  // HttpRetryConfig tests
-  test("should have default retry configuration") {
-    val config = HttpRetryConfig.default
-    config.maxRetries shouldBe 3
-    config.initialDelayMillis shouldBe 1000
-    config.maxDelayMillis shouldBe 30000
-    config.backoffMultiplier shouldBe 2.0
+  test("should configure retry context") {
+    import wvlet.uni.control.Retry
+    val customRetry = Retry.withBackOff(maxRetry = 5, initialIntervalMillis = 500)
+    val config      = HttpClientConfig.default.withRetryContext(customRetry)
+    config.retryContext.maxRetry shouldBe 5
   }
 
-  test("should have no-retry configuration") {
-    val config = HttpRetryConfig.noRetry
-    config.maxRetries shouldBe 0
+  test("should disable retry") {
+    val config = HttpClientConfig.default.noRetry
+    config.retryContext.maxRetry shouldBe 0
   }
 
-  test("should configure retry settings") {
-    val config = HttpRetryConfig
-      .default
-      .withMaxRetries(5)
-      .withInitialDelayMillis(500)
-      .withMaxDelayMillis(60000)
-      .withBackoffMultiplier(1.5)
-    config.maxRetries shouldBe 5
-    config.initialDelayMillis shouldBe 500
-    config.maxDelayMillis shouldBe 60000
-    config.backoffMultiplier shouldBe 1.5
-  }
-
-  test("should identify retryable statuses") {
-    val config = HttpRetryConfig.default
-    config.isRetryable(HttpStatus.ServiceUnavailable_503) shouldBe true
-    config.isRetryable(HttpStatus.TooManyRequests_429) shouldBe true
-    config.isRetryable(HttpStatus.NotFound_404) shouldBe false
-  }
-
-  test("should configure retryable statuses") {
-    val config = HttpRetryConfig.default.withRetryableStatuses(Set(500, 502))
-    config.isRetryable(HttpStatus.InternalServerError_500) shouldBe true
-    config.isRetryable(HttpStatus.BadGateway_502) shouldBe true
-    config.isRetryable(HttpStatus.ServiceUnavailable_503) shouldBe false
-  }
-
-  test("should calculate delay with exponential backoff") {
-    val config = HttpRetryConfig(
-      initialDelayMillis = 1000,
-      backoffMultiplier = 2.0,
-      maxDelayMillis = 30000
-    )
-    config.delayForAttempt(0) shouldBe 1000
-    config.delayForAttempt(1) shouldBe 2000
-    config.delayForAttempt(2) shouldBe 4000
-    config.delayForAttempt(3) shouldBe 8000
-  }
-
-  test("should cap delay at max delay") {
-    val config = HttpRetryConfig(
-      initialDelayMillis = 10000,
-      backoffMultiplier = 2.0,
-      maxDelayMillis = 15000
-    )
-    config.delayForAttempt(0) shouldBe 10000
-    config.delayForAttempt(1) shouldBe 15000 // capped
-    config.delayForAttempt(2) shouldBe 15000 // capped
+  test("should set max retry") {
+    val config = HttpClientConfig.default.withMaxRetry(10)
+    config.retryContext.maxRetry shouldBe 10
   }
 
 end HttpClientConfigTest
