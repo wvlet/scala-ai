@@ -372,6 +372,37 @@ class RxRunner(
           timer.cancel
           c.cancel
         }
+      case TimeoutOp(in, duration, unit) =>
+        val timeoutMillis   = TimeUnit.MILLISECONDS.convert(duration, unit).max(1)
+        val timedOut        = new AtomicBoolean(false)
+        var inputCancelable = Cancelable.empty
+        // Schedule the timeout
+        val timeoutCancelable =
+          compat.scheduleOnce(timeoutMillis) {
+            if timedOut.compareAndSet(false, true) then
+              inputCancelable.cancel
+              effect(OnError(Rx.TimeoutException(duration, unit)))
+          }
+        inputCancelable =
+          run(in) {
+            case ev @ OnNext(v) =>
+              // Cancel timeout on first event, but continue processing
+              if timedOut.compareAndSet(false, true) then
+                timeoutCancelable.cancel
+              effect(ev)
+            case ev @ OnError(e) =>
+              if timedOut.compareAndSet(false, true) then
+                timeoutCancelable.cancel
+              effect(ev)
+            case OnCompletion =>
+              if timedOut.compareAndSet(false, true) then
+                timeoutCancelable.cancel
+              effect(OnCompletion)
+          }
+        Cancelable { () =>
+          timeoutCancelable.cancel
+          inputCancelable.cancel
+        }
       case z @ ZipOp(r1, r2) =>
         zip(z)(effect)
       case z @ Zip3Op(r1, r2, r3) =>
