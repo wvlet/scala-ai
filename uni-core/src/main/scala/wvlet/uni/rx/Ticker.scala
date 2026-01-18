@@ -23,6 +23,11 @@ trait Ticker:
   // Return the current nanoseconds time
   def currentNanos: Long
 
+  /**
+    * Alias for currentNanos for compatibility with cache module.
+    */
+  def read: Long = currentNanos
+
 /**
   * A Ticker implementation that can be incremented manually for testing purpose
   *
@@ -55,7 +60,15 @@ case class ManualTicker(nanos: AtomicLong = new AtomicLong(0), autoIncrementStep
     * @return
     */
   def advance(nanoseconds: Long): ManualTicker = advance(nanoseconds, TimeUnit.NANOSECONDS)
-  def currentNanos: Long                       = nanos.getAndAdd(autoIncrementStepNanos)
+
+  /**
+    * Alias for advance(n) for compatibility with cache module.
+    */
+  def tick(n: Long): Unit = advance(n, TimeUnit.NANOSECONDS)
+
+  def currentNanos: Long = nanos.getAndAdd(autoIncrementStepNanos)
+
+end ManualTicker
 
 object Ticker:
   // A ticker that reads the current time using System.nanoTime()

@@ -22,6 +22,24 @@
     * **Agent Orchestration**: Components for advanced agent control flows.
     * **Dynamic Tool Usage**: Enabling agents to use external tools, including MCP (Model Context Protocol) or other RPC servers built with `uni`.
 
+## Package Structure
+
+| Package | Purpose |
+|---------|---------|
+| `wvlet.uni.cli` | Terminal styling, progress bars |
+| `wvlet.uni.control` | Retry, circuit breaker, resource management |
+| `wvlet.uni.control.cache` | In-memory caching with TTL and LRU eviction |
+| `wvlet.uni.design` | Dependency injection |
+| `wvlet.uni.http` | HTTP client/server |
+| `wvlet.uni.io` | Cross-platform file system abstraction |
+| `wvlet.uni.json` | JSON parsing |
+| `wvlet.uni.log` | Performant, structured logging |
+| `wvlet.uni.msgpack` | MessagePack serialization |
+| `wvlet.uni.rx` | Reactive primitives (Rx, RxVar, Ticker) |
+| `wvlet.uni.surface` | Type introspection |
+| `wvlet.uni.util` | ULID, Base64, StopWatch, etc. |
+| `wvlet.uni.weaver` | Object serialization |
+
 ## Getting Started
 
 Add the dependencies to your `build.sbt`:

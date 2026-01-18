@@ -13,7 +13,7 @@
  */
 package wvlet.uni.control.cache
 
-import wvlet.uni.control.Ticker
+import wvlet.uni.rx.Ticker
 import wvlet.uni.log.LogSupport
 
 import scala.collection.mutable

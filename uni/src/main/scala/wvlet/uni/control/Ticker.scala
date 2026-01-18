@@ -13,24 +13,6 @@
  */
 package wvlet.uni.control
 
-/**
-  * Ticker is for measuring the elapsed time.
-  */
-trait Ticker:
-  // Return the number of nanoseconds elapsed
-  def read: Long
-
-/**
-  * A Ticker implementation that can be incremented for test
-  */
-class ManualTicker(private var counter: Long = 0) extends Ticker:
-  def tick(n: Long): Unit = counter += n
-  def read: Long          = counter
-
-object Ticker:
-  // A ticker that reads the current time using System.nanoTime()
-  def systemTicker: Ticker =
-    new Ticker:
-      override def read: Long = System.nanoTime()
-
-  def manualTicker: ManualTicker = new ManualTicker
+// Re-export rx.Ticker for backwards compatibility
+export wvlet.uni.rx.Ticker
+export wvlet.uni.rx.ManualTicker
