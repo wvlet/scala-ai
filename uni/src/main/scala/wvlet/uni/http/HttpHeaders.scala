@@ -62,8 +62,6 @@ case class HttpHeaders(entries: Seq[HttpHeader]):
 
   def toSeq: Seq[(String, String)] = entries.map(h => (h.name, h.value))
 
-  def toMap: Map[String, String] = entries.map(h => h.name -> h.value).toMap
-
   def toMultiMap: Map[String, Seq[String]] = entries
     .groupBy(_.name.toLowerCase)
     .map { case (k, vs) =>

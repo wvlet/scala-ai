@@ -117,15 +117,15 @@ class HttpHeadersTest extends UniTest:
     headers.accept shouldBe Some("application/json")
   }
 
-  test("should convert to map") {
-    val headers = HttpHeaders("Content-Type" -> "application/json", "Accept" -> "text/html")
-    val map     = headers.toMap
-    map.size shouldBe 2
-    map.get("Content-Type") shouldBe Some("application/json")
-    map.get("Accept") shouldBe Some("text/html")
+  test("should convert to multi-map") {
+    val headers  = HttpHeaders("Content-Type" -> "application/json", "Accept" -> "text/html")
+    val multiMap = headers.toMultiMap
+    multiMap.size shouldBe 2
+    multiMap.get("content-type") shouldBe Some(Seq("application/json"))
+    multiMap.get("accept") shouldBe Some(Seq("text/html"))
   }
 
-  test("should convert to multi-map") {
+  test("should preserve multiple values in multi-map") {
     val headers = HttpHeaders
       .empty
       .add("Set-Cookie", "cookie1=value1")
@@ -133,6 +133,7 @@ class HttpHeadersTest extends UniTest:
     val multiMap = headers.toMultiMap
     multiMap.get("set-cookie").isDefined shouldBe true
     multiMap("set-cookie").size shouldBe 2
+    multiMap("set-cookie") shouldBe Seq("cookie1=value1", "cookie2=value2")
   }
 
   test("should convert to seq") {
