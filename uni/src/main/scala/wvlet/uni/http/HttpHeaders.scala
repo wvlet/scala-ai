@@ -62,11 +62,7 @@ case class HttpHeaders(entries: Seq[HttpHeader]):
 
   def toSeq: Seq[(String, String)] = entries.map(h => (h.name, h.value))
 
-  def toMultiMap: Map[String, Seq[String]] = entries
-    .groupBy(_.name.toLowerCase)
-    .map { case (k, vs) =>
-      k -> vs.map(_.value)
-    }
+  def toMultiMap: HttpMultiMap = HttpMultiMap.fromSeq(toSeq)
 
   override def toString: String = entries.map(_.toString).mkString("\r\n")
 
