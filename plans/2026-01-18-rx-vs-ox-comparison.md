@@ -110,7 +110,7 @@
 Ox provides multiple rate limiting algorithms:
 - **Fixed Window**: Max operations per time window
 - **Sliding Window**: Rolling window rate limiting
-- **Leaky Bucket**: Token-based with periodic replenishment
+- **Token Bucket**: Token-based with periodic replenishment, allows bursts
 - Both blocking and drop modes
 
 **Benefit**: Protects downstream services from overload.

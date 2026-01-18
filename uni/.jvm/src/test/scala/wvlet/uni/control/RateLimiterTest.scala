@@ -51,8 +51,8 @@ class RateLimiterTest extends UniTest:
     limiter.tryAcquire() shouldBe true
   }
 
-  test("leaky bucket rate limiter") {
-    val limiter = RateLimiter.leakyBucket(
+  test("token bucket rate limiter") {
+    val limiter = RateLimiter.tokenBucket(
       maxTokens = 3,
       refillRate = 1,
       refillInterval = 50,

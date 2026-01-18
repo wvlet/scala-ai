@@ -23,7 +23,7 @@ import scala.collection.mutable.ArrayDeque
   * Supports multiple algorithms:
   *   - Fixed window: limits operations within fixed time windows
   *   - Sliding window: limits operations within a rolling time window
-  *   - Leaky bucket (token bucket): tokens are replenished at a fixed rate
+  *   - Token bucket: tokens are replenished at a fixed rate, allows bursts
   *
   * Inspired by Ox's RateLimiter: https://github.com/softwaremill/ox
   */
@@ -93,10 +93,10 @@ object RateLimiter:
     SlidingWindowRateLimiter(maxOperations, unit.toNanos(windowDuration))
 
   /**
-    * Create a leaky bucket (token bucket) rate limiter.
+    * Create a token bucket rate limiter.
     *
     * Tokens are replenished at a fixed rate. Each operation consumes one token. If no tokens are
-    * available, the operation blocks or is dropped.
+    * available, the operation blocks or is dropped. Allows bursts up to maxTokens capacity.
     *
     * @param maxTokens
     *   maximum tokens in the bucket (burst capacity)
@@ -107,17 +107,17 @@ object RateLimiter:
     * @param unit
     *   time unit for refillInterval
     */
-  def leakyBucket(
+  def tokenBucket(
       maxTokens: Int,
       refillRate: Int,
       refillInterval: Long,
       unit: TimeUnit
-  ): RateLimiter = LeakyBucketRateLimiter(maxTokens, refillRate, unit.toNanos(refillInterval))
+  ): RateLimiter = TokenBucketRateLimiter(maxTokens, refillRate, unit.toNanos(refillInterval))
 
   /**
     * Create a simple rate limiter that allows N operations per second.
     */
-  def perSecond(operationsPerSecond: Int): RateLimiter = leakyBucket(
+  def perSecond(operationsPerSecond: Int): RateLimiter = tokenBucket(
     operationsPerSecond,
     operationsPerSecond,
     1,
@@ -127,7 +127,7 @@ object RateLimiter:
   /**
     * Create a simple rate limiter that allows N operations per minute.
     */
-  def perMinute(operationsPerMinute: Int): RateLimiter = leakyBucket(
+  def perMinute(operationsPerMinute: Int): RateLimiter = tokenBucket(
     operationsPerMinute,
     operationsPerMinute,
     1,
@@ -262,7 +262,7 @@ object RateLimiter:
 
   end SlidingWindowRateLimiter
 
-  private class LeakyBucketRateLimiter(maxTokens: Int, refillRate: Int, refillIntervalNanos: Long)
+  private class TokenBucketRateLimiter(maxTokens: Int, refillRate: Int, refillIntervalNanos: Long)
       extends RateLimiter:
     private val lock           = ReentrantLock()
     private var tokens         = maxTokens.toLong
@@ -327,6 +327,6 @@ object RateLimiter:
       finally
         lock.unlock()
 
-  end LeakyBucketRateLimiter
+  end TokenBucketRateLimiter
 
 end RateLimiter
