@@ -49,7 +49,15 @@ case class Response(
       case HttpContent.JsonContent(json, _) =>
         Some(json)
       case other =>
-        other.asString.map(JSON.parse)
+        other
+          .asString
+          .flatMap { str =>
+            try
+              Some(JSON.parse(str))
+            catch
+              case _: Exception =>
+                None
+          }
 
   def location: Option[String] = headers.get(HttpHeader.Location)
 

@@ -73,10 +73,16 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
 
     response.location match
       case Some(location) =>
+        // Per RFC 7231: 301/302/303 redirects should change POST to GET
+        val shouldChangeToGet =
+          originalRequest.method == HttpMethod.POST && (
+            response.status == HttpStatus.MovedPermanently_301 ||
+              response.status == HttpStatus.Found_302 || response.status == HttpStatus.SeeOther_303
+          )
         val redirectRequest = originalRequest
           .withUri(location)
           .withMethod(
-            if response.status == HttpStatus.SeeOther_303 then
+            if shouldChangeToGet then
               HttpMethod.GET
             else
               originalRequest.method
@@ -87,6 +93,8 @@ private[http] class DefaultHttpSyncClient(val config: HttpClientConfig, channel:
           "Redirect response missing Location header",
           HttpErrorCode.InvalidResponse
         )
+
+  end handleRedirect
 
   override def noRetry: HttpSyncClient = DefaultHttpSyncClient(config.noRetry, channel)
 
@@ -166,10 +174,17 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
     else
       response.location match
         case Some(location) =>
+          // Per RFC 7231: 301/302/303 redirects should change POST to GET
+          val shouldChangeToGet =
+            originalRequest.method == HttpMethod.POST && (
+              response.status == HttpStatus.MovedPermanently_301 ||
+                response.status == HttpStatus.Found_302 ||
+                response.status == HttpStatus.SeeOther_303
+            )
           val redirectRequest = originalRequest
             .withUri(location)
             .withMethod(
-              if response.status == HttpStatus.SeeOther_303 then
+              if shouldChangeToGet then
                 HttpMethod.GET
               else
                 originalRequest.method

@@ -15,6 +15,7 @@ package wvlet.uni
 
 import wvlet.uni.http.*
 import wvlet.uni.json.JSON.JSONValue
+import wvlet.uni.util.URLEncoder
 
 /**
   * An immutable HTTP request representation
@@ -60,7 +61,7 @@ case class Request(
     else
       val queryString = queryParams
         .flatMap { case (k, vs) =>
-          vs.map(v => s"${k}=${v}")
+          vs.map(v => s"${URLEncoder.encode(k)}=${URLEncoder.encode(v)}")
         }
         .mkString("&")
       val separator =

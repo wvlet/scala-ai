@@ -415,19 +415,22 @@ object HttpContent:
   def json(j: JSONValue): HttpContent = JsonContent(j)
 ```
 
-### 6. HttpRequest
+### 6. Request
+
+The `Request` class is in the `wvlet.uni` package for shorter import paths. Type aliases `HttpRequest` in `wvlet.uni.http` are provided for backwards compatibility.
 
 ```scala
-package wvlet.uni.http
+package wvlet.uni
 
-import java.net.URI
+import wvlet.uni.http.*
+import wvlet.uni.util.URLEncoder
 
-case class HttpRequest(
+case class Request(
     method: HttpMethod,
     uri: String,
     headers: HttpHeaders = HttpHeaders.empty,
     content: HttpContent = HttpContent.Empty,
-    queryParams: Map[String, String] = Map.empty
+    queryParams: Map[String, Seq[String]] = Map.empty  // Multi-value support
 ):
   def path: String =
     val idx = uri.indexOf('?')
@@ -438,51 +441,76 @@ case class HttpRequest(
   def contentType: Option[ContentType] =
     content.contentType.orElse(headers.contentType)
 
-  // Builder methods
-  def withMethod(m: HttpMethod): HttpRequest = copy(method = m)
-  def withUri(u: String): HttpRequest = copy(uri = u)
-  def withHeaders(h: HttpHeaders): HttpRequest = copy(headers = h)
-  def withContent(c: HttpContent): HttpRequest = copy(content = c)
-  def withQueryParams(params: Map[String, String]): HttpRequest = copy(queryParams = params)
+  def getQueryParam(name: String): Option[String] =
+    queryParams.get(name).flatMap(_.headOption)
 
-  def addHeader(name: String, value: String): HttpRequest =
+  def getQueryParams(name: String): Seq[String] =
+    queryParams.getOrElse(name, Seq.empty)
+
+  def fullUri: String =
+    if queryParams.isEmpty then uri
+    else
+      val queryString = queryParams
+        .flatMap { case (k, vs) =>
+          vs.map(v => s"${URLEncoder.encode(k)}=${URLEncoder.encode(v)}")
+        }
+        .mkString("&")
+      val separator = if uri.contains("?") then "&" else "?"
+      s"${uri}${separator}${queryString}"
+
+  // Builder methods
+  def withMethod(m: HttpMethod): Request = copy(method = m)
+  def withUri(u: String): Request = copy(uri = u)
+  def withHeaders(h: HttpHeaders): Request = copy(headers = h)
+  def withContent(c: HttpContent): Request = copy(content = c)
+  def withQueryParams(params: Map[String, Seq[String]]): Request = copy(queryParams = params)
+
+  def addHeader(name: String, value: String): Request =
     copy(headers = headers.add(name, value))
-  def setHeader(name: String, value: String): HttpRequest =
+  def setHeader(name: String, value: String): Request =
     copy(headers = headers.set(name, value))
 
-  def addQueryParam(name: String, value: String): HttpRequest =
-    copy(queryParams = queryParams + (name -> value))
+  def addQueryParam(name: String, value: String): Request =
+    val existing = queryParams.getOrElse(name, Seq.empty)
+    copy(queryParams = queryParams + (name -> (existing :+ value)))
 
-  def withTextContent(text: String): HttpRequest =
+  def setQueryParam(name: String, value: String): Request =
+    copy(queryParams = queryParams + (name -> Seq(value)))
+
+  def withTextContent(text: String): Request =
     copy(content = HttpContent.text(text))
-  def withJsonContent(json: JSONValue): HttpRequest =
+  def withJsonContent(json: JSONValue): Request =
     copy(content = HttpContent.json(json))
-  def withBytesContent(bytes: Array[Byte]): HttpRequest =
+  def withBytesContent(bytes: Array[Byte]): Request =
     copy(content = HttpContent.bytes(bytes))
 
-object HttpRequest:
-  def get(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.GET, uri)
-  def post(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.POST, uri)
-  def put(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.PUT, uri)
-  def delete(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.DELETE, uri)
-  def patch(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.PATCH, uri)
-  def head(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.HEAD, uri)
-  def options(uri: String): HttpRequest =
-    HttpRequest(HttpMethod.OPTIONS, uri)
+object Request:
+  def get(uri: String): Request = Request(HttpMethod.GET, uri)
+  def post(uri: String): Request = Request(HttpMethod.POST, uri)
+  def put(uri: String): Request = Request(HttpMethod.PUT, uri)
+  def delete(uri: String): Request = Request(HttpMethod.DELETE, uri)
+  def patch(uri: String): Request = Request(HttpMethod.PATCH, uri)
+  def head(uri: String): Request = Request(HttpMethod.HEAD, uri)
+  def options(uri: String): Request = Request(HttpMethod.OPTIONS, uri)
+
+// In wvlet.uni.http package object for backwards compatibility:
+package object http:
+  type HttpRequest = wvlet.uni.Request
+  val HttpRequest = wvlet.uni.Request
 ```
 
-### 7. HttpResponse
+### 7. Response
+
+The `Response` class is in the `wvlet.uni` package for shorter import paths. Type aliases `HttpResponse` in `wvlet.uni.http` are provided for backwards compatibility.
 
 ```scala
-package wvlet.uni.http
+package wvlet.uni
 
-case class HttpResponse(
+import wvlet.uni.http.*
+import wvlet.uni.json.JSON
+import wvlet.uni.json.JSON.JSONValue
+
+case class Response(
     status: HttpStatus,
     headers: HttpHeaders = HttpHeaders.empty,
     content: HttpContent = HttpContent.Empty
@@ -500,50 +528,62 @@ case class HttpResponse(
   def contentLength: Option[Long] =
     headers.contentLength
 
-  def contentAsString: Option[String] = content match
-    case HttpContent.TextContent(text, _) => Some(text)
-    case HttpContent.ByteContent(bytes, _) => Some(String(bytes, "UTF-8"))
-    case HttpContent.JsonContent(json, _) => Some(json.toJSON)
-    case HttpContent.Empty => None
+  def contentAsString: Option[String] = content.asString
 
-  def contentAsBytes: Option[Array[Byte]] = content match
-    case HttpContent.TextContent(text, _) => Some(text.getBytes("UTF-8"))
-    case HttpContent.ByteContent(bytes, _) => Some(bytes)
-    case HttpContent.JsonContent(json, _) => Some(json.toJSON.getBytes("UTF-8"))
-    case HttpContent.Empty => None
+  def contentAsBytes: Option[Array[Byte]] = content.asBytes
+
+  def contentAsJson: Option[JSONValue] =
+    content match
+      case HttpContent.JsonContent(json, _) => Some(json)
+      case other =>
+        other.asString.flatMap { str =>
+          try Some(JSON.parse(str))
+          catch case _: Exception => None  // Returns None on parse failure
+        }
+
+  def location: Option[String] = headers.get(HttpHeader.Location)
 
   // Builder methods
-  def withStatus(s: HttpStatus): HttpResponse = copy(status = s)
-  def withHeaders(h: HttpHeaders): HttpResponse = copy(headers = h)
-  def withContent(c: HttpContent): HttpResponse = copy(content = c)
+  def withStatus(s: HttpStatus): Response = copy(status = s)
+  def withHeaders(h: HttpHeaders): Response = copy(headers = h)
+  def withContent(c: HttpContent): Response = copy(content = c)
 
-  def addHeader(name: String, value: String): HttpResponse =
+  def addHeader(name: String, value: String): Response =
     copy(headers = headers.add(name, value))
-  def setHeader(name: String, value: String): HttpResponse =
+  def setHeader(name: String, value: String): Response =
     copy(headers = headers.set(name, value))
 
-object HttpResponse:
-  def apply(status: HttpStatus): HttpResponse =
-    HttpResponse(status, HttpHeaders.empty, HttpContent.Empty)
+object Response:
+  def apply(status: HttpStatus): Response =
+    Response(status, HttpHeaders.empty, HttpContent.Empty)
 
-  def ok: HttpResponse = HttpResponse(HttpStatus.Ok_200)
-  def created: HttpResponse = HttpResponse(HttpStatus.Created_201)
-  def noContent: HttpResponse = HttpResponse(HttpStatus.NoContent_204)
-  def badRequest: HttpResponse = HttpResponse(HttpStatus.BadRequest_400)
-  def unauthorized: HttpResponse = HttpResponse(HttpStatus.Unauthorized_401)
-  def forbidden: HttpResponse = HttpResponse(HttpStatus.Forbidden_403)
-  def notFound: HttpResponse = HttpResponse(HttpStatus.NotFound_404)
-  def internalServerError: HttpResponse = HttpResponse(HttpStatus.InternalServerError_500)
+  def ok: Response = Response(HttpStatus.Ok_200)
+  def created: Response = Response(HttpStatus.Created_201)
+  def noContent: Response = Response(HttpStatus.NoContent_204)
+  def redirect(location: String): Response = Response(HttpStatus.Found_302).withLocation(location)
+  def badRequest: Response = Response(HttpStatus.BadRequest_400)
+  def unauthorized: Response = Response(HttpStatus.Unauthorized_401)
+  def forbidden: Response = Response(HttpStatus.Forbidden_403)
+  def notFound: Response = Response(HttpStatus.NotFound_404)
+  def internalServerError: Response = Response(HttpStatus.InternalServerError_500)
+
+// In wvlet.uni.http package object for backwards compatibility:
+package object http:
+  type HttpResponse = wvlet.uni.Response
+  val HttpResponse = wvlet.uni.Response
 ```
 
 ## Client Interfaces
 
 ### 8. HttpClientConfig
 
+Uses `Retry.RetryContext` from `wvlet.uni.control` for retry logic, avoiding duplication.
+
 ```scala
 package wvlet.uni.http
 
-import scala.concurrent.duration.*
+import wvlet.uni.control.Retry
+import wvlet.uni.control.Retry.RetryContext
 
 case class HttpClientConfig(
     baseUri: Option[String] = None,
@@ -551,8 +591,11 @@ case class HttpClientConfig(
     readTimeoutMillis: Long = 60000,
     followRedirects: Boolean = true,
     maxRedirects: Int = 10,
-    retryConfig: HttpRetryConfig = HttpRetryConfig.default,
-    requestFilter: HttpRequest => HttpRequest = identity
+    retryContext: RetryContext = Retry
+      .withBackOff(maxRetry = 3, initialIntervalMillis = 1000, maxIntervalMillis = 30000)
+      .noRetryLogging,
+    requestFilter: HttpRequest => HttpRequest = identity,
+    channelFactory: HttpChannelFactory = HttpClientConfig.defaultChannelFactory
 ):
   def withBaseUri(uri: String): HttpClientConfig = copy(baseUri = Some(uri))
   def noBaseUri: HttpClientConfig = copy(baseUri = None)
@@ -565,28 +608,28 @@ case class HttpClientConfig(
 
   def withMaxRedirects(max: Int): HttpClientConfig = copy(maxRedirects = max)
 
-  def withRetryConfig(config: HttpRetryConfig): HttpClientConfig = copy(retryConfig = config)
-  def noRetry: HttpClientConfig = copy(retryConfig = HttpRetryConfig.noRetry)
+  def withRetryContext(ctx: RetryContext): HttpClientConfig = copy(retryContext = ctx)
+  def withMaxRetry(maxRetries: Int): HttpClientConfig =
+    copy(retryContext = retryContext.withMaxRetry(maxRetries))
+  def noRetry: HttpClientConfig = copy(retryContext = retryContext.withMaxRetry(0))
 
   def withRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig =
     copy(requestFilter = filter)
   def addRequestFilter(filter: HttpRequest => HttpRequest): HttpClientConfig =
     copy(requestFilter = requestFilter.andThen(filter))
 
+  def resolveUri(uri: String): String =
+    baseUri.fold(uri)(base => s"${base}${uri}")
+
 object HttpClientConfig:
   val default: HttpClientConfig = HttpClientConfig()
 
-case class HttpRetryConfig(
-    maxRetries: Int = 3,
-    initialDelayMillis: Long = 1000,
-    maxDelayMillis: Long = 30000,
-    backoffMultiplier: Double = 2.0
-):
-  def withMaxRetries(max: Int): HttpRetryConfig = copy(maxRetries = max)
+  // Platform-specific channel factory (set by JVM/JS/Native implementations)
+  var defaultChannelFactory: HttpChannelFactory = NoOpChannelFactory
 
-object HttpRetryConfig:
-  val default: HttpRetryConfig = HttpRetryConfig()
-  val noRetry: HttpRetryConfig = HttpRetryConfig(maxRetries = 0)
+  object NoOpChannelFactory extends HttpChannelFactory:
+    def createChannel(config: HttpClientConfig): HttpChannel = ???
+    def createAsyncChannel(config: HttpClientConfig): HttpAsyncChannel = ???
 ```
 
 ### 9. HttpClient (Sync)
