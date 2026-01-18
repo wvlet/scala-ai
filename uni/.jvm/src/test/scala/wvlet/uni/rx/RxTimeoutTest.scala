@@ -70,4 +70,10 @@ class RxTimeoutTest extends UniTest:
     ex.getMessage shouldBe "Operation timed out after 100 milliseconds"
   }
 
+  test("timeout should not terminate multi-element stream prematurely") {
+    val result = Rx.fromSeq(Seq(1, 2, 3, 4, 5)).timeout(100).toSeq
+
+    result shouldBe Seq(1, 2, 3, 4, 5)
+  }
+
 end RxTimeoutTest
