@@ -417,12 +417,9 @@ object HttpContent:
 
 ### 6. Request
 
-The `Request` class is in the `wvlet.uni` package for shorter import paths. Type aliases `HttpRequest` in `wvlet.uni.http` are provided for backwards compatibility.
-
 ```scala
-package wvlet.uni
+package wvlet.uni.http
 
-import wvlet.uni.http.*
 import wvlet.uni.util.URLEncoder
 
 case class Request(
@@ -493,20 +490,17 @@ object Request:
   def head(uri: String): Request = Request(HttpMethod.HEAD, uri)
   def options(uri: String): Request = Request(HttpMethod.OPTIONS, uri)
 
-// In wvlet.uni.http package object for backwards compatibility:
+// Type aliases in package object for backwards compatibility:
 package object http:
-  type HttpRequest = wvlet.uni.Request
-  val HttpRequest = wvlet.uni.Request
+  type HttpRequest = Request
+  val HttpRequest = Request
 ```
 
 ### 7. Response
 
-The `Response` class is in the `wvlet.uni` package for shorter import paths. Type aliases `HttpResponse` in `wvlet.uni.http` are provided for backwards compatibility.
-
 ```scala
-package wvlet.uni
+package wvlet.uni.http
 
-import wvlet.uni.http.*
 import wvlet.uni.json.JSON
 import wvlet.uni.json.JSON.JSONValue
 
@@ -567,10 +561,10 @@ object Response:
   def notFound: Response = Response(HttpStatus.NotFound_404)
   def internalServerError: Response = Response(HttpStatus.InternalServerError_500)
 
-// In wvlet.uni.http package object for backwards compatibility:
+// Type aliases in package object for backwards compatibility:
 package object http:
-  type HttpResponse = wvlet.uni.Response
-  val HttpResponse = wvlet.uni.Response
+  type HttpResponse = Response
+  val HttpResponse = Response
 ```
 
 ## Client Interfaces

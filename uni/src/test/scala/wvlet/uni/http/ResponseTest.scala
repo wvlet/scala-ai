@@ -13,7 +13,6 @@
  */
 package wvlet.uni.http
 
-import wvlet.uni.Response
 import wvlet.uni.test.UniTest
 
 class ResponseTest extends UniTest:

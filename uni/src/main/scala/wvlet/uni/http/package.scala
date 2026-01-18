@@ -14,9 +14,9 @@
 package wvlet.uni
 
 package object http:
-  // Type aliases for backwards compatibility
-  type HttpRequest  = wvlet.uni.Request
-  type HttpResponse = wvlet.uni.Response
+  // Type aliases for backwards compatibility with HttpRequest/HttpResponse naming
+  type HttpRequest  = Request
+  type HttpResponse = Response
 
-  val HttpRequest  = wvlet.uni.Request
-  val HttpResponse = wvlet.uni.Response
+  val HttpRequest  = Request
+  val HttpResponse = Response
