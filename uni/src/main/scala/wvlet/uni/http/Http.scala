@@ -34,16 +34,36 @@ package wvlet.uni.http
   */
 object Http:
   /**
-    * Entry point for creating HTTP clients
+    * Entry point for creating HTTP clients. Uses the default platform-specific channel factory.
     */
-  def client: HttpClientBuilder = HttpClientBuilder(HttpClientConfig.default)
+  def client: HttpClientBuilder = HttpClientBuilder(HttpClientConfig.default, defaultChannelFactory)
+
+  /**
+    * Create a client builder with a custom channel factory
+    */
+  def client(channelFactory: HttpChannelFactory): HttpClientBuilder =
+    HttpClientBuilder(HttpClientConfig.default, channelFactory)
+
+  /**
+    * Platform-specific default channel factory. This will be provided by platform-specific modules (.jvm, .js, .native).
+    */
+  private[http] var defaultChannelFactory: HttpChannelFactory = NoOpChannelFactory
+
+  /**
+    * Set the default channel factory. Called by platform-specific initialization.
+    */
+  def setDefaultChannelFactory(factory: HttpChannelFactory): Unit =
+    defaultChannelFactory = factory
 
 /**
   * Builder for creating HTTP clients with configuration
   */
-case class HttpClientBuilder(config: HttpClientConfig):
+case class HttpClientBuilder(config: HttpClientConfig, channelFactory: HttpChannelFactory):
   def withConfig(config: HttpClientConfig): HttpClientBuilder =
     copy(config = config)
+
+  def withChannelFactory(factory: HttpChannelFactory): HttpClientBuilder =
+    copy(channelFactory = factory)
 
   def withBaseUri(uri: String): HttpClientBuilder =
     copy(config = config.withBaseUri(uri))
@@ -80,18 +100,22 @@ case class HttpClientBuilder(config: HttpClientConfig):
 
   /**
     * Create a new synchronous HTTP client with the configured settings.
-    *
-    * Platform-specific implementations will be provided.
     */
   def newSyncClient: HttpSyncClient =
-    // Platform-specific implementation will be injected
-    throw NotImplementedError("Platform-specific HttpSyncClient implementation required")
+    DefaultHttpSyncClient(config, channelFactory.newChannel)
 
   /**
     * Create a new asynchronous HTTP client with the configured settings.
-    *
-    * Platform-specific implementations will be provided.
     */
   def newAsyncClient: HttpAsyncClient =
-    // Platform-specific implementation will be injected
-    throw NotImplementedError("Platform-specific HttpAsyncClient implementation required")
+    DefaultHttpAsyncClient(config, channelFactory.newAsyncChannel)
+
+/**
+  * No-op channel factory used when no platform-specific implementation is available
+  */
+private object NoOpChannelFactory extends HttpChannelFactory:
+  def newChannel: HttpChannel =
+    throw NotImplementedError("No HttpChannel implementation available. Import a platform-specific module.")
+
+  def newAsyncChannel: HttpAsyncChannel =
+    throw NotImplementedError("No HttpAsyncChannel implementation available. Import a platform-specific module.")

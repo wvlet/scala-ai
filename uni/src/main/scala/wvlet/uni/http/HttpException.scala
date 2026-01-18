@@ -26,10 +26,12 @@ enum HttpErrorCode:
   // Request errors
   case InvalidRequest
   case RequestCancelled
+  case TooManyRedirects
 
   // Response errors
   case ClientError  // 4xx
   case ServerError  // 5xx
+  case InvalidResponse
   case UnexpectedResponse
 
   // Other errors
