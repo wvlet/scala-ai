@@ -1390,9 +1390,10 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
           // println(s"======= ${returnType.show}")
           val ret = surfaceOf(returnType)
           // println(s"==== method of: def ${m.name}")
-          val params       = methodParametersOf(targetType, m)
-          val args         = methodArgsOf(targetType, m)
-          val methodCaller = createMethodCaller(targetType, m, args)
+          val params            = methodParametersOf(targetType, m)
+          val args              = methodArgsOf(targetType, m)
+          val methodCaller      = createMethodCaller(targetType, m, args)
+          val methodAnnotations = extractAnnotations(m)
           '{
             ClassMethodSurface(
               ${
@@ -1412,6 +1413,9 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
               }.toIndexedSeq,
               ${
                 methodCaller
+              },
+              ${
+                methodAnnotations
               }
             )
           }

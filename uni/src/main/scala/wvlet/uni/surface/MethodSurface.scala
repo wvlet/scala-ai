@@ -28,6 +28,21 @@ trait MethodSurface extends ParameterBase:
   def surface: Surface = returnType
   def returnType: Surface
 
+  /**
+    * Annotations on this method
+    */
+  def annotations: Seq[Annotation] = Seq.empty
+
+  /**
+    * Find an annotation by name (simple name or fully qualified name)
+    */
+  def findAnnotation(name: String): Option[Annotation] = annotations.find(_.is(name))
+
+  /**
+    * Check if this method has an annotation with the given name
+    */
+  def hasAnnotation(name: String): Boolean = annotations.exists(_.is(name))
+
   def isPublic: Boolean    = (mod & MethodModifier.PUBLIC) != 0
   def isPrivate: Boolean   = (mod & MethodModifier.PRIVATE) != 0
   def isProtected: Boolean = (mod & MethodModifier.PROTECTED) != 0
