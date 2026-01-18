@@ -13,7 +13,7 @@
  */
 package wvlet.uni.http
 
-import scala.concurrent.Future
+import wvlet.uni.rx.Rx
 
 /**
   * Synchronous HTTP client interface
@@ -31,8 +31,8 @@ trait HttpClient extends AutoCloseable:
     */
   def sendWithRetry(request: HttpRequest): HttpResponse =
     var lastException: Throwable = null
-    var attempt                   = 0
-    val maxAttempts               = config.retryConfig.maxRetries + 1
+    var attempt                  = 0
+    val maxAttempts              = config.retryConfig.maxRetries + 1
 
     while attempt < maxAttempts do
       try
@@ -43,7 +43,7 @@ trait HttpClient extends AutoCloseable:
           attempt += 1
         else return response
       catch
-        case e: HttpTimeoutException if attempt < maxAttempts - 1 =>
+        case e: HttpException if e.isRetryable && attempt < maxAttempts - 1 =>
           lastException = e
           val delay = config.retryConfig.delayForAttempt(attempt)
           Thread.sleep(delay)
@@ -98,30 +98,30 @@ trait HttpClient extends AutoCloseable:
   def close(): Unit = ()
 
 /**
-  * Asynchronous HTTP client interface
+  * Asynchronous HTTP client interface using Rx
   */
 trait AsyncHttpClient extends AutoCloseable:
   def config: HttpClientConfig
 
   /**
-    * Send an HTTP request asynchronously
+    * Send an HTTP request asynchronously, returning an Rx stream
     */
-  def sendAsync(request: HttpRequest): Future[HttpResponse]
+  def sendAsync(request: HttpRequest): Rx[HttpResponse]
 
   // Convenience methods
-  def getAsync(uri: String): Future[HttpResponse] =
+  def getAsync(uri: String): Rx[HttpResponse] =
     sendAsync(HttpRequest.get(config.resolveUri(uri)))
 
-  def getAsync(uri: String, headers: HttpHeaders): Future[HttpResponse] =
+  def getAsync(uri: String, headers: HttpHeaders): Rx[HttpResponse] =
     sendAsync(HttpRequest.get(config.resolveUri(uri)).withHeaders(headers))
 
-  def postAsync(uri: String, content: HttpContent): Future[HttpResponse] =
+  def postAsync(uri: String, content: HttpContent): Rx[HttpResponse] =
     sendAsync(HttpRequest.post(config.resolveUri(uri)).withContent(content))
 
-  def postAsync(uri: String, content: HttpContent, headers: HttpHeaders): Future[HttpResponse] =
+  def postAsync(uri: String, content: HttpContent, headers: HttpHeaders): Rx[HttpResponse] =
     sendAsync(HttpRequest.post(config.resolveUri(uri)).withContent(content).withHeaders(headers))
 
-  def postJsonAsync(uri: String, json: String): Future[HttpResponse] =
+  def postJsonAsync(uri: String, json: String): Rx[HttpResponse] =
     sendAsync(
       HttpRequest
         .post(config.resolveUri(uri))
@@ -129,19 +129,19 @@ trait AsyncHttpClient extends AutoCloseable:
         .withContentType(ContentType.ApplicationJson)
     )
 
-  def putAsync(uri: String, content: HttpContent): Future[HttpResponse] =
+  def putAsync(uri: String, content: HttpContent): Rx[HttpResponse] =
     sendAsync(HttpRequest.put(config.resolveUri(uri)).withContent(content))
 
-  def deleteAsync(uri: String): Future[HttpResponse] =
+  def deleteAsync(uri: String): Rx[HttpResponse] =
     sendAsync(HttpRequest.delete(config.resolveUri(uri)))
 
-  def patchAsync(uri: String, content: HttpContent): Future[HttpResponse] =
+  def patchAsync(uri: String, content: HttpContent): Rx[HttpResponse] =
     sendAsync(HttpRequest.patch(config.resolveUri(uri)).withContent(content))
 
-  def headAsync(uri: String): Future[HttpResponse] =
+  def headAsync(uri: String): Rx[HttpResponse] =
     sendAsync(HttpRequest.head(config.resolveUri(uri)))
 
-  def optionsAsync(uri: String): Future[HttpResponse] =
+  def optionsAsync(uri: String): Rx[HttpResponse] =
     sendAsync(HttpRequest.options(config.resolveUri(uri)))
 
   def close(): Unit = ()
@@ -156,9 +156,14 @@ trait HttpResponseObserver:
   def onError(e: Throwable): Unit
 
 /**
-  * HTTP client that supports streaming responses
+  * HTTP client that supports streaming responses using Rx
   */
 trait StreamingHttpClient extends AsyncHttpClient:
+  /**
+    * Send an HTTP request and stream the response as an Rx of byte chunks
+    */
+  def sendStreaming(request: HttpRequest): Rx[Array[Byte]]
+
   /**
     * Send an HTTP request and stream the response through an observer
     */
