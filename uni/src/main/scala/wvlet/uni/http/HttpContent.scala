@@ -27,6 +27,11 @@ sealed trait HttpContent:
   def asString: Option[String]
   def asBytes: Option[Array[Byte]]
 
+  // Direct accessors that return values instead of Option
+  def toContentString: String
+  def toContentBytes: Array[Byte]
+  def contentHash: Int
+
 object HttpContent:
 
   case object Empty extends HttpContent:
@@ -35,6 +40,9 @@ object HttpContent:
     def length: Long                     = 0
     def asString: Option[String]         = None
     def asBytes: Option[Array[Byte]]     = None
+    def toContentString: String          = ""
+    def toContentBytes: Array[Byte]      = Array.empty[Byte]
+    def contentHash: Int                 = 0
 
   case class TextContent(
       text: String,
@@ -45,6 +53,9 @@ object HttpContent:
     val length: Long                         = bytesCache.length.toLong
     def asString: Option[String]             = Some(text)
     def asBytes: Option[Array[Byte]]         = Some(bytesCache)
+    def toContentString: String              = text
+    def toContentBytes: Array[Byte]          = bytesCache
+    def contentHash: Int                     = java.util.Arrays.hashCode(bytesCache)
 
   case class ByteContent(
       bytes: Array[Byte],
@@ -54,6 +65,9 @@ object HttpContent:
     def length: Long                 = bytes.length.toLong
     def asString: Option[String]     = Some(String(bytes, "UTF-8"))
     def asBytes: Option[Array[Byte]] = Some(bytes)
+    def toContentString: String      = String(bytes, "UTF-8")
+    def toContentBytes: Array[Byte]  = bytes
+    def contentHash: Int             = java.util.Arrays.hashCode(bytes)
 
   case class JsonContent(
       json: JSONValue,
@@ -65,6 +79,9 @@ object HttpContent:
     val length: Long                         = bytesCache.length.toLong
     def asString: Option[String]             = Some(jsonString)
     def asBytes: Option[Array[Byte]]         = Some(bytesCache)
+    def toContentString: String              = jsonString
+    def toContentBytes: Array[Byte]          = bytesCache
+    def contentHash: Int                     = java.util.Arrays.hashCode(bytesCache)
 
   def empty: HttpContent = Empty
 
