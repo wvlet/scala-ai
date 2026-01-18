@@ -14,8 +14,6 @@
 package wvlet.uni.control
 
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.mutable.ArrayDeque
 
@@ -119,61 +117,88 @@ object RateLimiter:
   /**
     * Create a simple rate limiter that allows N operations per second.
     */
-  def perSecond(operationsPerSecond: Int): RateLimiter =
-    leakyBucket(operationsPerSecond, operationsPerSecond, 1, TimeUnit.SECONDS)
+  def perSecond(operationsPerSecond: Int): RateLimiter = leakyBucket(
+    operationsPerSecond,
+    operationsPerSecond,
+    1,
+    TimeUnit.SECONDS
+  )
 
   /**
     * Create a simple rate limiter that allows N operations per minute.
     */
-  def perMinute(operationsPerMinute: Int): RateLimiter =
-    leakyBucket(operationsPerMinute, operationsPerMinute, 1, TimeUnit.MINUTES)
+  def perMinute(operationsPerMinute: Int): RateLimiter = leakyBucket(
+    operationsPerMinute,
+    operationsPerMinute,
+    1,
+    TimeUnit.MINUTES
+  )
 
   // Internal implementations
 
   private class FixedWindowRateLimiter(maxOperations: Int, windowNanos: Long) extends RateLimiter:
     private val lock         = ReentrantLock()
-    private val windowStart  = new AtomicLong(System.nanoTime())
-    private val currentCount = new AtomicLong(0)
+    private var windowStart  = System.nanoTime()
+    private var currentCount = 0L
 
     override def tryAcquire(): Boolean =
       lock.lock()
       try
         val now           = System.nanoTime()
-        val currentWindow = windowStart.get()
+        val currentWindow = windowStart
 
         // Check if we need to start a new window
         if now - currentWindow >= windowNanos then
-          windowStart.set(now)
-          currentCount.set(1)
+          windowStart = now
+          currentCount = 1
           true
-        else if currentCount.get() < maxOperations then
-          currentCount.incrementAndGet()
+        else if currentCount < maxOperations then
+          currentCount += 1
           true
         else
           false
-      finally lock.unlock()
+      finally
+        lock.unlock()
 
     override def acquire(): Unit =
       while !tryAcquire() do
-        val now              = System.nanoTime()
-        val currentWindow    = windowStart.get()
-        val remainingNanos   = windowNanos - (now - currentWindow)
-        val sleepMillis      = (remainingNanos / 1000000).max(1)
-        Thread.sleep(sleepMillis)
+        val sleepMillis =
+          lock.lock()
+          try
+            val now           = System.nanoTime()
+            val currentWindow = windowStart
+            if now - currentWindow >= windowNanos then
+              0L // Window has been reset, try to acquire again immediately
+            else
+              val remainingNanos = windowNanos - (now - currentWindow)
+              (remainingNanos / 1000000).max(1)
+          finally
+            lock.unlock()
+
+        if sleepMillis > 0 then
+          Thread.sleep(sleepMillis)
 
     override def runBlocking[A](operation: => A): A =
       acquire()
       operation
 
     override def runOrDrop[A](operation: => A): Option[A] =
-      if tryAcquire() then Some(operation)
-      else None
+      if tryAcquire() then
+        Some(operation)
+      else
+        None
 
     override def availablePermits: Int =
-      val now           = System.nanoTime()
-      val currentWindow = windowStart.get()
-      if now - currentWindow >= windowNanos then maxOperations
-      else (maxOperations - currentCount.get().toInt).max(0)
+      lock.lock()
+      try
+        val now           = System.nanoTime()
+        val currentWindow = windowStart
+        if now - currentWindow >= windowNanos then
+          maxOperations
+        else
+          (maxOperations - currentCount.toInt).max(0)
+      finally
+        lock.unlock()
 
   end FixedWindowRateLimiter
 
@@ -197,7 +222,8 @@ object RateLimiter:
           true
         else
           false
-      finally lock.unlock()
+      finally
+        lock.unlock()
 
     override def acquire(): Unit =
       while !tryAcquire() do
@@ -212,7 +238,8 @@ object RateLimiter:
               (waitUntil - now).max(1000000) // At least 1ms
             else
               1000000 // 1ms default
-          finally lock.unlock()
+          finally
+            lock.unlock()
         Thread.sleep(sleepNanos / 1000000, (sleepNanos % 1000000).toInt)
 
     override def runBlocking[A](operation: => A): A =
@@ -220,45 +247,48 @@ object RateLimiter:
       operation
 
     override def runOrDrop[A](operation: => A): Option[A] =
-      if tryAcquire() then Some(operation)
-      else None
+      if tryAcquire() then
+        Some(operation)
+      else
+        None
 
     override def availablePermits: Int =
       lock.lock()
       try
         cleanupOldEntries(System.nanoTime())
         (maxOperations - timestamps.size).max(0)
-      finally lock.unlock()
+      finally
+        lock.unlock()
 
   end SlidingWindowRateLimiter
 
   private class LeakyBucketRateLimiter(maxTokens: Int, refillRate: Int, refillIntervalNanos: Long)
       extends RateLimiter:
     private val lock           = ReentrantLock()
-    private val tokens         = new AtomicLong(maxTokens.toLong)
-    private val lastRefillTime = new AtomicLong(System.nanoTime())
+    private var tokens         = maxTokens.toLong
+    private var lastRefillTime = System.nanoTime()
 
     private def refillTokens(): Unit =
-      val now                    = System.nanoTime()
-      val lastRefill             = lastRefillTime.get()
-      val elapsedNanos           = now - lastRefill
-      val intervalsElapsed       = elapsedNanos / refillIntervalNanos
+      val now              = System.nanoTime()
+      val lastRefill       = lastRefillTime
+      val elapsedNanos     = now - lastRefill
+      val intervalsElapsed = elapsedNanos / refillIntervalNanos
       if intervalsElapsed > 0 then
         val tokensToAdd = intervalsElapsed * refillRate
-        val newTokens   = (tokens.get() + tokensToAdd).min(maxTokens.toLong)
-        tokens.set(newTokens)
-        lastRefillTime.set(lastRefill + intervalsElapsed * refillIntervalNanos)
+        tokens = (tokens + tokensToAdd).min(maxTokens.toLong)
+        lastRefillTime = lastRefill + intervalsElapsed * refillIntervalNanos
 
     override def tryAcquire(): Boolean =
       lock.lock()
       try
         refillTokens()
-        if tokens.get() > 0 then
-          tokens.decrementAndGet()
+        if tokens > 0 then
+          tokens -= 1
           true
         else
           false
-      finally lock.unlock()
+      finally
+        lock.unlock()
 
     override def acquire(): Unit =
       while !tryAcquire() do
@@ -266,15 +296,16 @@ object RateLimiter:
         val sleepNanos =
           try
             refillTokens()
-            if tokens.get() > 0 then
+            if tokens > 0 then
               0L
             else
               // Wait until next refill
               val now        = System.nanoTime()
-              val lastRefill = lastRefillTime.get()
+              val lastRefill = lastRefillTime
               val nextRefill = lastRefill + refillIntervalNanos
               (nextRefill - now).max(1000000)
-          finally lock.unlock()
+          finally
+            lock.unlock()
         if sleepNanos > 0 then
           Thread.sleep(sleepNanos / 1000000, (sleepNanos % 1000000).toInt)
 
@@ -283,15 +314,18 @@ object RateLimiter:
       operation
 
     override def runOrDrop[A](operation: => A): Option[A] =
-      if tryAcquire() then Some(operation)
-      else None
+      if tryAcquire() then
+        Some(operation)
+      else
+        None
 
     override def availablePermits: Int =
       lock.lock()
       try
         refillTokens()
-        tokens.get().toInt
-      finally lock.unlock()
+        tokens.toInt
+      finally
+        lock.unlock()
 
   end LeakyBucketRateLimiter
 

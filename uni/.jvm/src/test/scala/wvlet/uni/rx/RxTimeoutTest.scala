@@ -31,15 +31,13 @@ class RxTimeoutTest extends AirSpec:
     }
 
     result.isFailure shouldBe true
-    result.failed.get shouldMatch { case Rx.TimeoutException(50, TimeUnit.MILLISECONDS) => }
+    result.failed.get shouldMatch { case Rx.TimeoutException(50, TimeUnit.MILLISECONDS) =>
+    }
   }
 
-  test("timeout should cancel the underlying operation on timeout") {
-    var cancelled = false
-
+  test("timeout should trigger before slow single operation completes") {
     val rx = Rx.single {
       Thread.sleep(500)
-      cancelled = false
       "done"
     }
 
@@ -48,19 +46,16 @@ class RxTimeoutTest extends AirSpec:
     }
 
     result.isFailure shouldBe true
-    // The underlying operation may still be running, but the timeout was triggered
   }
 
   test("timeout with custom time unit") {
     val result = Try {
-      Rx.delay(200, TimeUnit.MILLISECONDS)
-        .map(_ => "done")
-        .timeout(50, TimeUnit.MILLISECONDS)
-        .await
+      Rx.delay(200, TimeUnit.MILLISECONDS).map(_ => "done").timeout(50, TimeUnit.MILLISECONDS).await
     }
 
     result.isFailure shouldBe true
-    result.failed.get shouldMatch { case Rx.TimeoutException(50, TimeUnit.MILLISECONDS) => }
+    result.failed.get shouldMatch { case Rx.TimeoutException(50, TimeUnit.MILLISECONDS) =>
+    }
   }
 
   test("timeout on sequence should work for first element") {
