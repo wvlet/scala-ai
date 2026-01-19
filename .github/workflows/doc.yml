@@ -13,8 +13,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  # Use PR-specific group for builds, 'pages' group for deploys to main
+  group: ${{ github.event_name == 'pull_request' && format('doc-pr-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   changes:
