@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'Wvlet Uni',
   description: 'Essential Scala Utilities - Refined for Scala 3 with minimal dependencies',
 
+  base: '/uni/',
   cleanUrls: true,
 
   markdown: {
