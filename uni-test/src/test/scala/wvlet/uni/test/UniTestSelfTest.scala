@@ -192,4 +192,20 @@ class UniTestSelfTest extends UniTest:
     e2.getMessage shouldContain "Expected not null"
   }
 
+  test("source snippet is captured") {
+    val e = intercept[AssertionFailure] {
+      1 shouldBe 2
+    }
+    // Verify the source location is captured
+    e.source.fileName shouldBe "UniTestSelfTest.scala"
+    e.source.line shouldBe 197
+    // Verify the source line content is captured
+    e.source.sourceLine shouldContain "shouldBe"
+    // Verify formatSnippet works
+    val snippet = e.source.formatSnippet
+    snippet shouldBe defined
+    snippet.get shouldContain "1 shouldBe 2"
+    snippet.get shouldContain "^"
+  }
+
 end UniTestSelfTest

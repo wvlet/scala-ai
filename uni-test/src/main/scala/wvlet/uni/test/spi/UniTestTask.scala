@@ -14,6 +14,7 @@
 package wvlet.uni.test.spi
 
 import sbt.testing.*
+import wvlet.uni.test.AssertionFailure
 import wvlet.uni.test.TestException
 import wvlet.uni.test.TestResult
 import wvlet.uni.test.TestSkipped
@@ -146,8 +147,20 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
     result match
       case TestResult.Success(name) =>
         loggers.foreach(_.info(s"${GREEN}  + ${name}${RESET}"))
-      case TestResult.Failure(name, msg, _) =>
+      case TestResult.Failure(name, msg, cause) =>
         loggers.foreach(_.error(s"${RED}  - ${name}: ${msg}${RESET}"))
+        // Show source code snippet for assertion failures
+        cause.foreach {
+          case af: AssertionFailure =>
+            af.source
+              .formatSnippet
+              .foreach { snippet =>
+                val indentedSnippet = snippet.linesIterator.map(l => s"    ${l}").mkString("\n")
+                loggers.foreach(_.error(s"${GRAY}${indentedSnippet}${RESET}"))
+              }
+          case _ =>
+            ()
+        }
       case TestResult.Error(name, msg, cause) =>
         loggers.foreach(_.error(s"${RED}  x ${name}: ${msg}${RESET}"))
         loggers.foreach(_.trace(cause))
