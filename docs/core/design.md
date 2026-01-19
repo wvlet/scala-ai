@@ -1,6 +1,6 @@
 # Design
 
-Design is a dependency injection framework for wiring application components at runtime.
+Design is a framework for building and wiring complex objects at runtime.
 
 ## Basic Usage
 
