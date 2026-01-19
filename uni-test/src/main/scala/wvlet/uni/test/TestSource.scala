@@ -22,15 +22,23 @@ case class TestSource(fileName: String, line: Int, col: Int, sourceLine: String 
   override def toString = fileLocation
 
   /**
-    * Format the source location as a code snippet with line number and column marker
+    * Format the source location as a code snippet with line number and column marker. Long lines
+    * (>120 chars) are truncated with ellipsis.
     */
   def formatSnippet: Option[String] =
     if sourceLine.isEmpty then
       None
     else
-      val linePrefix = s"${line}| "
-      val snippet    = s"${linePrefix}${sourceLine}"
-      if col > 0 then
+      val maxLineLength = 120
+      val linePrefix    = s"${line}| "
+      val truncatedLine =
+        if sourceLine.length > maxLineLength then
+          sourceLine.take(maxLineLength) + "..."
+        else
+          sourceLine
+      val snippet = s"${linePrefix}${truncatedLine}"
+      // Only show caret if column is valid (within the displayed line)
+      if col > 0 && col <= truncatedLine.length then
         val caretLine = " " * (linePrefix.length + col - 1) + "^"
         Some(s"${snippet}\n${caretLine}")
       else
