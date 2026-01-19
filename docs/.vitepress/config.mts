@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Wvlet Uni',
+  title: 'Uni',
   description: 'Essential Scala Utilities - Refined for Scala 3 with minimal dependencies',
 
   base: '/uni/',

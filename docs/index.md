@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Wvlet Uni
+  name: Uni
   text: Essential Scala Utilities
   tagline: Refined for Scala 3 with minimal dependencies
   actions:
