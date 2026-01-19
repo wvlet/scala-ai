@@ -1,15 +1,18 @@
 # Command Launcher
 
-Build type-safe CLI applications with automatic argument parsing.
+Build type-safe CLI applications with automatic argument parsing using annotations.
 
 ## Basic Usage
 
 ```scala
-import wvlet.uni.cli.launcher.Launcher
+import wvlet.uni.cli.launcher.*
 
 case class MyApp(
+  @option(prefix = "-n,--name", description = "User name")
   name: String = "world",
+  @option(prefix = "-c,--count", description = "Repeat count")
   count: Int = 1,
+  @option(prefix = "-v,--verbose", description = "Enable verbose output")
   verbose: Boolean = false
 )
 
@@ -22,69 +25,183 @@ Command line:
 ```bash
 $ myapp --name Alice --count 3
 Hello, Alice! (3 times)
+
+$ myapp -n Bob -c 2 -v
+Hello, Bob! (2 times)
+```
+
+## Annotations
+
+### @option
+
+Define command-line options:
+
+```scala
+case class App(
+  @option(prefix = "-v,--verbose", description = "Enable verbose output")
+  verbose: Boolean = false,
+  @option(prefix = "-n,--count", description = "Count")
+  count: Int = 0,
+  @option(prefix = "-m,--message", description = "Message")
+  message: String = ""
+)
+```
+
+### @argument
+
+Define positional arguments:
+
+```scala
+case class App(
+  @option(prefix = "-v,--verbose", description = "Verbose")
+  verbose: Boolean = false,
+  @argument(name = "file", description = "Input file")
+  file: String = ""
+)
+```
+
+```bash
+$ app --verbose input.txt
+```
+
+### @command
+
+Define commands and sub-commands:
+
+```scala
+@command(description = "Git-like CLI")
+class GitCommand(
+  @option(prefix = "-v,--verbose", description = "Verbose")
+  verbose: Boolean = false
+):
+  @command(description = "Initialize repository")
+  def init(
+    @argument(name = "dir", description = "Directory")
+    dir: String = "."
+  ): String = s"init ${dir}"
+
+  @command(description = "Clone repository")
+  def clone(
+    @argument(name = "url", description = "Repository URL")
+    url: String,
+    @option(prefix = "--depth", description = "Clone depth")
+    depth: Option[Int] = None
+  ): String = s"clone ${url}"
+
+  @command(isDefault = true)
+  def help(): String = "show help"
+```
+
+```bash
+$ git init myrepo
+$ git clone https://example.com/repo --depth 1
 ```
 
 ## Argument Types
 
-### String Arguments
+### String Options
 
 ```scala
 case class App(
-  name: String = "default"
+  @option(prefix = "-m,--message", description = "Message")
+  message: String = ""
 )
 ```
-```bash
-$ app --name value
-$ app -n value
-```
 
-### Numeric Arguments
+### Numeric Options
 
 ```scala
 case class App(
-  count: Int = 1,
-  timeout: Long = 1000
+  @option(prefix = "-n,--count", description = "Count")
+  count: Int = 0,
+  @option(prefix = "-r,--rate", description = "Rate")
+  rate: Double = 0.0
 )
-```
-```bash
-$ app --count 5 --timeout 5000
 ```
 
 ### Boolean Flags
 
 ```scala
 case class App(
-  verbose: Boolean = false,
-  quiet: Boolean = false
+  @option(prefix = "-v,--verbose", description = "Verbose")
+  verbose: Boolean = false
 )
 ```
 ```bash
-$ app --verbose
-$ app --quiet
-$ app -v -q
+$ app -v           # verbose = true
+$ app --verbose    # verbose = true
 ```
 
 ### Optional Values
 
 ```scala
 case class App(
-  config: Option[String] = None
+  @option(prefix = "-c,--config", description = "Config file")
+  config: Option[String] = None,
+  @option(prefix = "-p,--port", description = "Port")
+  port: Option[Int] = None
 )
 ```
-```bash
-$ app --config path/to/config
-$ app  # config is None
-```
 
-### Lists
+### Multi-Value Options
 
 ```scala
 case class App(
-  files: List[String] = Nil
+  @option(prefix = "-f,--file", description = "Input files")
+  files: Seq[String] = Seq.empty,
+  @option(prefix = "-t,--tag", description = "Tags")
+  tags: Seq[String] = Seq.empty
 )
 ```
 ```bash
-$ app --files a.txt --files b.txt
+$ app -f a.txt -f b.txt -t foo -t bar
+```
+
+### Key-Value Options
+
+```scala
+case class App(
+  @option(prefix = "-D", description = "System property")
+  props: Seq[KeyValue] = Seq.empty
+)
+```
+```bash
+$ app -Dfoo=bar -Dbaz=qux
+# props = Seq(KeyValue("foo", "bar"), KeyValue("baz", "qux"))
+```
+
+## Nested Options
+
+Group related options:
+
+```scala
+case class GlobalOptions(
+  @option(prefix = "-v,--verbose", description = "Verbose")
+  verbose: Boolean = false,
+  @option(prefix = "--config", description = "Config")
+  config: Option[String] = None
+)
+
+case class App(
+  global: GlobalOptions,
+  @argument(name = "target", description = "Target")
+  target: String = ""
+)
+```
+
+```bash
+$ app --verbose --config app.conf target.txt
+```
+
+## Option Formats
+
+The launcher supports multiple option formats:
+
+```bash
+$ app --count 100           # Long option with space
+$ app --count=100           # Long option with equals
+$ app -n 100                # Short option with space
+$ app -n100                 # Short option without space
 ```
 
 ## Help Generation
@@ -92,147 +209,87 @@ $ app --files a.txt --files b.txt
 Help is automatically generated:
 
 ```scala
-case class MyApp(
-  name: String = "world",
-  count: Int = 1,
-  verbose: Boolean = false
-)
-
-Launcher.of[MyApp].printHelp
-```
-
-Output:
-```
-Usage: myapp [options]
-
-Options:
-  --name <value>    (default: world)
-  --count <value>   (default: 1)
-  --verbose         (default: false)
-  -h, --help        Show this help message
-```
-
-## Sub-Commands
-
-Create applications with multiple commands:
-
-```scala
-case class Git():
-  def clone(url: String): Unit =
-    println(s"Cloning ${url}")
-
-  def commit(message: String, all: Boolean = false): Unit =
-    println(s"Committing: ${message}")
-
-  def push(force: Boolean = false): Unit =
-    println("Pushing...")
-
-val launcher = Launcher.of[Git]
-launcher.execute(args)
-```
-
-Command line:
-```bash
-$ git clone https://github.com/user/repo
-$ git commit --message "Initial commit" --all
-$ git push --force
-```
-
-## Adding Modules
-
-Add sub-command modules:
-
-```scala
-case class MainApp()
-
-case class DbCommands():
-  def migrate(): Unit = ???
-  def seed(): Unit = ???
-
-case class UserCommands():
-  def create(name: String): Unit = ???
-  def delete(id: String): Unit = ???
-
-val launcher = Launcher.of[MainApp]
-  .addModule[DbCommands]("db", "Database commands")
-  .addModule[UserCommands]("user", "User management")
-```
-
-Command line:
-```bash
-$ app db migrate
-$ app db seed
-$ app user create --name Alice
-$ app user delete --id 123
+val launcher = Launcher.of[MyApp]
+launcher.printHelp
 ```
 
 ## Configuration
 
 ```scala
-import wvlet.uni.cli.launcher.{Launcher, LauncherConfig}
-
 val launcher = Launcher.of[MyApp]
   .withHelpPrefixes(Seq("-h", "--help", "-?"))
   .withShowHelpOnNoArgs(true)
 ```
 
-## Custom Help Printer
+## Executing Commands
 
 ```scala
-import wvlet.uni.cli.launcher.HelpPrinter
+// Simple execution - returns parsed instance
+val app = Launcher.execute[MyApp](args)
 
-val customPrinter = new HelpPrinter:
-  def printHelp(info: CommandInfo, schema: ClassOptionSchema): Unit =
-    println(s"=== ${info.name} ===")
-    println(info.description)
-    // Custom formatting...
-
+// Full control with result
 val launcher = Launcher.of[MyApp]
-  .withHelpPrinter(customPrinter)
-```
-
-## Handling Results
-
-```scala
-val result = Launcher.of[MyApp].execute(args)
+val result = launcher.execute(args)
 
 if result.showedHelp then
-  // User requested help
   System.exit(0)
-else
-  // Use the parsed instance
-  val app = result.instance.asInstanceOf[MyApp]
-  app.run()
+
+// For commands with methods
+val result = Launcher.of[GitCommand].execute(Array("init", "myrepo"))
+result.executedMethod match
+  case Some((name, returnValue)) =>
+    println(s"Executed ${name}: ${returnValue}")
+  case None =>
+    println("No method executed")
 ```
 
 ## Example: Complete CLI
 
 ```scala
-import wvlet.uni.cli.launcher.Launcher
+import wvlet.uni.cli.launcher.*
 import wvlet.uni.cli.Chalk
 
-case class FileTool(
-  verbose: Boolean = false,
-  output: Option[String] = None
+@command(description = "File management tool")
+class FileTool(
+  @option(prefix = "-v,--verbose", description = "Verbose output")
+  verbose: Boolean = false
 ):
-  def copy(source: String, dest: String): Unit =
+  @command(description = "Copy files")
+  def copy(
+    @argument(name = "source", description = "Source file")
+    source: String,
+    @argument(name = "dest", description = "Destination")
+    dest: String
+  ): Unit =
     if verbose then println(s"Copying ${source} to ${dest}")
     // Implementation...
     println(Chalk.green("Done!"))
 
-  def move(source: String, dest: String): Unit =
+  @command(description = "Move files")
+  def move(
+    @argument(name = "source", description = "Source file")
+    source: String,
+    @argument(name = "dest", description = "Destination")
+    dest: String
+  ): Unit =
     if verbose then println(s"Moving ${source} to ${dest}")
     // Implementation...
     println(Chalk.green("Done!"))
 
-  def delete(path: String, force: Boolean = false): Unit =
+  @command(description = "Delete files")
+  def delete(
+    @argument(name = "path", description = "File path")
+    path: String,
+    @option(prefix = "-f,--force", description = "Force delete")
+    force: Boolean = false
+  ): Unit =
     if verbose then println(s"Deleting ${path}")
     // Implementation...
     println(Chalk.green("Done!"))
 
 object Main:
   def main(args: Array[String]): Unit =
-    Launcher.execute[FileTool](args)
+    Launcher.of[FileTool].execute(args)
 ```
 
 Usage:
@@ -245,8 +302,8 @@ $ filetool --help
 
 ## Best Practices
 
-1. **Provide defaults** for optional arguments
-2. **Use descriptive names** for clarity
-3. **Group related commands** in modules
-4. **Test argument parsing** in unit tests
-5. **Validate inputs** after parsing
+1. **Use descriptive prefixes** - Include both short and long forms
+2. **Provide defaults** for optional arguments
+3. **Add descriptions** to all options and arguments
+4. **Group related options** using nested case classes
+5. **Use `@command(isDefault = true)`** for default sub-command

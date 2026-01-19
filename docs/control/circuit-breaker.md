@@ -31,58 +31,160 @@ The circuit breaker has three states:
        Closed  Open
 ```
 
-## Basic Usage
+## Factory Methods
+
+### Default Circuit Breaker
 
 ```scala
 import wvlet.uni.control.CircuitBreaker
-import scala.concurrent.duration.*
 
-val breaker = CircuitBreaker(
-  maxFailures = 5,
-  callTimeout = 10.seconds,
-  resetTimeout = 30.seconds
-)
+val cb = CircuitBreaker.default
 
-val result = breaker.protect {
+val result = cb.run {
   externalServiceCall()
 }
 ```
 
-## Configuration Options
+### Failure Threshold
+
+Open circuit when failures exceed threshold within a window:
 
 ```scala
-val breaker = CircuitBreaker(
-  maxFailures = 5,          // Open after 5 consecutive failures
-  callTimeout = 10.seconds, // Timeout for each call
-  resetTimeout = 30.seconds // Time before trying again
-)
+// Open when 2 out of 5 recent calls fail
+val cb = CircuitBreaker.withFailureThreshold(2, 5)
+
+val result = cb.run {
+  externalServiceCall()
+}
+```
+
+### Consecutive Failures
+
+Open circuit after consecutive failures:
+
+```scala
+// Open after 2 consecutive failures
+val cb = CircuitBreaker.withConsecutiveFailures(2)
+
+val result = cb.run {
+  externalServiceCall()
+}
+```
+
+### Always Closed (Disabled)
+
+Disable circuit breaker for testing:
+
+```scala
+val cb = CircuitBreaker.alwaysClosed
+
+// Never opens, even with many failures
+for i <- 0 to 10 do
+  cb.recordFailure(new Exception())
+  cb.isConnected shouldBe true
+```
+
+## Running Code with Circuit Breaker
+
+Use `run` to execute code through the circuit breaker:
+
+```scala
+val cb = CircuitBreaker.withFailureThreshold(1, 2)
+
+// Successful execution
+cb.run {
+  operation()
+}
+
+// If the operation throws, it's recorded as a failure
+try
+  cb.run[Any] {
+    throw new TimeoutException()
+  }
+catch
+  case e: TimeoutException => // Handle exception
 ```
 
 ## Handling Open Circuit
 
 ```scala
+import wvlet.uni.control.{CircuitBreaker, CircuitBreakerOpenException}
+
+val cb = CircuitBreaker.withFailureThreshold(1, 2)
+
 try
-  breaker.protect {
+  cb.run {
     externalService.call()
   }
 catch
-  case e: CircuitOpenException =>
+  case e: CircuitBreakerOpenException =>
     // Circuit is open, use fallback
     fallbackResponse()
 ```
 
 ## Circuit State
 
-Check the current state:
+Check and control the current state:
 
 ```scala
-breaker.state match
-  case CircuitBreaker.Closed =>
+val cb = CircuitBreaker.default
+
+// Check state
+cb.state match
+  case CircuitBreaker.CLOSED =>
     println("Circuit is healthy")
-  case CircuitBreaker.Open =>
+  case CircuitBreaker.OPEN =>
     println("Circuit is open, requests blocked")
-  case CircuitBreaker.HalfOpen =>
+  case CircuitBreaker.HALF_OPEN =>
     println("Circuit is testing recovery")
+
+// Check if connected
+if cb.isConnected then
+  println("Circuit breaker allows connections")
+```
+
+### Manual State Control
+
+```scala
+val cb = CircuitBreaker.default
+
+cb.state shouldBe CircuitBreaker.CLOSED
+cb.isConnected shouldBe true
+
+// Manually open the circuit
+cb.open()
+cb.state shouldBe CircuitBreaker.OPEN
+cb.isConnected shouldBe false
+
+// Set to half-open for probing
+cb.halfOpen()
+cb.state shouldBe CircuitBreaker.HALF_OPEN
+cb.isConnected shouldBe true
+
+// Close the circuit
+cb.close()
+cb.state shouldBe CircuitBreaker.CLOSED
+cb.isConnected shouldBe true
+```
+
+## Standalone Usage
+
+Record successes and failures manually:
+
+```scala
+val cb = CircuitBreaker.default
+
+// Verify connection before making request
+cb.verifyConnection()
+
+try
+  val result = externalService.call()
+  cb.recordSuccess()
+  result
+catch
+  case e: Throwable =>
+    cb.recordFailure(e)
+    throw e
 ```
 
 ## With Retry
@@ -92,36 +194,12 @@ Combine circuit breaker with retry:
 ```scala
 import wvlet.uni.control.{CircuitBreaker, Retry}
 
-val breaker = CircuitBreaker(maxFailures = 5)
+val cb = CircuitBreaker.withFailureThreshold(5, 10)
 
-val result = Retry.withBackoff(maxRetry = 3).run {
-  breaker.protect {
+val result = Retry.withBackOff(maxRetry = 3).run {
+  cb.run {
     externalService.call()
   }
-}
-```
-
-## Custom Failure Detection
-
-```scala
-val breaker = CircuitBreaker(maxFailures = 5)
-  .withFailureDetector {
-    case _: NetworkException => true
-    case _: TimeoutException => true
-    case _ => false  // Don't count as failure
-  }
-```
-
-## Monitoring
-
-```scala
-breaker.onStateChange { (oldState, newState) =>
-  logger.info(s"Circuit breaker: ${oldState} -> ${newState}")
-  metrics.recordStateChange(newState)
-}
-
-breaker.onCallFailure { exception =>
-  metrics.recordFailure(exception)
 }
 ```
 
@@ -130,9 +208,9 @@ breaker.onCallFailure { exception =>
 ### External Service Protection
 
 ```scala
-class PaymentService(breaker: CircuitBreaker):
+class PaymentService(cb: CircuitBreaker):
   def processPayment(payment: Payment): Result =
-    breaker.protect {
+    cb.run {
       paymentGateway.charge(payment)
     }
 ```
@@ -140,22 +218,34 @@ class PaymentService(breaker: CircuitBreaker):
 ### Database Protection
 
 ```scala
-val dbBreaker = CircuitBreaker(
-  maxFailures = 3,
-  callTimeout = 5.seconds,
-  resetTimeout = 10.seconds
-)
+val dbBreaker = CircuitBreaker.withConsecutiveFailures(3)
 
 def queryDatabase(sql: String): Result =
-  dbBreaker.protect {
+  dbBreaker.run {
     database.execute(sql)
   }
+```
+
+### API Gateway
+
+```scala
+val apiBreaker = CircuitBreaker.withFailureThreshold(2, 5)
+
+def callApi(request: Request): Response =
+  try
+    apiBreaker.run {
+      httpClient.send(request)
+    }
+  catch
+    case _: CircuitBreakerOpenException =>
+      Response.serviceUnavailable()
 ```
 
 ## Best Practices
 
 1. **Tune thresholds** - Based on normal failure rates
-2. **Set appropriate timeouts** - Match service SLAs
-3. **Monitor state changes** - Alert on frequent opens
-4. **Use fallbacks** - Provide degraded functionality
-5. **Test failure scenarios** - Verify circuit behavior
+2. **Use failure threshold** - For services with variable error rates
+3. **Use consecutive failures** - For services where any failure is significant
+4. **Monitor state changes** - Alert on frequent opens
+5. **Use fallbacks** - Provide degraded functionality
+6. **Test failure scenarios** - Verify circuit behavior

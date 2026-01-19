@@ -91,7 +91,7 @@ For indeterminate operations:
 import wvlet.uni.cli.Spinner
 
 val spinner = Spinner()
-  .withMessage("Loading...")
+  .withText("Loading...")
   .start()
 
 // Do work...
@@ -100,15 +100,62 @@ Thread.sleep(3000)
 spinner.stop()
 ```
 
+### Spinner Configuration
+
+```scala
+import wvlet.uni.cli.{Spinner, SpinnerStyle, Chalk}
+
+val spinner = Spinner()
+  .withText("Loading...")
+  .withSpinner(SpinnerStyle.Line)
+  .withColor(Chalk.magenta)
+  .withEnabled(true)
+  .withHideCursor(true)
+```
+
 ### Spinner Styles
 
 ```scala
 import wvlet.uni.cli.{Spinner, SpinnerStyle}
 
 // Different animation styles
-Spinner().withStyle(SpinnerStyle.Dots)
-Spinner().withStyle(SpinnerStyle.Line)
-Spinner().withStyle(SpinnerStyle.Arrow)
+Spinner().withSpinner(SpinnerStyle.Default)
+Spinner().withSpinner(SpinnerStyle.Line)
+```
+
+### Start with Text Override
+
+```scala
+val spinner = Spinner().withText("Original")
+
+// Override text when starting
+val running = spinner.start("Processing...")
+running.text shouldBe "Processing..."
+running.stop()
+```
+
+### Success and Failure States
+
+```scala
+val spinner = Spinner().withText("Processing...").start()
+
+// Mark as successful with message
+spinner.succeed("Done!")
+
+// Or mark as failed with message
+spinner.fail("Error occurred")
+```
+
+### Disabling Spinner
+
+```scala
+// Disable spinner completely
+val spinner = Spinner().noSpinner.start("Test")
+spinner.isSpinning shouldBe true
+spinner.stop()
+
+// Disable color output
+val spinner = Spinner().noColor
 ```
 
 ## Disabling Progress
@@ -166,6 +213,26 @@ def downloadWithProgress(url: String, totalBytes: Long): Unit =
   bar.finish()
 ```
 
+## Example: Spinner with Result
+
+```scala
+import wvlet.uni.cli.Spinner
+
+def fetchData(): Result =
+  val spinner = Spinner()
+    .withText("Fetching data...")
+    .start()
+
+  try
+    val result = api.fetchData()
+    spinner.succeed("Data fetched successfully")
+    result
+  catch
+    case e: Exception =>
+      spinner.fail(s"Failed: ${e.getMessage}")
+      throw e
+```
+
 ## Best Practices
 
 1. **Set realistic totals** - Know the work upfront
@@ -173,3 +240,4 @@ def downloadWithProgress(url: String, totalBytes: Long): Unit =
 3. **Handle interruption** - Call finish() or fail()
 4. **Disable in CI** - Check for TTY
 5. **Use spinners** for unknown duration
+6. **Use succeed/fail** - Provide clear completion status

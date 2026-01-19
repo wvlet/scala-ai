@@ -7,30 +7,26 @@ Handle transient failures by automatically retrying operations.
 ```scala
 import wvlet.uni.control.Retry
 
-// Retry up to 3 times on any exception
-val result = Retry.withBackoff(maxRetry = 3).run {
+// Retry up to 3 times with exponential backoff
+val result = Retry.withBackOff(maxRetry = 3).run {
   callExternalService()
 }
 ```
 
-## Retry on Specific Exceptions
-
-```scala
-// Only retry on specific exception types
-val result = Retry.retryOn[NetworkException](maxRetry = 5) {
-  makeNetworkCall()
-}
-```
-
-## Backoff Strategies
+## Factory Methods
 
 ### Exponential Backoff
 
 ```scala
+// Default exponential backoff
+val result = Retry.withBackOff(maxRetry = 5).run {
+  operation()
+}
+
+// With custom initial interval
 val result = Retry
-  .withBackoff(maxRetry = 5)
-  .withInitialInterval(100)  // Start with 100ms
-  .withMaxInterval(10000)    // Cap at 10 seconds
+  .withBackOff(initialIntervalMillis = 100)
+  .withMaxRetry(5)
   .run {
     operation()
   }
@@ -41,88 +37,157 @@ val result = Retry
 Add randomness to prevent thundering herd:
 
 ```scala
-val result = Retry
-  .withBackoff(maxRetry = 5)
-  .withJitter(0.1)  // 10% random variation
-  .run {
-    operation()
-  }
+val result = Retry.withJitter(maxRetry = 3).run {
+  operation()
+}
 ```
 
-## Retry Configuration
+### Bounded Backoff
+
+Limit total wait time:
 
 ```scala
-val retry = Retry
-  .withBackoff(maxRetry = 10)
-  .withInitialInterval(100)
-  .withMaxInterval(30000)
-  .withMultiplier(2.0)
-  .withJitter(0.1)
-  .retryOn {
-    case _: IOException => true
-    case _: TimeoutException => true
-    case _ => false
-  }
+val retry = Retry.withBoundedBackoff(
+  initialIntervalMillis = 1000,
+  maxTotalWaitMillis = 50000
+)
 
 val result = retry.run {
   operation()
 }
 ```
 
-## Retry with Result Classification
+## Retry on Specific Conditions
+
+Use `retryOn` with a partial function returning `ResultClass`:
 
 ```scala
-import wvlet.uni.control.ResultClass
+import wvlet.uni.control.{Retry, ResultClass}
 
 val result = Retry
-  .withBackoff(maxRetry = 3)
-  .withResultClassifier {
-    case response if response.status == 429 =>
-      ResultClass.retryable(new RateLimitException())
-    case response if response.status >= 500 =>
-      ResultClass.retryable(new ServerException())
-    case response =>
-      ResultClass.succeeded(response)
+  .withBackOff(maxRetry = 3)
+  .retryOn { case e: IllegalStateException =>
+    warn(e.getMessage)
+    ResultClass.retryableFailure(e)
   }
   .run {
-    httpClient.send(request)
+    operation()
+  }
+```
+
+## Error Classification
+
+Use `withErrorClassifier` for custom error handling:
+
+```scala
+import wvlet.uni.control.{Retry, ResultClass}
+import scala.concurrent.TimeoutException
+
+val result = Retry
+  .withBackOff(initialIntervalMillis = 10)
+  .withMaxRetry(3)
+  .withErrorClassifier { case e: TimeoutException =>
+    ResultClass.retryableFailure(e).withExtraWaitMillis(100)
+  }
+  .run {
+    operation()
+  }
+```
+
+### Extra Wait Options
+
+```scala
+// Add fixed extra wait time
+ResultClass.retryableFailure(e).withExtraWaitMillis(100)
+
+// Add proportional extra wait time (20% of base interval)
+ResultClass.retryableFailure(e).withExtraWaitFactor(0.2)
+```
+
+## Retry Configuration
+
+```scala
+val retry = Retry
+  .withBackOff(initialIntervalMillis = 100)
+  .withMaxRetry(10)
+  .noRetryLogging  // Disable retry logging
+
+val result = retry.run {
+  operation()
+}
+```
+
+### Switching Strategies
+
+```scala
+// Start with jitter, switch to backoff
+val r = Retry.withJitter().withBackOff(initialIntervalMillis = 3)
+
+// Switch back to jitter
+val j = r.withJitter(initialIntervalMillis = 20)
+
+// Change max retry
+val m = j.withMaxRetry(100)
+```
+
+## Before Retry Hook
+
+Execute code before each retry:
+
+```scala
+import wvlet.uni.control.Retry.RetryContext
+
+val result = Retry
+  .withBackOff(initialIntervalMillis = 0)
+  .beforeRetry { (ctx: RetryContext) =>
+    logger.info(s"Retry ${ctx.retryCount}, next wait: ${ctx.nextWaitMillis}ms")
+  }
+  .run {
+    operation()
+  }
+```
+
+## Run with Context
+
+Pass context through retry attempts:
+
+```scala
+import wvlet.uni.control.Retry.RetryContext
+
+val result = Retry
+  .withBackOff(initialIntervalMillis = 0)
+  .beforeRetry { (ctx: RetryContext) =>
+    // Access the context
+    ctx.context shouldBe Some("hello world")
+  }
+  .runWithContext("hello world") {
+    operation()
   }
 ```
 
 ## Handling Exhausted Retries
 
 ```scala
+import wvlet.uni.control.Retry.MaxRetryException
+
 try
-  Retry.withBackoff(maxRetry = 3).run {
+  Retry.withBackOff(maxRetry = 3).run {
     failingOperation()
   }
 catch
   case e: MaxRetryException =>
-    logger.error(s"Operation failed after ${e.retryCount} retries", e.lastError)
+    logger.error(s"Failed after ${e.retryContext.retryCount} retries")
+    logger.error(s"Last error: ${e.retryContext.lastError}")
     fallbackBehavior()
-```
-
-## Async Retry with Rx
-
-```scala
-import wvlet.uni.rx.Rx
-
-Rx.single(asyncOperation())
-  .recover {
-    case _: NetworkException =>
-      // Retry logic can be combined with Rx
-      retryOperation()
-  }
-  .subscribe(handleResult)
 ```
 
 ## Best Practices
 
 1. **Set reasonable limits** - Don't retry forever
 2. **Use exponential backoff** - Give services time to recover
-3. **Add jitter** - Prevent synchronized retries
-4. **Classify errors** - Only retry transient failures
-5. **Log retries** - Track retry patterns for debugging
+3. **Add jitter** - Prevent synchronized retries with `withJitter`
+4. **Classify errors** - Only retry transient failures using `retryOn`
+5. **Log retries** - Use `beforeRetry` for debugging
 6. **Set timeouts** - Combine with request timeouts
 
 ## Common Patterns
@@ -130,8 +195,10 @@ Rx.single(asyncOperation())
 ### Retry with Fallback
 
 ```scala
+import wvlet.uni.control.Retry.MaxRetryException
+
 val result = try
-  Retry.withBackoff(maxRetry = 3).run {
+  Retry.withBackOff(maxRetry = 3).run {
     primaryService.call()
   }
 catch
@@ -142,12 +209,16 @@ catch
 ### Retry with Metrics
 
 ```scala
+import wvlet.uni.control.Retry.RetryContext
+
 var attempts = 0
 val result = Retry
-  .withBackoff(maxRetry = 5)
+  .withBackOff(maxRetry = 5)
+  .beforeRetry { (ctx: RetryContext) =>
+    metrics.recordRetry(ctx.retryCount)
+  }
   .run {
     attempts += 1
-    metrics.recordAttempt()
     operation()
   }
 metrics.recordTotalAttempts(attempts)
