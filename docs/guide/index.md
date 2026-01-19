@@ -1,8 +1,8 @@
 # Introduction
 
-**Wvlet Uni** — Essential Scala Utilities, refined for Scala 3 with minimal dependencies.
+**Uni** — Essential Scala Utilities, refined for Scala 3 with minimal dependencies.
 
-Wvlet Uni provides small, reusable building blocks that complement the Scala standard library. It consolidates foundational utilities from the [wvlet/airframe](https://github.com/wvlet/airframe) project into a single, cohesive library.
+Uni provides small, reusable building blocks that complement the Scala standard library. It consolidates foundational utilities from the [wvlet/airframe](https://github.com/wvlet/airframe) project into a single, cohesive library.
 
 ## What is Uni?
 
