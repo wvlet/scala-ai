@@ -6,6 +6,13 @@ export default defineConfig({
 
   cleanUrls: true,
 
+  markdown: {
+    theme: {
+      light: 'nord',
+      dark: 'nord'
+    }
+  },
+
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }]
   ],

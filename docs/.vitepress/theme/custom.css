@@ -50,3 +50,49 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Nord code blocks - consistent dark background for both light/dark modes */
+.vp-doc div[class*='language-'],
+.vp-doc div[class*='language-'] > .shiki {
+  background-color: #2e3440 !important;
+}
+
+.vp-doc div[class*='language-'] code {
+  color: #d8dee9;
+}
+
+/* Code block header styling */
+.vp-doc div[class*='language-'] > span.lang {
+  color: #616e88 !important;
+}
+
+/* Vivid Nord syntax highlighting */
+/* Keywords - teal green matching brand color */
+.vp-doc [class*='language-'] span[style*='#81A1C1'] {
+  color: #5ccfe6 !important;
+}
+
+/* Strings - bright green */
+.vp-doc [class*='language-'] span[style*='#A3BE8C'] {
+  color: #c3e88d !important;
+}
+
+/* Types/Classes - warm orange */
+.vp-doc [class*='language-'] span[style*='#8FBCBB'] {
+  color: #ffcb6b !important;
+}
+
+/* Functions/Methods - bright cyan */
+.vp-doc [class*='language-'] span[style*='#88C0D0'] {
+  color: #89ddff !important;
+}
+
+/* Numbers/Constants - bright orange */
+.vp-doc [class*='language-'] span[style*='#B48EAD'] {
+  color: #c792ea !important;
+}
+
+/* Comments - lighter gray */
+.vp-doc [class*='language-'] span[style*='#616E88'] {
+  color: #7c889b !important;
+}

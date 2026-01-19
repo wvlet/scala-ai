@@ -29,26 +29,28 @@ uni follows these principles:
 
 ## Module Structure
 
-```
-uni/                    # Core utilities
-├── design/            # Dependency injection
-├── log/               # Logging
-├── json/              # JSON processing
-├── msgpack/           # MessagePack serialization
-├── rx/                # Reactive streams
-├── http/              # HTTP client
-├── control/           # Retry, circuit breaker, caching
-├── cli/               # Terminal utilities
-├── surface/           # Type introspection
-└── weaver/            # Object serialization
+### uni — Core Utilities
 
-uni-agent/             # LLM agent framework
-├── chat/              # Chat sessions and messages
-├── tool/              # Tool execution
-└── runner/            # Agent orchestration
+| Module | Description |
+|--------|-------------|
+| [Design](/core/design) | Compile-time safe object wiring with lifecycle management |
+| [Logging](/core/logging) | Structured logging with source code location tracking |
+| [JSON](/core/json) | JSON parsing and generation |
+| [MessagePack](/core/msgpack) | Binary serialization format |
+| [Surface](/core/surface) | Compile-time type introspection |
+| [HTTP](/http/) | HTTP client with retry and streaming support |
+| [Rx](/rx/) | Reactive streams and async data flows |
+| [Control](/control/) | Retry logic, circuit breakers, and caching |
+| [CLI](/cli/) | Terminal styling, progress bars, and command launching |
 
-uni-agent-bedrock/     # AWS Bedrock integration
-```
+### uni-agent — LLM Agent Framework
+
+| Module | Description |
+|--------|-------------|
+| [LLM Agent](/agent/llm-agent) | Core agent abstraction for AI workflows |
+| [Chat Sessions](/agent/chat-session) | Conversation state management |
+| [Tool Integration](/agent/tools) | Function calling and external tools |
+| [AWS Bedrock](/agent/bedrock) | Bedrock chat model integration |
 
 ## Next Steps
 

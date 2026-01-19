@@ -86,10 +86,10 @@
 }
 
 /* Nord color scheme - vivid */
-.comment { color: #7b88a1; }
-.keyword { color: #5e9fd8; }
+.comment { color: #7c889b; }
+.keyword { color: #5ccfe6; }
 .key { color: #5ccfe6; }
-.string { color: #bae67e; }
-.type { color: #73d0c9; }
-.func { color: #ffd580; }
+.string { color: #c3e88d; }
+.type { color: #ffcb6b; }
+.func { color: #89ddff; }
 </style>
