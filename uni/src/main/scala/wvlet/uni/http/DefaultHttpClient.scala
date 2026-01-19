@@ -133,15 +133,37 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
     val parser          = ServerSentEventParser()
     val handler         = request.eventHandler
 
-    // Use sendStreaming and parse the chunks
-    sendStreaming(resolvedRequest)
-      .flatMap { chunk =>
-        val text   = String(chunk, "UTF-8")
-        val events = parser.feed(text)
-        Rx.fromSeq(events)
+    // Note: onConnect callback is not invoked because sendStreaming doesn't provide
+    // access to the HttpResponse headers. This is a limitation of the current API.
+    // Similarly, charset detection from Content-Type header is not supported;
+    // UTF-8 is used as the default per SSE specification.
+
+    // Use sendStreaming and parse the chunks.
+    // After the stream completes, flush the parser to emit any remaining buffered data.
+    val streamEvents = sendStreaming(resolvedRequest).flatMap { chunk =>
+      val text   = String(chunk, "UTF-8")
+      val events = parser.feed(text)
+      Rx.fromSeq(events)
+    }
+
+    // Flush any remaining data after stream completes
+    val flushEvent = Rx
+      .single(parser.flush())
+      .flatMap {
+        case Some(event) =>
+          Rx.single(event)
+        case None =>
+          Rx.empty
       }
-      .tap(handler.onEvent)
+
+    streamEvents
+      .concat(flushEvent)
+      .tap { event =>
+        handler.onEvent(event)
+      }
       .tapOnFailure(handler.onError)
+
+  end sendSSE
 
   private def prepareRequest(request: HttpRequest): HttpRequest =
     val uri = config.resolveUri(request.uri)
