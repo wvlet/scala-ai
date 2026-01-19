@@ -50,7 +50,7 @@ object TestSource:
     import q.reflect.*
     val pos    = Position.ofMacroExpansion
     val line   = Expr(pos.startLine)
-    val column = Expr(pos.endColumn)
+    val column = Expr(pos.startColumn)
     val src    = pos.sourceFile
     // Hidden because embedding the absolute path is not good for privacy and code size
     val srcPath: java.nio.file.Path = java.nio.file.Paths.get(src.path)
@@ -62,7 +62,7 @@ object TestSource:
       .flatMap { content =>
         val lines = content.linesIterator.toIndexedSeq
         if pos.startLine >= 0 && pos.startLine < lines.size then
-          Some(lines(pos.startLine).trim)
+          Some(lines(pos.startLine))
         else
           None
       }

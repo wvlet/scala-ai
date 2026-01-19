@@ -205,6 +205,7 @@ class UniTestSelfTest extends UniTest:
     val snippet = e.source.formatSnippet
     snippet shouldBe defined
     snippet.get shouldContain "1 shouldBe 2"
+    snippet.get shouldContain "^"
   }
 
 end UniTestSelfTest
