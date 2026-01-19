@@ -1,6 +1,6 @@
 # Design
 
-Design is a compile-time safe object building framework for wiring application components.
+Design is a dependency injection framework for wiring application components at runtime.
 
 ## Basic Usage
 
