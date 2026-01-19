@@ -65,6 +65,8 @@ jobs:
           detailed_summary: true
   test_js:
     name: Scala.js
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -89,6 +91,8 @@ jobs:
           detailed_summary: true
   test_native_3:
     name: Scala Native
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -108,6 +112,8 @@ jobs:
           detailed_summary: true
   test_integration:
     name: Integration test
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
