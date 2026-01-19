@@ -1,6 +1,6 @@
-# Dependency Injection
+# Design
 
-uni provides a compile-time safe dependency injection framework through `Design`.
+Design is a compile-time safe object building framework for wiring application components.
 
 ## Basic Usage
 
@@ -151,8 +151,8 @@ testDesign.build[UserService] { service =>
 
 ## Best Practices
 
-1. **Use traits for dependencies** - Makes testing easier
+1. **Use traits for interfaces** - Makes testing easier
 2. **Bind at the edge** - Create designs in main/test entry points
-3. **Prefer constructor injection** - Dependencies as constructor parameters
+3. **Prefer constructor parameters** - Pass dependencies through constructors
 4. **Use singletons for shared resources** - Database pools, HTTP clients
 5. **Leverage lifecycle hooks** - For proper resource cleanup

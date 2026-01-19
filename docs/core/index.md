@@ -6,7 +6,7 @@ The `uni` module provides essential utilities for Scala application development.
 
 | Component | Description |
 |-----------|-------------|
-| [Design](./design) | Dependency injection with lifecycle management |
+| [Design](./design) | Object wiring with lifecycle management |
 | [Logging](./logging) | Structured logging with LogSupport |
 | [JSON](./json) | Pure Scala JSON parser and DSL |
 | [MessagePack](./msgpack) | Binary serialization format |
@@ -26,7 +26,7 @@ class UserService extends LogSupport:
     // Implementation
     None
 
-// Dependency injection
+// Object wiring with Design
 val design = Design.newDesign
   .bindSingleton[UserService]
 
@@ -42,7 +42,7 @@ val name = json("name").toStringValue  // "Alice"
 ## Package Structure
 
 ```
-wvlet.uni.design   - Dependency injection
+wvlet.uni.design   - Object wiring framework
 wvlet.uni.log      - Logging framework
 wvlet.uni.json     - JSON processing
 wvlet.uni.msgpack  - MessagePack serialization
@@ -56,7 +56,7 @@ All core utilities work across JVM, Scala.js, and Scala Native platforms.
 
 | Feature | JVM | JS | Native |
 |---------|-----|-----|--------|
-| Design (DI) | ✓ | ✓ | ✓ |
+| Design | ✓ | ✓ | ✓ |
 | Logging | ✓ | ✓ | ✓ |
 | JSON | ✓ | ✓ | ✓ |
 | MessagePack | ✓ | ✓ | ✓ |

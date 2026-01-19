@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: wvlet/uni
-  text: Scala 3 Unified Utility Library
-  tagline: Essential utilities for building robust Scala applications - logging, DI, JSON, HTTP, reactive streams, and LLM agent framework
+  name: Wvlet Uni
+  text: Essential Scala Utilities
+  tagline: Refined for Scala 3 with minimal dependencies
   actions:
     - theme: brand
       text: Get Started
@@ -14,47 +14,54 @@ hero:
       link: https://github.com/wvlet/uni
 
 features:
-  - title: Dependency Injection
-    details: Compile-time safe dependency injection with lifecycle management and session-scoped bindings.
-  - title: Logging & Diagnostics
-    details: Structured logging with LogSupport trait, configurable log levels, and source code location tracking.
-  - title: JSON & MessagePack
-    details: Pure Scala JSON parser with DSL support and efficient MessagePack binary serialization.
-  - title: HTTP Client
-    details: Cross-platform HTTP client with automatic retry, circuit breaker integration, and streaming support.
-  - title: Reactive Streams
-    details: Rx-based reactive programming with operators for mapping, filtering, combining, and throttling streams.
+  - title: Core Primitives
+    details: Logging, Design (object wiring), Rx (async programming), and unified serialization through JSON and MessagePack.
+    link: /core/
+  - title: HTTP Client & Server
+    details: Full-featured HTTP with automatic retry, circuit breaker, rate limiting, and streaming support.
+    link: /http/
+  - title: CLI Utilities
+    details: Terminal styling, progress indicators, and type-safe command-line argument parsing.
+    link: /cli/
   - title: LLM Agent Framework
     details: Build AI agents with tool calling, chat sessions, and AWS Bedrock integration.
+    link: /agent/
 ---
+
+## Getting Started
+
+::: code-group
+
+```scala [sbt]
+libraryDependencies += "org.wvlet" %% "uni" % "2025.1.0"
+```
+
+```scala [Scala CLI]
+//> using dep org.wvlet::uni:2025.1.0
+```
+
+:::
 
 ## Quick Example
 
 ```scala
-import wvlet.uni.design.Design
 import wvlet.uni.log.LogSupport
-import wvlet.uni.http.Http
 
-// Define a service with logging
 class MyService extends LogSupport:
   def greet(name: String): String =
     info(s"Greeting ${name}")
     s"Hello, ${name}!"
 
-// Use dependency injection
-val design = Design.newDesign
-  .bindSingleton[MyService]
-
-design.build[MyService] { service =>
+@main def hello =
+  val service = MyService()
   println(service.greet("World"))
-}
 ```
 
 ## Modules
 
 | Module | Description |
 |--------|-------------|
-| `uni` | Core utilities: DI, logging, JSON, MessagePack, Rx, HTTP client |
+| `uni` | Core utilities: Design, logging, JSON, MessagePack, Rx, HTTP client |
 | `uni-agent` | LLM agent framework with tool integration |
 | `uni-agent-bedrock` | AWS Bedrock chat model integration |
 

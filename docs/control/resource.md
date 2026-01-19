@@ -117,7 +117,7 @@ val users = withDatabase { db =>
 
 ## Resource with Design
 
-Integrate with dependency injection:
+Integrate with Design for lifecycle management:
 
 ```scala
 import wvlet.uni.design.Design

@@ -1,14 +1,14 @@
-# wvlet.uni
+# Wvlet Uni
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-`wvlet/uni` is a collection of lightweight utility libraries for empowering Scala 3. Here, **uni** stands for **unified/universal** — providing standard-library-like utilities for Scala 3.
+**Essential Scala Utilities** — Refined for Scala 3 with minimal dependencies.
 
-`wvlet.uni` provides small, reusable building blocks that complement the Scala standard library.
+Wvlet Uni provides small, reusable building blocks that complement the Scala standard library. The name **uni** stands for **unified/universal**.
 
 * **`uni`**: Core utilities for Scala 3 development
     * **Logging**: Performant, structured logging.
-    * **Object Design**: Well-managed object lifecycle and configuration (using type introspection and DI concepts from `airframe`).
+    * **Design**: Well-managed object lifecycle and wiring (using type introspection concepts from `airframe`).
     * **SerDe**: Efficient serialization/deserialization of Scala case classes between common data exchange formats, JSON, MessagePack, etc.
     * **RPC/HTTP Framework**: For quickly building RPC/HTTP server and clients without boilerplate.
 
@@ -29,7 +29,7 @@
 | `wvlet.uni.cli` | Terminal styling, progress bars |
 | `wvlet.uni.control` | Retry, circuit breaker, resource management |
 | `wvlet.uni.control.cache` | In-memory caching with TTL and LRU eviction |
-| `wvlet.uni.design` | Dependency injection |
+| `wvlet.uni.design` | Object wiring framework |
 | `wvlet.uni.http` | HTTP client/server |
 | `wvlet.uni.io` | Cross-platform file system abstraction |
 | `wvlet.uni.json` | JSON parsing |

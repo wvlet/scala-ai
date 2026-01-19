@@ -1,12 +1,14 @@
 # Introduction
 
-**wvlet/uni** is a Scala 3 unified utility library that provides essential building blocks for robust application development. It consolidates foundational utilities from the [wvlet/airframe](https://github.com/wvlet/airframe) project into a single, cohesive library.
+**Wvlet Uni** — Essential Scala Utilities, refined for Scala 3 with minimal dependencies.
 
-## What is uni?
+Wvlet Uni provides small, reusable building blocks that complement the Scala standard library. It consolidates foundational utilities from the [wvlet/airframe](https://github.com/wvlet/airframe) project into a single, cohesive library.
 
-uni provides:
+## What is Uni?
 
-- **Dependency Injection** - Compile-time safe DI with lifecycle management
+Uni provides:
+
+- **Design** - Compile-time safe object wiring with lifecycle management
 - **Logging** - Structured logging with source code location tracking
 - **Serialization** - JSON parsing/generation and MessagePack binary format
 - **HTTP Client** - Cross-platform client with retry and streaming support
