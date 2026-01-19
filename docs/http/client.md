@@ -23,9 +23,9 @@ val asyncClient = Http.client.newAsyncClient
 ### GET Request
 
 ```scala
-import wvlet.uni.http.HttpRequest
+import wvlet.uni.http.Request
 
-val response = client.send(HttpRequest.get("https://api.example.com/users"))
+val response = client.send(Request.get("https://api.example.com/users"))
 println(response.status)           // HttpStatus
 println(response.contentAsString)  // Response body
 ```
@@ -33,10 +33,9 @@ println(response.contentAsString)  // Response body
 ### POST Request
 
 ```scala
-val request = HttpRequest
+val request = Request
   .post("https://api.example.com/users")
-  .withContentType("application/json")
-  .withContent("""{"name": "Alice"}""")
+  .withJsonContent("""{"name": "Alice"}""")
 
 val response = client.send(request)
 ```
@@ -44,10 +43,10 @@ val response = client.send(request)
 ### With Headers
 
 ```scala
-val request = HttpRequest
+val request = Request
   .get("https://api.example.com/data")
-  .withHeader("Authorization", "Bearer token123")
-  .withHeader("Accept", "application/json")
+  .withBearerToken("token123")
+  .withAccept("application/json")
 
 val response = client.send(request)
 ```
@@ -75,7 +74,7 @@ response.contentAsBytes      // Array[Byte]
 val asyncClient = Http.client.newAsyncClient
 
 asyncClient
-  .send(HttpRequest.get("https://api.example.com/data"))
+  .send(Request.get("https://api.example.com/data"))
   .map { response =>
     response.contentAsString
   }
@@ -90,7 +89,7 @@ Stream large responses as byte chunks:
 
 ```scala
 asyncClient
-  .sendStreaming(HttpRequest.get("https://example.com/large-file"))
+  .sendStreaming(Request.get("https://example.com/large-file"))
   .subscribe { chunk: Array[Byte] =>
     processChunk(chunk)
   }
@@ -99,26 +98,21 @@ asyncClient
 ## Client Configuration
 
 ```scala
-import wvlet.uni.http.HttpClientConfig
-
-val config = HttpClientConfig()
-  .withConnectTimeout(5000)   // 5 seconds
-  .withReadTimeout(30000)     // 30 seconds
-  .withMaxRetries(3)
-
 val client = Http.client
-  .withConfig(config)
+  .withConnectTimeoutMillis(5000)   // 5 seconds
+  .withReadTimeoutMillis(30000)     // 30 seconds
+  .withMaxRetry(3)
   .newSyncClient
 ```
 
 ## Disabling Retry
 
 ```scala
-// Disable retry for a specific request
-val response = client.noRetry.send(request)
+// Create a client with no retries
+val clientNoRetry = Http.client.noRetry.newSyncClient
 
 // Or configure zero retries
-val clientNoRetry = client.withMaxRetry(0)
+val clientNoRetry2 = Http.client.withMaxRetry(0).newSyncClient
 ```
 
 ## Error Handling
@@ -153,7 +147,7 @@ class ApiClient(baseUrl: String):
 
   def getUser(id: String): User =
     val response = client.send(
-      HttpRequest.get(s"${baseUrl}/users/${id}")
+      Request.get(s"${baseUrl}/users/${id}")
     )
     if response.status.isSuccess then
       ObjectWeaver.fromJSON[User](response.contentAsString)
@@ -162,10 +156,9 @@ class ApiClient(baseUrl: String):
 
   def createUser(user: User): User =
     val response = client.send(
-      HttpRequest
+      Request
         .post(s"${baseUrl}/users")
-        .withContentType("application/json")
-        .withContent(ObjectWeaver.toJSON(user))
+        .withJsonContent(ObjectWeaver.toJSON(user))
     )
     ObjectWeaver.fromJSON[User](response.contentAsString)
 

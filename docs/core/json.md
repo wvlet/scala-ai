@@ -81,11 +81,11 @@ json match
 ```scala
 import wvlet.uni.json.*
 
-val userJson = JSONObject(Map(
+val userJson = JSONObject(Seq(
   "id" -> JSONLong(456),
   "name" -> JSONString("Bob"),
   "active" -> JSONBoolean(true),
-  "scores" -> JSONArray(Seq(
+  "scores" -> JSONArray(IndexedSeq(
     JSONLong(95),
     JSONLong(87),
     JSONLong(92)
@@ -129,13 +129,15 @@ catch
     println(s"Parse error: ${e.getMessage}")
 ```
 
-Safe parsing returns Option:
+Safe parsing with Try:
 
 ```scala
-val result = JSON.parseOption(maybeInvalidJson)
+import scala.util.Try
+
+val result = Try(JSON.parse(maybeInvalidJson))
 result match
-  case Some(json) => // Use json
-  case None => // Handle parse failure
+  case scala.util.Success(json) => // Use json
+  case scala.util.Failure(e) => // Handle parse failure
 ```
 
 ## YAML Output

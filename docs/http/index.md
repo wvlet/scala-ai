@@ -12,13 +12,13 @@ uni provides a cross-platform HTTP client with automatic retry, streaming suppor
 ## Quick Start
 
 ```scala
-import wvlet.uni.http.{Http, HttpRequest}
+import wvlet.uni.http.{Http, Request}
 
 // Create a client
 val client = Http.client.newSyncClient
 
 // Make a GET request
-val response = client.send(HttpRequest.get("https://api.example.com/users"))
+val response = client.send(Request.get("https://api.example.com/users"))
 println(response.contentAsString)
 
 // Close the client
@@ -33,7 +33,7 @@ import wvlet.uni.http.Http
 val asyncClient = Http.client.newAsyncClient
 
 asyncClient
-  .send(HttpRequest.get("https://api.example.com/data"))
+  .send(Request.get("https://api.example.com/data"))
   .map(_.contentAsString)
   .subscribe { content =>
     println(s"Received: ${content}")

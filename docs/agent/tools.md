@@ -17,10 +17,10 @@ val calculatorTool = ToolSpec(
     ToolParameter(
       name = "expression",
       description = "Mathematical expression to evaluate",
-      dataType = DataType.String
+      dataType = DataType.StringType
     )
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 ```
 
@@ -28,16 +28,16 @@ val calculatorTool = ToolSpec(
 
 ```scala
 // String parameter
-ToolParameter("query", "Search query", DataType.String)
+ToolParameter("query", "Search query", DataType.StringType)
 
 // Integer parameter
-ToolParameter("count", "Number of results", DataType.Int)
+ToolParameter("count", "Number of results", DataType.IntegerType)
 
 // Boolean parameter
-ToolParameter("verbose", "Enable verbose output", DataType.Boolean)
+ToolParameter("verbose", "Enable verbose output", DataType.BooleanType)
 
 // With default value
-ToolParameter("limit", "Max results", DataType.Int, defaultValue = Some(10))
+ToolParameter("limit", "Max results", DataType.IntegerType, defaultValue = Some(10))
 ```
 
 ## Adding Tools to Agent
@@ -148,10 +148,10 @@ val webSearchTool = ToolSpec(
   name = "web_search",
   description = "Search the web for information",
   parameters = List(
-    ToolParameter("query", "Search query", DataType.String),
-    ToolParameter("num_results", "Number of results", DataType.Int, Some(5))
+    ToolParameter("query", "Search query", DataType.StringType),
+    ToolParameter("num_results", "Number of results", DataType.IntegerType, Some(5))
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 ```
 
@@ -162,19 +162,19 @@ val readFileTool = ToolSpec(
   name = "read_file",
   description = "Read contents of a file",
   parameters = List(
-    ToolParameter("path", "File path", DataType.String)
+    ToolParameter("path", "File path", DataType.StringType)
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 
 val writeFileTool = ToolSpec(
   name = "write_file",
   description = "Write content to a file",
   parameters = List(
-    ToolParameter("path", "File path", DataType.String),
-    ToolParameter("content", "Content to write", DataType.String)
+    ToolParameter("path", "File path", DataType.StringType),
+    ToolParameter("content", "Content to write", DataType.StringType)
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 ```
 
@@ -185,10 +185,10 @@ val queryDbTool = ToolSpec(
   name = "query_database",
   description = "Execute a SQL query",
   parameters = List(
-    ToolParameter("query", "SQL query to execute", DataType.String),
-    ToolParameter("database", "Database name", DataType.String, Some("main"))
+    ToolParameter("query", "SQL query to execute", DataType.StringType),
+    ToolParameter("database", "Database name", DataType.StringType, Some("main"))
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 ```
 

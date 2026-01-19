@@ -69,10 +69,19 @@ design.bindSingleton[DatabasePool]
 
 ### Provider Binding
 
-Use a factory function:
+Use a factory function with dependencies:
 
 ```scala
-design.bindProvider[HttpClient] { config: Config =>
+design.bindProvider[Config, HttpClient] { config =>
+  HttpClient(config.host, config.port)
+}
+```
+
+Multiple dependencies are also supported:
+
+```scala
+design.bindProvider[Config, Logger, HttpClient] { (config, logger) =>
+  logger.info(s"Creating client for ${config.host}")
   HttpClient(config.host, config.port)
 }
 ```

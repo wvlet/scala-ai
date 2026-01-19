@@ -87,9 +87,9 @@ val searchTool = ToolSpec(
   name = "web_search",
   description = "Search the web for information",
   parameters = List(
-    ToolParameter("query", "Search query", DataType.String)
+    ToolParameter("query", "Search query", DataType.StringType)
   ),
-  returnType = DataType.String
+  returnType = DataType.StringType
 )
 
 val agent = LLMAgent(
