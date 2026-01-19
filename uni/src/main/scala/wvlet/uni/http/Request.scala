@@ -24,7 +24,8 @@ case class Request(
     uri: String,
     headers: HttpMultiMap = HttpMultiMap.empty,
     content: HttpContent = HttpContent.Empty,
-    queryParams: Map[String, Seq[String]] = Map.empty
+    queryParams: Map[String, Seq[String]] = Map.empty,
+    eventHandler: ServerSentEventHandler = ServerSentEventHandler.empty
 ):
 
   def path: String =
@@ -126,6 +127,10 @@ case class Request(
     val encoded = wvlet.uni.util.Base64.encodeToString(s"${username}:${password}")
     withAuthorization(s"Basic ${encoded}")
 
+  def withEventHandler(handler: ServerSentEventHandler): Request = copy(eventHandler = handler)
+
+  def withAcceptEventStream: Request = withAccept(ContentType.TextEventStream.value)
+
 end Request
 
 object Request:
@@ -134,7 +139,8 @@ object Request:
     uri,
     HttpMultiMap.empty,
     HttpContent.Empty,
-    Map.empty
+    Map.empty,
+    ServerSentEventHandler.empty
   )
 
   def get(uri: String): Request     = Request(HttpMethod.GET, uri)
