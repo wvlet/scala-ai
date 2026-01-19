@@ -33,11 +33,18 @@
 
 <style scoped>
 .hero-code {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 16px;
   max-width: 520px;
   width: 100%;
+}
+
+/* Only show code on larger screens */
+@media (min-width: 960px) {
+  .hero-code {
+    display: flex;
+  }
 }
 
 .code-block {
