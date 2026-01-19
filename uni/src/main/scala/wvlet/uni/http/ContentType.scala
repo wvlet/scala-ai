@@ -149,6 +149,8 @@ object ContentType:
       fullType == "application/xml" || fullType == "text/xml" ||
         (mediaType == "application" && subType.endsWith("+xml"))
 
+    def isEventStream: Boolean = fullType == "text/event-stream"
+
   end extension
 
 end ContentType

@@ -121,6 +121,28 @@ private[http] class DefaultHttpAsyncClient(val config: HttpClientConfig, channel
     val resolvedRequest = prepareRequest(request)
     channel.sendStreaming(resolvedRequest, config)
 
+  override def sendSSE(request: HttpRequest): Rx[ServerSentEvent] =
+    // Ensure Accept header is set for SSE
+    val sseRequest =
+      if request.hasHeader(HttpHeader.Accept) then
+        request
+      else
+        request.withAcceptEventStream
+
+    val resolvedRequest = prepareRequest(sseRequest)
+    val parser          = ServerSentEventParser()
+    val handler         = request.eventHandler
+
+    // Use sendStreaming and parse the chunks
+    sendStreaming(resolvedRequest)
+      .flatMap { chunk =>
+        val text   = String(chunk, "UTF-8")
+        val events = parser.feed(text)
+        Rx.fromSeq(events)
+      }
+      .tap(handler.onEvent)
+      .tapOnFailure(handler.onError)
+
   private def prepareRequest(request: HttpRequest): HttpRequest =
     val uri = config.resolveUri(request.uri)
     config.requestFilter(request.withUri(uri))

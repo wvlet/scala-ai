@@ -94,6 +94,27 @@ trait HttpAsyncClient extends AutoCloseable:
   def sendStreaming(request: HttpRequest): Rx[Array[Byte]]
 
   /**
+    * Send an HTTP request and stream the response as Server-Sent Events.
+    *
+    * This method:
+    *   - Sets the Accept header to "text/event-stream" if not already set
+    *   - Streams the response body and parses it as SSE
+    *   - Invokes the request's eventHandler callbacks for each event
+    *   - Returns an Rx stream of parsed ServerSentEvent objects
+    *
+    * Example:
+    * {{{
+    * val handler = ServerSentEventHandler { event =>
+    *   println(s"Received: ${event.data}")
+    * }
+    *
+    * client.sendSSE(Request.get("/events").withEventHandler(handler))
+    *   .run(event => println(event))
+    * }}}
+    */
+  def sendSSE(request: HttpRequest): Rx[ServerSentEvent]
+
+  /**
     * Return a new client with retry disabled
     */
   def noRetry: HttpAsyncClient
