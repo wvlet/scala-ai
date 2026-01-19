@@ -107,6 +107,8 @@ val restored = ObjectWeaver.fromJSON[User](json)
 Build validators based on type structure:
 
 ```scala
+import scala.collection.mutable.ListBuffer
+
 def validate[T](value: T)(using surface: Surface): List[String] =
   val errors = ListBuffer[String]()
   for param <- surface.params do

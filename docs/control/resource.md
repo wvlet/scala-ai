@@ -70,6 +70,8 @@ Implement `AutoCloseable` for custom types:
 
 ```scala
 class DatabasePool extends AutoCloseable:
+  private val connections = scala.collection.mutable.ListBuffer[Connection]()
+
   def getConnection(): Connection = ???
 
   def close(): Unit =

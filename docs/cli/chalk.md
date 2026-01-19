@@ -133,7 +133,8 @@ val plain = style.noColor
 println(plain("No colors"))
 
 // Or conditionally
-val chalk = if isTTY then Chalk.red else Chalk().noColor
+val isInteractive = System.console() != null
+val chalk = if isInteractive then Chalk.red else Chalk().noColor
 ```
 
 ## Example: CLI Output

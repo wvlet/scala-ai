@@ -145,6 +145,10 @@ val toolSession = agent.newSession(runner, Some(toolExecutor))
 Chain configuration methods:
 
 ```scala
+// Define tools (see Tools section above for ToolSpec details)
+val searchTool = ToolSpec(...)     // web search tool
+val calculateTool = ToolSpec(...)  // calculation tool
+
 val agent = LLMAgent(
   name = "expert",
   description = "Domain expert",
@@ -160,6 +164,10 @@ val agent = LLMAgent(
 ## Example: Research Agent
 
 ```scala
+// Define research tools as ToolSpec instances
+val webSearchTool = ToolSpec(name = "web_search", ...)
+val citationTool = ToolSpec(name = "citation", ...)
+
 val researchAgent = LLMAgent(
   name = "researcher",
   description = "Gathers and analyzes information",
@@ -179,6 +187,11 @@ val researchAgent = LLMAgent(
 ## Example: Coding Agent
 
 ```scala
+// Define coding tools as ToolSpec instances
+val readFileTool = ToolSpec(name = "read_file", ...)
+val writeFileTool = ToolSpec(name = "write_file", ...)
+val runTestsTool = ToolSpec(name = "run_tests", ...)
+
 val codingAgent = LLMAgent(
   name = "coder",
   description = "Writes and reviews code",

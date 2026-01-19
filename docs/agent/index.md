@@ -16,6 +16,8 @@ uni-agent provides a framework for building LLM-powered agents with tool calling
 ```scala
 import wvlet.uni.agent.*
 import wvlet.uni.agent.chat.*
+import wvlet.uni.agent.runner.AgentRunner
+import wvlet.uni.agent.bedrock.BedrockChat
 
 // Define an agent
 val agent = LLMAgent(
@@ -24,6 +26,9 @@ val agent = LLMAgent(
   model = LLM.Claude3Sonnet
 ).withSystemPrompt("You are a helpful assistant.")
  .withTemperature(0.7)
+
+// Create an agent runner with a chat model
+val runner = AgentRunner(BedrockChat())
 
 // Create a session and chat
 val session = agent.newSession(runner)
