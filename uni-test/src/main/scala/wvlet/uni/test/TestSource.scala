@@ -14,13 +14,27 @@
 package wvlet.uni.test
 
 /**
-  * A helper to find the source code location for test assertions. This can be extended in the
-  * future to include additional test-specific features like code line extraction for better error
-  * reporting.
+  * A helper to find the source code location for test assertions. Captures both the location and
+  * the actual source line at compile time for better error reporting.
   */
-case class TestSource(fileName: String, line: Int, col: Int):
+case class TestSource(fileName: String, line: Int, col: Int, sourceLine: String = ""):
   def fileLocation      = s"${fileName}:${line}"
   override def toString = fileLocation
+
+  /**
+    * Format the source location as a code snippet with line number and column marker
+    */
+  def formatSnippet: Option[String] =
+    if sourceLine.isEmpty then
+      None
+    else
+      val linePrefix = s"${line}| "
+      val snippet    = s"${linePrefix}${sourceLine}"
+      if col > 0 then
+        val caretLine = " " * (linePrefix.length + col - 1) + "^"
+        Some(s"${snippet}\n${caretLine}")
+      else
+        Some(snippet)
 
 object TestSource:
   def apply()(using code: TestSource) = code
@@ -41,6 +55,19 @@ object TestSource:
     // Hidden because embedding the absolute path is not good for privacy and code size
     val srcPath: java.nio.file.Path = java.nio.file.Paths.get(src.path)
     val fileName                    = Expr(srcPath.getFileName().toString)
+
+    // Capture the source line content at compile time
+    val sourceLineContent = src
+      .content
+      .flatMap { content =>
+        val lines = content.linesIterator.toIndexedSeq
+        if pos.startLine >= 0 && pos.startLine < lines.size then
+          Some(lines(pos.startLine).trim)
+        else
+          None
+      }
+    val sourceLine = Expr(sourceLineContent.getOrElse(""))
+
     '{
       TestSource(
         ${
@@ -51,8 +78,13 @@ object TestSource:
         } + 1,
         ${
           column
+        },
+        ${
+          sourceLine
         }
       )
     }
+
+  end generateImpl
 
 end TestSource
