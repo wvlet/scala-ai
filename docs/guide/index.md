@@ -8,7 +8,7 @@ Uni provides small, reusable building blocks that complement the Scala standard 
 
 Uni provides:
 
-- **Design** - Compile-time safe object wiring with lifecycle management
+- **Design** - Object wiring with lifecycle management
 - **Logging** - Structured logging with source code location tracking
 - **Serialization** - JSON parsing/generation and MessagePack binary format
 - **HTTP Client** - Cross-platform client with retry and streaming support
@@ -33,7 +33,7 @@ uni follows these principles:
 
 | Module | Description |
 |--------|-------------|
-| [Design](/core/design) | Compile-time safe object wiring with lifecycle management |
+| [Design](/core/design) | Object wiring with lifecycle management |
 | [Logging](/core/logging) | Structured logging with source code location tracking |
 | [JSON](/core/json) | JSON parsing and generation |
 | [MessagePack](/core/msgpack) | Binary serialization format |
