@@ -1,4 +1,14 @@
 {
+  "name": "uni-docs",
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^2.0.0-alpha.15"
+  },
   "dependencies": {
     "jsdom": "^27.4.0"
   }
