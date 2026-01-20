@@ -31,7 +31,7 @@ class SpinnerTest extends UniTest:
     val spinner = Spinner()
       .withText("Loading...")
       .withSpinner(SpinnerStyle.Line)
-      .withColor(Chalk.magenta)
+      .withColor(Tint.magenta)
       .withEnabled(false)
       .withHideCursor(false)
 

@@ -247,7 +247,7 @@ result.executedMethod match
 
 ```scala
 import wvlet.uni.cli.launcher.*
-import wvlet.uni.cli.Chalk
+import wvlet.uni.cli.Tint
 
 @command(description = "File management tool")
 class FileTool(
@@ -263,7 +263,7 @@ class FileTool(
   ): Unit =
     if verbose then println(s"Copying ${source} to ${dest}")
     // Implementation...
-    println(Chalk.green("Done!"))
+    println(Tint.green("Done!"))
 
   @command(description = "Move files")
   def move(
@@ -274,7 +274,7 @@ class FileTool(
   ): Unit =
     if verbose then println(s"Moving ${source} to ${dest}")
     // Implementation...
-    println(Chalk.green("Done!"))
+    println(Tint.green("Done!"))
 
   @command(description = "Delete files")
   def delete(
@@ -285,7 +285,7 @@ class FileTool(
   ): Unit =
     if verbose then println(s"Deleting ${path}")
     // Implementation...
-    println(Chalk.green("Done!"))
+    println(Tint.green("Done!"))
 
 object Main:
   def main(args: Array[String]): Unit =

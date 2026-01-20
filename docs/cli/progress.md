@@ -21,7 +21,7 @@ bar.finish()
 ### Custom Styling
 
 ```scala
-import wvlet.uni.cli.{ProgressBar, Chalk}
+import wvlet.uni.cli.{ProgressBar, Tint}
 
 val bar = ProgressBar(total = 1000)
   .withWidth(30)                    // Bar width
@@ -29,7 +29,7 @@ val bar = ProgressBar(total = 1000)
   .withSuffix(" files")             // Text after bar
   .withShowPercent(true)            // Show percentage
   .withShowCount(true)              // Show count (e.g., 50/100)
-  .withColor(Chalk.cyan)            // Bar color
+  .withColor(Tint.cyan)            // Bar color
   .start()
 ```
 
@@ -80,7 +80,7 @@ catch
 | `suffix` | Text after the bar | "" |
 | `showPercent` | Show percentage | true |
 | `showCount` | Show item count | false |
-| `color` | Bar color | Chalk.green |
+| `color` | Bar color | Tint.green |
 | `hideCursor` | Hide cursor during progress | true |
 
 ## Spinner
@@ -103,12 +103,12 @@ spinner.stop()
 ### Spinner Configuration
 
 ```scala
-import wvlet.uni.cli.{Spinner, SpinnerStyle, Chalk}
+import wvlet.uni.cli.{Spinner, SpinnerStyle, Tint}
 
 val spinner = Spinner()
   .withText("Loading...")
   .withSpinner(SpinnerStyle.Line)
-  .withColor(Chalk.magenta)
+  .withColor(Tint.magenta)
   .withEnabled(true)
   .withHideCursor(true)
 ```
@@ -177,14 +177,14 @@ bar.finish()
 ## Example: File Processing
 
 ```scala
-import wvlet.uni.cli.{ProgressBar, Chalk}
+import wvlet.uni.cli.{ProgressBar, Tint}
 import java.io.File
 
 def processFiles(files: List[File]): Unit =
   val bar = ProgressBar(total = files.size)
     .withPrefix("Processing: ")
     .withShowCount(true)
-    .withColor(Chalk.blue)
+    .withColor(Tint.blue)
     .start()
 
   for file <- files do
@@ -192,7 +192,7 @@ def processFiles(files: List[File]): Unit =
     bar.increment()
 
   bar.finish()
-  println(Chalk.green("All files processed!"))
+  println(Tint.green("All files processed!"))
 ```
 
 ## Example: Download Progress

@@ -80,7 +80,7 @@ export default defineConfig({
           text: 'CLI',
           items: [
             { text: 'Overview', link: '/cli/' },
-            { text: 'Terminal Styling', link: '/cli/chalk' },
+            { text: 'Terminal Styling', link: '/cli/tint' },
             { text: 'Progress Indicators', link: '/cli/progress' },
             { text: 'Command Launcher', link: '/cli/launcher' }
           ]
@@ -153,7 +153,7 @@ export default defineConfig({
           text: 'CLI',
           items: [
             { text: 'Overview', link: '/cli/' },
-            { text: 'Terminal Styling', link: '/cli/chalk' },
+            { text: 'Terminal Styling', link: '/cli/tint' },
             { text: 'Progress Indicators', link: '/cli/progress' },
             { text: 'Command Launcher', link: '/cli/launcher' }
           ]

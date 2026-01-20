@@ -13,7 +13,7 @@
  */
 package wvlet.uni.cli.launcher
 
-import wvlet.uni.cli.{Chalk, CliEnv}
+import wvlet.uni.cli.{Tint, CliEnv}
 
 /**
   * Renders help messages for CLI commands
@@ -48,12 +48,12 @@ class DefaultHelpPrinter extends HelpPrinter:
 
     def cyan(s: String) =
       if useColor then
-        Chalk.cyan(s)
+        Tint.cyan(s)
       else
         s
     def brightCyan(s: String) =
       if useColor then
-        Chalk.brightCyan(s)
+        Tint.brightCyan(s)
       else
         s
 

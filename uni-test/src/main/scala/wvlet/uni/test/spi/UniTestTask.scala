@@ -14,6 +14,7 @@
 package wvlet.uni.test.spi
 
 import sbt.testing.*
+import wvlet.uni.cli.Tint
 import wvlet.uni.test.AssertionFailure
 import wvlet.uni.test.TestException
 import wvlet.uni.test.TestResult
@@ -27,20 +28,11 @@ import wvlet.uni.test.compat
 import scala.concurrent.Await
 import scala.concurrent.Promise
 import scala.concurrent.duration.Duration
-import scala.io.AnsiColor
-
-/**
-  * ANSI color palette for test output, extending standard AnsiColor with additional bright colors
-  */
-private[spi] trait TestColorPalette extends AnsiColor:
-  final val GRAY = "\u001b[90m"
 
 /**
   * sbt test task that executes tests for a single test class
   */
-class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig)
-    extends Task
-    with TestColorPalette:
+class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestConfig) extends Task:
 
   def taskDef(): TaskDef = _taskDef
 
@@ -146,9 +138,9 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
   private def logResult(result: TestResult, loggers: Array[sbt.testing.Logger]): Unit =
     result match
       case TestResult.Success(name) =>
-        loggers.foreach(_.info(s"${GREEN}  + ${name}${RESET}"))
+        loggers.foreach(_.info(Tint.green(s"  + ${name}")))
       case TestResult.Failure(name, msg, cause) =>
-        loggers.foreach(_.error(s"${RED}  - ${name}: ${msg}${RESET}"))
+        loggers.foreach(_.error(Tint.red(s"  - ${name}: ${msg}")))
         // Show source code snippet for assertion failures
         cause.foreach {
           case af: AssertionFailure =>
@@ -156,22 +148,22 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
               .formatSnippet
               .foreach { snippet =>
                 val indentedSnippet = snippet.linesIterator.map(l => s"    ${l}").mkString("\n")
-                loggers.foreach(_.error(s"${GRAY}${indentedSnippet}${RESET}"))
+                loggers.foreach(_.error(Tint.gray(indentedSnippet)))
               }
           case _ =>
             ()
         }
       case TestResult.Error(name, msg, cause) =>
-        loggers.foreach(_.error(s"${RED}  x ${name}: ${msg}${RESET}"))
+        loggers.foreach(_.error(Tint.red(s"  x ${name}: ${msg}")))
         loggers.foreach(_.trace(cause))
       case TestResult.Skipped(name, reason) =>
-        loggers.foreach(_.info(s"${YELLOW}  ~ ${name}: skipped - ${reason}${RESET}"))
+        loggers.foreach(_.info(Tint.yellow(s"  ~ ${name}: skipped - ${reason}")))
       case TestResult.Pending(name, reason) =>
-        loggers.foreach(_.info(s"${MAGENTA}  ? ${name}: pending - ${reason}${RESET}"))
+        loggers.foreach(_.info(Tint.magenta(s"  ? ${name}: pending - ${reason}")))
       case TestResult.Cancelled(name, reason) =>
-        loggers.foreach(_.info(s"${CYAN}  ! ${name}: cancelled - ${reason}${RESET}"))
+        loggers.foreach(_.info(Tint.cyan(s"  ! ${name}: cancelled - ${reason}")))
       case TestResult.Ignored(name, reason) =>
-        loggers.foreach(_.info(s"${GRAY}  - ${name}: ignored - ${reason}${RESET}"))
+        loggers.foreach(_.info(Tint.gray(s"  - ${name}: ignored - ${reason}")))
 
   private def createEvent(testName: String, result: TestResult): Event =
     val selector = new TestSelector(testName)
@@ -237,7 +229,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(ts),
           0L
         )
-        (event, s"${YELLOW}  ~ ${leafName}: skipped - ${ts.getMessage}${RESET}")
+        (event, Tint.yellow(s"  ~ ${leafName}: skipped - ${ts.getMessage}"))
       case tp: TestPending =>
         val event = UniTestEvent(
           className,
@@ -247,7 +239,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(tp),
           0L
         )
-        (event, s"${MAGENTA}  ? ${leafName}: pending - ${tp.getMessage}${RESET}")
+        (event, Tint.magenta(s"  ? ${leafName}: pending - ${tp.getMessage}"))
       case tc: TestCancelled =>
         val event = UniTestEvent(
           className,
@@ -257,7 +249,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(tc),
           0L
         )
-        (event, s"${CYAN}  ! ${leafName}: cancelled - ${tc.getMessage}${RESET}")
+        (event, Tint.cyan(s"  ! ${leafName}: cancelled - ${tc.getMessage}"))
       case ti: TestIgnored =>
         val event = UniTestEvent(
           className,
@@ -267,7 +259,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(ti),
           0L
         )
-        (event, s"${GRAY}  - ${leafName}: ignored - ${ti.getMessage}${RESET}")
+        (event, Tint.gray(s"  - ${leafName}: ignored - ${ti.getMessage}"))
       case _ =>
         val event = UniTestEvent(
           className,
@@ -277,7 +269,7 @@ class UniTestTask(_taskDef: TaskDef, testClassLoader: ClassLoader, config: TestC
           new OptionalThrowable(e),
           0L
         )
-        (event, s"${RED}  x ${leafName}: error - ${e.getMessage}${RESET}")
+        (event, Tint.red(s"  x ${leafName}: error - ${e.getMessage}"))
 
     end match
 

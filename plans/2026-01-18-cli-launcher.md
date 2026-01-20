@@ -88,7 +88,7 @@ object KeyValue:
 | `OptionParser.scala` | Parses CLI args using schema, returns `ParseResult` |
 | `OptionSchema.scala` | Builds schema from Surface annotations |
 | `CLOption.scala` | Option/argument item definitions |
-| `HelpPrinter.scala` | Help message generation using `Chalk` |
+| `HelpPrinter.scala` | Help message generation using `Tint` |
 | `CommandLineTokenizer.scala` | Tokenizes command line strings |
 | `KeyValue.scala` | Key-value pair type |
 
@@ -250,7 +250,7 @@ uni/src/test/scala/wvlet/uni/cli/
 
 - **No JVM reflection**: All annotation reading at compile-time via Surface macros
 - **Pure Scala data structures**: `ParseTree` replaces airframe's `StringTree`
-- **Existing cross-platform utilities**: Uses `Chalk`, `CliEnv` for help output
+- **Existing cross-platform utilities**: Uses `Tint`, `CliEnv` for help output
 - **Object instantiation**: Use Surface's `ObjectFactory` (already cross-platform)
 
 ## Verification

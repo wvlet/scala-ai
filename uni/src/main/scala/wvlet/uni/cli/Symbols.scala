@@ -150,21 +150,21 @@ object Symbols:
   /**
     * Colored success symbol.
     */
-  def successColored: String = Chalk.green(success)
+  def successColored: String = Tint.green(success)
 
   /**
     * Colored error symbol.
     */
-  def errorColored: String = Chalk.red(error)
+  def errorColored: String = Tint.red(error)
 
   /**
     * Colored warning symbol.
     */
-  def warningColored: String = Chalk.yellow(warning)
+  def warningColored: String = Tint.yellow(warning)
 
   /**
     * Colored info symbol.
     */
-  def infoColored: String = Chalk.blue(info)
+  def infoColored: String = Tint.blue(info)
 
 end Symbols
