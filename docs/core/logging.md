@@ -77,20 +77,11 @@ The logging methods use Scala 3 `inline` macros, which means:
 2. **Zero overhead**: If the log level is disabled, there is no runtime cost for creating log messages
 
 ```scala
-// This is safe and efficient - expensiveComputation() is only called if DEBUG is enabled
+// expensiveComputation() is only called if DEBUG is enabled
 debug(s"Result: ${expensiveComputation()}")
 ```
 
-Unlike traditional logging frameworks, you don't need to wrap expensive computations with level checks:
-
-```scala
-// NOT needed - the macro handles this automatically
-if logger.isDebugEnabled then
-  debug(s"Expensive computation: ${computeDetails()}")
-
-// Just use the log method directly
-debug(s"Expensive computation: ${computeDetails()}")
-```
+Unlike traditional logging frameworks, you don't need to wrap expensive computations with level checks.
 
 ## Source Location
 
