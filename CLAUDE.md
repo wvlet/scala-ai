@@ -28,9 +28,10 @@ sbt "agent/testOnly *LLMAgentTest"       # Test specific class
 sbt "coreJVM/testOnly * -- -l debug"     # With debug logging
 sbt scalafmtAll                          # Format (CI checks this)
 sbt integrationTest/test                 # Integration tests (requires AWS creds)
+npm run docs:dev                         # Start docs server (http://localhost:5173)
 ```
 
-## Testing (AirSpec)
+## Testing (UniTest)
 
 Avoid mocks. Use `shouldBe`, `shouldNotBe`, `shouldContain`, `shouldMatch`.
 
@@ -42,7 +43,7 @@ Avoid mocks. Use `shouldBe`, `shouldNotBe`, `shouldContain`, `shouldMatch`.
 result shouldMatch { case x: ExpectedType => }  // NOT: .asInstanceOf[X]
 ```
 
-See `.github/instructions/airspec.instructions.md` for more.
+See `.github/instructions/unitest.instructions.md` for more.
 
 ## Coding Style
 

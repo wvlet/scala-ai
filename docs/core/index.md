@@ -7,6 +7,7 @@ The `uni` module provides essential utilities for Scala application development.
 | Component | Description |
 |-----------|-------------|
 | [Design](./design) | Object wiring with lifecycle management |
+| [UniTest](./unitest) | Lightweight testing framework |
 | [Logging](./logging) | Structured logging with LogSupport |
 | [JSON](./json) | Pure Scala JSON parser and DSL |
 | [MessagePack](./msgpack) | Binary serialization format |

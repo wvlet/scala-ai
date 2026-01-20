@@ -2,14 +2,14 @@
 applyTo: "**/*Test.scala"
 ---
 
-Generate test cases in Scala 3 syntaxes using the AirSpec testing framework (`wvlet.airspec.AirSpec`).
+Generate test cases in Scala 3 syntaxes using the UniTest testing framework (`wvlet.uni.test.UniTest`).
 
-## AirSpec Basic Syntax Explanation:
+## UniTest Basic Syntax Explanation:
 
-- AirSpec tests are typically defined within a Scala `object` or `class` that extends `wvlet.airspec.AirSpec`. 
-- AirSpec uses `test("...") { ... }` syntax for writing test cases. 
+- UniTest tests are typically defined within a Scala `object` or `class` that extends `wvlet.uni.test.UniTest`.
+- UniTest uses `test("...") { ... }` syntax for writing test cases.
 
-AirSpec provides a rich set of assertion syntaxes for verifying test expectations. Here are some common ones:
+UniTest provides a rich set of assertion syntaxes for verifying test expectations. Here are some common ones:
 
 ### Assertion Syntax Table:
 
@@ -38,9 +38,9 @@ AirSpec provides a rich set of assertion syntaxes for verifying test expectation
 ### Assertion Example:
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class MyTest extends AirSpec:
+class MyTest extends UniTest:
   test("assertion examples") {
     // checking the value equality with shouldBe, shouldNotBe:
     1 shouldBe 1
@@ -53,7 +53,7 @@ class MyTest extends AirSpec:
     None shouldNotBe defined
 
     // null check
-    val s:String = null
+    val s: String = null
     s shouldBe null
     "s" shouldNotBe null
 
@@ -75,7 +75,7 @@ class MyTest extends AirSpec:
     a shouldBe b
     a shouldNotBeTheSameInstanceAs b
 
-    // Patten matcher
+    // Pattern matcher
     Seq(1, 2) shouldMatch {
       case Seq(1, _) => // ok
     }
@@ -100,9 +100,9 @@ class MyTest extends AirSpec:
   }
 ```
 
-## Logging 
+## Logging
 
-To add debug messages, use `debug` and `trace` methods. 
+To add debug messages, use `debug` and `trace` methods.
 
 ```scala
 test("my test") {
@@ -116,31 +116,28 @@ Debug logging can be enabled by setting the log level in `testOnly` command in s
 > testOnly * -- -l debug
 ```
 
-## DI Example
+## Design Integration
 
-To set up commonly used resources, use Airframe DI to bind instances. Test methods accept the bound instances as parameters:
+To set up commonly used resources, use Design to bind instances:
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
+import wvlet.uni.design.Design
 
-case class ServiceConfig(port:Int)
-class Service(val config:ServiceConfig)
+case class ServiceConfig(port: Int)
+class Service(val config: ServiceConfig)
 
-class ServiceSpec extends AirSpec:
-  initDesign { design =>
-    design
-      .bindInstance[ServiceConfig](ServiceConfig(port=8080))
-      .bindSingleton[Service]
-      .onStart{x => info(s"Starting a server at ${x.config.port}")}
-      .onShutdown{x => info(s"Stopping the server at ${x.config.port}")}
+class ServiceSpec extends UniTest:
+  val testDesign = Design.newDesign
+    .bindInstance[ServiceConfig](ServiceConfig(port = 8080))
+    .bindSingleton[Service]
+    .onStart { x => info(s"Starting a server at ${x.config.port}") }
+    .onShutdown { x => info(s"Stopping the server at ${x.config.port}") }
+
+  test("test with design") {
+    testDesign.build[Service] { service =>
+      info(s"server id: ${service.hashCode}")
+      service.config.port shouldBe 8080
+    }
   }
-
-  test("test1") { (service:Service) =>
-     info(s"server id: ${service.hashCode}")
-  }
-
-  test("test2") { (service:Service) =>
-     info(s"server id: ${service.hashCode}")
-  }
-
 ```

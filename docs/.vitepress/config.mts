@@ -44,6 +44,7 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/core/' },
             { text: 'Design', link: '/core/design' },
+            { text: 'UniTest', link: '/core/unitest' },
             { text: 'Logging', link: '/core/logging' },
             { text: 'JSON Processing', link: '/core/json' },
             { text: 'MessagePack', link: '/core/msgpack' },
@@ -93,13 +94,6 @@ export default defineConfig({
             { text: 'Chat Sessions', link: '/agent/chat-session' },
             { text: 'Tool Integration', link: '/agent/tools' },
             { text: 'AWS Bedrock', link: '/agent/bedrock' }
-          ]
-        },
-        {
-          text: 'Testing',
-          items: [
-            { text: 'Overview', link: '/testing/' },
-            { text: 'Assertions', link: '/testing/assertions' }
           ]
         }
       ],
@@ -117,6 +111,7 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/core/' },
             { text: 'Design', link: '/core/design' },
+            { text: 'UniTest', link: '/core/unitest' },
             { text: 'Logging', link: '/core/logging' },
             { text: 'JSON Processing', link: '/core/json' },
             { text: 'MessagePack', link: '/core/msgpack' },
@@ -166,13 +161,6 @@ export default defineConfig({
             { text: 'Chat Sessions', link: '/agent/chat-session' },
             { text: 'Tool Integration', link: '/agent/tools' },
             { text: 'AWS Bedrock', link: '/agent/bedrock' }
-          ]
-        },
-        {
-          text: 'Testing',
-          items: [
-            { text: 'Overview', link: '/testing/' },
-            { text: 'Assertions', link: '/testing/assertions' }
           ]
         }
       ]
