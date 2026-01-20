@@ -37,11 +37,11 @@ features:
 ::: code-group
 
 ```scala [sbt]
-libraryDependencies += "org.wvlet" %% "uni" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni" % "2026.1.0"
 ```
 
 ```scala [Scala CLI]
-//> using dep org.wvlet::uni:2025.1.0
+//> using dep org.wvlet.uni::uni:2026.1.0
 ```
 
 :::
@@ -67,7 +67,7 @@ class MyService extends LogSupport:
 |--------|-------------|
 | `uni` | Core utilities: Design, logging, JSON, MessagePack, Rx, HTTP client |
 | `uni-agent` | LLM agent framework with tool integration |
-| `uni-agent-bedrock` | AWS Bedrock chat model integration |
+| `uni-bedrock` | AWS Bedrock chat model integration |
 
 ## Cross-Platform Support
 
