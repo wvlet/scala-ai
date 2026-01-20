@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**wvlet/uni** is a Scala 3 unified utility library.
+**Uni** is an essential Scala utilities, refined for Scala 3 with minimal dependencies.
 
 ## Modules
 
@@ -62,7 +62,6 @@ Save plan documents to plans/YYYY-MM-DD-(topic).md files
 - Never enable auto-merge without user approval
 
 ### Commits
-- Prefixes: `feature`, `fix`, `internal`, `doc`
 - Focus on "why" not "what"
 - Example: `feature: Add XXX to improve user experience`
 
