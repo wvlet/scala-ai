@@ -1,20 +1,20 @@
 # Testing Framework
 
-uni uses AirSpec as its testing framework, providing a simple and expressive way to write tests.
+uni uses UniTest as its testing framework, providing a simple and expressive way to write tests across JVM, Scala.js, and Scala Native.
 
 ## Overview
 
 | Component | Description |
 |-----------|-------------|
-| [Assertions](./assertions) | Test assertions and matchers |
+| [UniTest](../core/unitest) | Full documentation (Core component) |
+| [Assertions](./assertions) | Assertion quick reference |
 
 ## Quick Start
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class MyServiceTest extends AirSpec:
-
+class MyServiceTest extends UniTest:
   test("basic assertion") {
     val result = 1 + 1
     result shouldBe 2
@@ -47,10 +47,9 @@ sbt "coreJVM/testOnly * -- -l debug"
 ### Test Class
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 
-class CalculatorTest extends AirSpec:
-
+class CalculatorTest extends UniTest:
   test("addition") {
     (2 + 2) shouldBe 4
   }
@@ -63,8 +62,7 @@ class CalculatorTest extends AirSpec:
 ### Nested Tests
 
 ```scala
-class MathTest extends AirSpec:
-
+class MathTest extends UniTest:
   test("arithmetic") {
     test("addition") {
       (1 + 1) shouldBe 2
@@ -81,11 +79,10 @@ class MathTest extends AirSpec:
 Test with dependency injection:
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 import wvlet.uni.design.Design
 
-class UserServiceTest extends AirSpec:
-
+class UserServiceTest extends UniTest:
   val testDesign = Design.newDesign
     .bindImpl[UserRepository, InMemoryUserRepository]
     .bindImpl[UserService, UserServiceImpl]
@@ -109,5 +106,5 @@ class UserServiceTest extends AirSpec:
 ## Package
 
 ```scala
-import wvlet.airspec.AirSpec
+import wvlet.uni.test.UniTest
 ```

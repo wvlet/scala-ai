@@ -1,6 +1,6 @@
 # Assertions & Matchers
 
-AirSpec provides expressive assertions for testing.
+UniTest provides expressive assertions for testing. See the [full UniTest documentation](../core/unitest) for comprehensive coverage.
 
 ## Basic Assertions
 
@@ -130,7 +130,7 @@ str.matches("regex.*") shouldBe true
 ### Testing a Calculator
 
 ```scala
-class CalculatorTest extends AirSpec:
+class CalculatorTest extends UniTest:
 
   val calc = Calculator()
 
@@ -153,7 +153,7 @@ class CalculatorTest extends AirSpec:
 ### Testing a User Service
 
 ```scala
-class UserServiceTest extends AirSpec:
+class UserServiceTest extends UniTest:
 
   val service = UserService()
 
@@ -183,7 +183,7 @@ class UserServiceTest extends AirSpec:
 ### Testing Collections
 
 ```scala
-class CollectionTest extends AirSpec:
+class CollectionTest extends UniTest:
 
   test("list operations") {
     val list = List(1, 2, 3, 4, 5)
@@ -206,7 +206,7 @@ class CollectionTest extends AirSpec:
 ### Testing with Design
 
 ```scala
-class IntegrationTest extends AirSpec:
+class IntegrationTest extends UniTest:
 
   val testDesign = Design.newDesign
     .bindImpl[Database, InMemoryDatabase]
