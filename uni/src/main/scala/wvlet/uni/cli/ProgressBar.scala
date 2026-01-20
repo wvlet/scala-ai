@@ -34,7 +34,7 @@ import java.io.PrintStream
   *   .withWidth(30)
   *   .withPrefix("Downloading: ")
   *   .withShowCount(true)
-  *   .withColor(Chalk.cyan)
+  *   .withColor(Tint.cyan)
   *   .start()
   *
   * bar.update(500)
@@ -50,7 +50,7 @@ case class ProgressBar(
     suffix: String = "",
     showPercent: Boolean = true,
     showCount: Boolean = false,
-    color: Chalk = Chalk.green,
+    color: Tint = Tint.green,
     stream: PrintStream = System.err,
     enabled: Boolean = true,
     hideCursor: Boolean = true
@@ -72,7 +72,7 @@ case class ProgressBar(
   def withSuffix(suffix: String): ProgressBar      = this.copy(suffix = suffix)
   def withShowPercent(show: Boolean): ProgressBar  = this.copy(showPercent = show)
   def withShowCount(show: Boolean): ProgressBar    = this.copy(showCount = show)
-  def withColor(color: Chalk): ProgressBar         = this.copy(color = color)
+  def withColor(color: Tint): ProgressBar         = this.copy(color = color)
   def withStream(stream: PrintStream): ProgressBar = this.copy(stream = stream)
   def withEnabled(enabled: Boolean): ProgressBar   = this.copy(enabled = enabled)
   def withHideCursor(hide: Boolean): ProgressBar   = this.copy(hideCursor = hide)
@@ -85,7 +85,7 @@ case class ProgressBar(
   /**
     * Disable color output.
     */
-  def noColor: ProgressBar = this.copy(color = Chalk().noColor)
+  def noColor: ProgressBar = this.copy(color = Tint().noColor)
 
 end ProgressBar
 

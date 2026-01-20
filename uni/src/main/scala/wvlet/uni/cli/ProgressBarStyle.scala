@@ -32,7 +32,7 @@ object ProgressBarStyle:
   def Default(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("█")
     .withIncomplete("░")
-    .withColor(Chalk.green)
+    .withColor(Tint.green)
 
   /**
     * Shaded progress bar with gradient block characters. Output: [▓▓▓▓▓▓▓▓░░░░░░░░░░░░] 50%
@@ -40,7 +40,7 @@ object ProgressBarStyle:
   def Shaded(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("▓")
     .withIncomplete("░")
-    .withColor(Chalk.cyan)
+    .withColor(Tint.cyan)
 
   /**
     * Block progress bar with filled/empty squares. Output: [■■■■■■■■□□□□□□□□□□□□] 50%
@@ -48,7 +48,7 @@ object ProgressBarStyle:
   def Block(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("■")
     .withIncomplete("□")
-    .withColor(Chalk.blue)
+    .withColor(Tint.blue)
 
   /**
     * Arrow progress bar. ASCII-compatible. Output: [========>-----------] 50%
@@ -56,7 +56,7 @@ object ProgressBarStyle:
   def Arrow(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("=")
     .withIncomplete("-")
-    .withColor(Chalk.yellow)
+    .withColor(Tint.yellow)
 
   /**
     * Hash progress bar. ASCII-compatible. Output: [##########..........] 50%
@@ -64,7 +64,7 @@ object ProgressBarStyle:
   def Hash(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("#")
     .withIncomplete(".")
-    .withColor(Chalk.magenta)
+    .withColor(Tint.magenta)
 
   /**
     * Classic progress bar with percentage and count. Output: Downloading: [████░░░░] 50% (50/100)
@@ -76,7 +76,7 @@ object ProgressBarStyle:
     .withShowPercent(true)
     .withShowCount(true)
     .withWidth(30)
-    .withColor(Chalk.green)
+    .withColor(Tint.green)
 
   /**
     * Minimal progress bar without percentage. Output: [████████░░░░░░░░░░░░]
@@ -85,7 +85,7 @@ object ProgressBarStyle:
     .withComplete("█")
     .withIncomplete("░")
     .withShowPercent(false)
-    .withColor(Chalk.white)
+    .withColor(Tint.white)
 
   /**
     * Colorful progress bar with rainbow gradient.
@@ -93,6 +93,6 @@ object ProgressBarStyle:
   def Rainbow(total: Long): ProgressBar = ProgressBar(total = total)
     .withComplete("█")
     .withIncomplete("░")
-    .withColor(Chalk.brightMagenta)
+    .withColor(Tint.brightMagenta)
 
 end ProgressBarStyle

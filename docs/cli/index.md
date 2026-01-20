@@ -6,7 +6,7 @@ uni provides utilities for building command-line applications with styled output
 
 | Component | Description |
 |-----------|-------------|
-| [Terminal Styling](./chalk) | Colorful terminal output with Chalk |
+| [Terminal Styling](./tint) | Colorful terminal output with Tint |
 | [Progress Indicators](./progress) | Progress bars and spinners |
 | [Command Launcher](./launcher) | Type-safe CLI argument parsing |
 
@@ -15,11 +15,11 @@ uni provides utilities for building command-line applications with styled output
 ### Colored Output
 
 ```scala
-import wvlet.uni.cli.Chalk
+import wvlet.uni.cli.Tint
 
-println(Chalk.green("Success!"))
-println(Chalk.red.bold("Error!"))
-println(Chalk.yellow.bgBlue("Warning"))
+println(Tint.green("Success!"))
+println(Tint.red.bold("Error!"))
+println(Tint.yellow.bgBlue("Warning"))
 ```
 
 ### Progress Bar

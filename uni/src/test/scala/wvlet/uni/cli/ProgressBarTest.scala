@@ -54,7 +54,7 @@ class ProgressBarTest extends UniTest:
       .withSuffix(" items")
       .withShowPercent(false)
       .withShowCount(true)
-      .withColor(Chalk.cyan)
+      .withColor(Tint.cyan)
       .withEnabled(false)
       .withHideCursor(false)
 

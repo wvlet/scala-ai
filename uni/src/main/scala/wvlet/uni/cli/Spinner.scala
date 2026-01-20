@@ -31,7 +31,7 @@ import java.io.PrintStream
   * val spinner = Spinner()
   *   .withText("Processing")
   *   .withSpinner(SpinnerStyle.Dots)
-  *   .withColor(Chalk.cyan)
+  *   .withColor(Tint.cyan)
   *   .start()
   *
   * spinner.text = "Still processing..."
@@ -41,7 +41,7 @@ import java.io.PrintStream
 case class Spinner(
     text: String = "",
     style: SpinnerStyle = SpinnerStyle.Default,
-    color: Chalk = Chalk.cyan,
+    color: Tint = Tint.cyan,
     stream: PrintStream = System.err,
     enabled: Boolean = true,
     hideCursor: Boolean = true
@@ -60,7 +60,7 @@ case class Spinner(
   def withText(text: String): Spinner           = this.copy(text = text)
   def withSpinner(style: SpinnerStyle): Spinner = this.copy(style = style)
   def withStyle(style: SpinnerStyle): Spinner   = this.copy(style = style)
-  def withColor(color: Chalk): Spinner          = this.copy(color = color)
+  def withColor(color: Tint): Spinner          = this.copy(color = color)
   def withStream(stream: PrintStream): Spinner  = this.copy(stream = stream)
   def withEnabled(enabled: Boolean): Spinner    = this.copy(enabled = enabled)
   def withHideCursor(hide: Boolean): Spinner    = this.copy(hideCursor = hide)
@@ -73,7 +73,7 @@ case class Spinner(
   /**
     * Disable color output.
     */
-  def noColor: Spinner = this.copy(color = Chalk().noColor)
+  def noColor: Spinner = this.copy(color = Tint().noColor)
 
 end Spinner
 
