@@ -12,7 +12,7 @@
 
 ```scala
 // build.sbt
-libraryDependencies += "org.wvlet" %% "uni" % "(version)"
+libraryDependencies += "org.wvlet.uni" %% "uni" % "(version)"
 ```
 
 ## Modules

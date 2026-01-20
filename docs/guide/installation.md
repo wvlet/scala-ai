@@ -11,13 +11,13 @@ Add uni to your `build.sbt`:
 
 ```scala
 // Core utilities (DI, logging, JSON, HTTP, Rx, etc.)
-libraryDependencies += "org.wvlet" %% "uni" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni" % "2026.1.0"
 
 // LLM agent framework (optional)
-libraryDependencies += "org.wvlet" %% "uni-agent" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni-agent" % "2026.1.0"
 
 // AWS Bedrock integration (optional)
-libraryDependencies += "org.wvlet" %% "uni-agent-bedrock" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni-bedrock" % "2026.1.0"
 ```
 
 ## Cross-Platform Projects
@@ -26,10 +26,10 @@ For Scala.js or Scala Native projects:
 
 ```scala
 // Scala.js
-libraryDependencies += "org.wvlet" %%% "uni" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %%% "uni" % "2026.1.0"
 
 // Scala Native
-libraryDependencies += "org.wvlet" %%% "uni" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %%% "uni" % "2026.1.0"
 ```
 
 ## Imports

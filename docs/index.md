@@ -37,11 +37,11 @@ features:
 ::: code-group
 
 ```scala [sbt]
-libraryDependencies += "org.wvlet" %% "uni" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni" % "2026.1.0"
 ```
 
 ```scala [Scala CLI]
-//> using dep org.wvlet::uni:2025.1.0
+//> using dep org.wvlet.uni::uni:2026.1.0
 ```
 
 :::

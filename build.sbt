@@ -13,7 +13,7 @@ val SCALACHECK_VERSION                  = "1.19.0"
 
 // Common build settings
 val buildSettings = Seq[Setting[?]](
-  organization             := "org.wvlet",
+  organization             := "org.wvlet.uni",
   description              := "Scala 3 unified utility library",
   scalaVersion             := SCALA_3,
   crossScalaVersions       := List(SCALA_3),

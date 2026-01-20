@@ -76,10 +76,10 @@ Defines callable functions:
 
 ```scala
 // Core agent framework
-libraryDependencies += "org.wvlet" %% "uni-agent" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni-agent" % "2026.1.0"
 
 // AWS Bedrock integration
-libraryDependencies += "org.wvlet" %% "uni-agent-bedrock" % "2025.1.0"
+libraryDependencies += "org.wvlet.uni" %% "uni-bedrock" % "2026.1.0"
 ```
 
 ## Package
