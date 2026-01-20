@@ -15,7 +15,18 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', href: '/uni/favicon.ico' }]
+    ['link', { rel: 'icon', href: '/uni/favicon.ico' }],
+    // Open Graph
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: 'Uni - Essential Scala Utilities' }],
+    ['meta', { property: 'og:description', content: 'Essential Scala Utilities - Refined for Scala 3 with minimal dependencies' }],
+    ['meta', { property: 'og:image', content: 'https://wvlet.org/uni/uni-banner-1280x640.png' }],
+    ['meta', { property: 'og:url', content: 'https://wvlet.org/uni/' }],
+    // Twitter Card
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'Uni - Essential Scala Utilities' }],
+    ['meta', { name: 'twitter:description', content: 'Essential Scala Utilities - Refined for Scala 3 with minimal dependencies' }],
+    ['meta', { name: 'twitter:image', content: 'https://wvlet.org/uni/uni-banner-1280x640.png' }]
   ],
 
   themeConfig: {
