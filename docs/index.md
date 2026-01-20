@@ -67,7 +67,7 @@ class MyService extends LogSupport:
 |--------|-------------|
 | `uni` | Core utilities: Design, logging, JSON, MessagePack, Rx, HTTP client |
 | `uni-agent` | LLM agent framework with tool integration |
-| `uni-agent-bedrock` | AWS Bedrock chat model integration |
+| `uni-bedrock` | AWS Bedrock chat model integration |
 
 ## Cross-Platform Support
 
