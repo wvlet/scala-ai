@@ -51,6 +51,49 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* Hero image styling - responsive sizes */
+.VPHero .VPImage {
+  max-width: 160px;
+  max-height: 160px;
+}
+
+@media (min-width: 640px) {
+  .VPHero .VPImage {
+    max-width: 200px;
+    max-height: 200px;
+  }
+}
+
+@media (min-width: 960px) {
+  .VPHero .VPImage {
+    max-width: 280px;
+    max-height: 280px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .VPHero .VPImage {
+    max-width: 320px;
+    max-height: 320px;
+  }
+}
+
+/* Fix hero layout on small screens - stack vertically */
+@media (max-width: 959px) {
+  .VPHero .container {
+    flex-direction: column !important;
+  }
+
+  .VPHero .main {
+    text-align: center;
+  }
+
+  .VPHero .image {
+    position: relative !important;
+    margin-top: 12px;
+  }
+}
+
 /* Nord code blocks - consistent dark background for both light/dark modes */
 .vp-doc div[class*='language-'],
 .vp-doc div[class*='language-'] > .shiki {

@@ -1,10 +1,14 @@
 ---
 layout: home
+title: Uni - Essential Scala Utilities
 
 hero:
   name: Uni
   text: Essential Scala Utilities
   tagline: Refined for Scala 3 with minimal dependencies
+  image:
+    src: /uni-logo-1024x1024.png
+    alt: Uni
   actions:
     - theme: brand
       text: Get Started
