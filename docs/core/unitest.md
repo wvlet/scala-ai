@@ -28,6 +28,31 @@ Run tests:
 sbt test
 ```
 
+## Assertions in UniTest
+
+| Syntax | Meaning |
+|:-------|:--------|
+| `assert(x == y)` | Check x equals y |
+| `assertEquals(a, b, delta)` | Check Float/Double equality with tolerance |
+| `intercept[E] { ... }` | Catch an exception of type E |
+| `x shouldBe y` | Check x == y (supports deep equality for Array, Seq) |
+| `x shouldNotBe y` | Check x != y |
+| `x shouldBe null` | Check x is null |
+| `x shouldNotBe null` | Check x is not null |
+| `x shouldBe defined` | Check x.isDefined == true (Option, Seq, String) |
+| `x shouldBe empty` | Check x.isEmpty == true (Option, Seq, String) |
+| `x shouldBeTheSameInstanceAs y` | Check x eq y (reference equality) |
+| `x shouldNotBeTheSameInstanceAs y` | Check x ne y (reference inequality) |
+| `x shouldMatch { case .. => }` | Check x matches the pattern |
+| `x shouldContain y` | Check x contains y |
+| `x shouldNotContain y` | Check x does not contain y |
+| `fail("reason")` | Fail the test |
+| `ignore("reason")` | Ignore the test |
+| `cancel("reason")` | Cancel the test (e.g., setup failure) |
+| `pending("reason")` | Mark test as pending |
+| `pendingUntil("reason")` | Pending until condition is fixed |
+| `skip("reason")` | Skip the test (e.g., platform-specific) |
+
 ## Writing Tests
 
 ### Basic Test Structure
@@ -398,26 +423,6 @@ Test results are displayed with status symbols:
 | `~` | Skipped | Test was skipped |
 | `?` | Pending | Test not implemented |
 | `!` | Cancelled | Setup failed |
-
-## Assertion Reference
-
-| Assertion | Description |
-|-----------|-------------|
-| `a shouldBe b` | Equality check |
-| `a shouldNotBe b` | Inequality check |
-| `a shouldBe null` | Null check |
-| `a shouldNotBe null` | Non-null check |
-| `a shouldBe defined` | Non-empty check |
-| `a shouldBe empty` | Empty check |
-| `a shouldContain b` | Contains check |
-| `a shouldNotContain b` | Not contains check |
-| `a shouldMatch { case ... => }` | Pattern match |
-| `a shouldBeTheSameInstanceAs b` | Reference equality |
-| `a shouldNotBeTheSameInstanceAs b` | Reference inequality |
-| `intercept[E] { ... }` | Exception check |
-| `assertEquals(a, b, delta)` | Float/Double with tolerance |
-| `assert(condition)` | Boolean assertion |
-| `assert(condition, message)` | Boolean with message |
 
 ## Best Practices
 
