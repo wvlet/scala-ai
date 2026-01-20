@@ -52,4 +52,17 @@ class TintOpsTest extends UniTest:
     "Error!".tint(errorStyle) shouldBe errorStyle("Error!")
   }
 
+  test("chained extensions create nested codes (use tint method instead)") {
+    // Chaining extension methods creates nested ANSI codes
+    // "hello".red.bold wraps the already-styled string with bold
+    val chained = "hello".red.bold
+    val proper  = Tint.red.bold("hello")
+
+    // They produce different output - chained has nested codes
+    (chained == proper) shouldBe false
+
+    // Use tint method for multiple styles
+    "hello".tint(Tint.red.bold) shouldBe proper
+  }
+
 end TintOpsTest

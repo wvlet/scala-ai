@@ -20,10 +20,18 @@ package wvlet.uni.cli
   * {{{
   * import wvlet.uni.cli.TintOps.*
   *
-  * "Error!".red.bold
+  * // Single style application
+  * "Error!".red
   * "Success".green
-  * "Warning".yellow.underline
+  * "Warning".yellow
+  *
+  * // For multiple styles, use Tint directly or the tint method:
+  * "Error!".tint(Tint.red.bold)
+  * Tint.red.bold("Error!")
   * }}}
+  *
+  * Note: Chaining extension methods (e.g., "text".red.bold) is not recommended as it creates nested
+  * ANSI escape codes. Use `Tint.red.bold("text")` or `"text".tint(Tint.red.bold)` instead.
   */
 object TintOps:
   extension (s: String)
