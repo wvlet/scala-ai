@@ -110,7 +110,7 @@ Classes implementing `AutoCloseable` are automatically closed on session shutdow
 
 ```scala
 class MyDB(name: String) extends AutoCloseable:
-  private val conn = newConnection(name)
+  private val conn = openConnection(name)  // Your connection logic
   override def close(): Unit = conn.close()
 
 // MyDB.close() called automatically when session ends
@@ -369,12 +369,14 @@ val design = Design.newDesign
 
 // Override for testing
 val testDesign = design
-  .bindInstance[Config](Config("localhost", randomPort()))
+  .bindInstance[Config](Config("localhost", 18080))
 ```
 
 ### Resource Management
 
 ```scala
+case class DbConfig(url: String)
+
 class DatabaseConnection(config: DbConfig) extends AutoCloseable:
   private var conn: Connection = _
 
@@ -424,6 +426,8 @@ val design = Design.newDesign
 Type aliases may not work correctly in provider bindings because they are resolved at compile time:
 
 ```scala
+case class Service(value: String)
+
 // This may cause issues
 type MyString = String
 
@@ -437,6 +441,7 @@ Design.newDesign
 ```scala
 import wvlet.uni.surface.tag.*
 
+case class Service(value: String)
 trait EnvTag
 
 Design.newDesign
