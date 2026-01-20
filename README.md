@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://wvlet.org/uni/uni-logo-128x128.png" alt="Uni Logo" width="120">
+</p>
+
 # Uni
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
