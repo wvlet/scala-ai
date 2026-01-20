@@ -97,7 +97,7 @@ debug(s"Expensive computation: ${computeDetails()}")
 Log messages automatically include source location at the end of the message:
 
 ```
-2024-01-15 10:30:45.123Z  INFO [MyService] Processing: data - (MyService.scala:14)
+2024-01-15 10:30:45.123+0900  info [MyService] Processing: data - (MyService.scala:14)
 ```
 
 The source code location `(file:line)` is captured at compile time using Scala macros.
