@@ -622,6 +622,97 @@ trait Rx[+A] extends RxOps[A]:
     unit
   )
 
+  // ==================== Backpressure Operators ====================
+
+  /**
+    * Buffer elements up to the given capacity. When the buffer is full, backpressure is applied to
+    * the upstream (upstream will be paused until buffer has space).
+    *
+    * This is useful when:
+    *   - The downstream processes elements slower than the upstream produces them
+    *   - You want to smooth out bursty traffic
+    *   - You need to decouple producer and consumer speeds
+    *
+    * @param capacity
+    *   the maximum number of elements to buffer
+    * @return
+    *   an Rx that buffers elements with backpressure
+    */
+  def buffer(capacity: Int): Rx[A] =
+    require(capacity > 0, s"Buffer capacity must be positive: ${capacity}")
+    Rx.BufferOp(this, capacity)
+
+  /**
+    * Drop elements when the downstream cannot keep up. This is a lossy backpressure strategy that
+    * prioritizes not blocking the upstream over delivering all elements.
+    *
+    * Use this when:
+    *   - Dropping some elements is acceptable
+    *   - You want to prevent memory buildup
+    *   - The upstream should never be slowed down
+    *
+    * @return
+    *   an Rx that drops elements when downstream is slow
+    */
+  def onBackpressureDrop: Rx[A] = Rx.BackpressureDropOp(this)
+
+  /**
+    * Drop elements when the downstream cannot keep up, invoking a callback for each dropped
+    * element.
+    *
+    * @param onDrop
+    *   callback invoked for each dropped element
+    * @return
+    *   an Rx that drops elements when downstream is slow
+    */
+  def onBackpressureDrop(onDrop: A => Unit): Rx[A] = Rx.BackpressureDropOp(this, Some(onDrop))
+
+  /**
+    * Buffer elements up to the given capacity, then drop the oldest elements when the buffer is
+    * full. This is a lossy backpressure strategy that keeps the most recent elements.
+    *
+    * Use this when:
+    *   - Recent elements are more important than older ones
+    *   - You want bounded memory usage
+    *   - Losing old data is acceptable
+    *
+    * @param capacity
+    *   the maximum number of elements to buffer
+    * @return
+    *   an Rx that buffers elements and drops oldest when full
+    */
+  def onBackpressureBuffer(capacity: Int): Rx[A] =
+    require(capacity > 0, s"Buffer capacity must be positive: ${capacity}")
+    Rx.BackpressureBufferOp(this, capacity, Rx.BackpressureOverflowStrategy.DropOldest)
+
+  /**
+    * Buffer elements up to the given capacity with a specified overflow strategy.
+    *
+    * @param capacity
+    *   the maximum number of elements to buffer
+    * @param strategy
+    *   the strategy to use when the buffer is full
+    * @return
+    *   an Rx with the specified backpressure strategy
+    */
+  def onBackpressureBuffer(capacity: Int, strategy: Rx.BackpressureOverflowStrategy): Rx[A] =
+    require(capacity > 0, s"Buffer capacity must be positive: ${capacity}")
+    Rx.BackpressureBufferOp(this, capacity, strategy)
+
+  /**
+    * Keep only the latest element when the downstream cannot keep up. When a new element arrives
+    * and the downstream is busy, the previous undelivered element is replaced.
+    *
+    * Use this when:
+    *   - Only the most recent value matters (e.g., UI updates, sensor readings)
+    *   - You want minimal memory usage
+    *   - Historical values are not important
+    *
+    * @return
+    *   an Rx that keeps only the latest element
+    */
+  def onBackpressureLatest: Rx[A] = Rx.BackpressureLatestOp(this)
+
 end Rx
 
 /**
@@ -1147,5 +1238,51 @@ object Rx extends LogSupport:
     */
   case class ParFlatMapOp[A, B](input: Rx[A], parallelism: Int, f: A => Rx[B]) extends Rx[B]:
     override def parents: Seq[RxOps[?]] = Seq(input)
+
+  // ==================== Backpressure Operators ====================
+
+  /**
+    * Strategy for handling buffer overflow in backpressure scenarios.
+    */
+  enum BackpressureOverflowStrategy:
+    /** Drop the oldest element in the buffer when full */
+    case DropOldest
+
+    /** Drop the newest element (the one being added) when full */
+    case DropNewest
+
+    /** Signal an error when the buffer is full */
+    case Error
+
+  /**
+    * Exception thrown when a backpressure buffer overflows with Error strategy.
+    */
+  case class BackpressureOverflowException(capacity: Int)
+      extends Exception(s"Backpressure buffer overflow: capacity ${capacity} exceeded")
+
+  /**
+    * Buffer elements with backpressure support.
+    */
+  case class BufferOp[A](input: Rx[A], capacity: Int) extends UnaryRx[A, A]
+
+  /**
+    * Drop elements when downstream cannot keep up.
+    */
+  case class BackpressureDropOp[A](input: Rx[A], onDrop: Option[A => Unit] = None)
+      extends UnaryRx[A, A]
+
+  /**
+    * Buffer elements with a specified overflow strategy.
+    */
+  case class BackpressureBufferOp[A](
+      input: Rx[A],
+      capacity: Int,
+      strategy: BackpressureOverflowStrategy
+  ) extends UnaryRx[A, A]
+
+  /**
+    * Keep only the latest element when downstream cannot keep up.
+    */
+  case class BackpressureLatestOp[A](input: Rx[A]) extends UnaryRx[A, A]
 
 end Rx

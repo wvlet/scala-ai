@@ -2,6 +2,8 @@ package wvlet.uni.rx
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import wvlet.uni.log.LogSupport
 
 import scala.annotation.tailrec
@@ -11,25 +13,92 @@ import scala.util.Success
 import scala.util.Try
 
 /**
-  * States for propagating the result of the downstream operators.
+  * States for propagating the result of downstream operators with demand-based backpressure support.
   *
-  * TODO: Add a state for telling how many elements can be received in downstream operators for
-  * implementing back-pressure
+  * The demand value indicates how many more elements the downstream operator can receive:
+  *   - `demand > 0`: Downstream can receive `demand` more elements
+  *   - `demand == Long.MaxValue`: Unbounded demand (no backpressure)
+  *   - `demand == 0` with `toContinue == true`: Downstream is paused, waiting for more demand
+  *   - `toContinue == false`: Stream should stop (error or completion)
+  *
+  * This follows the Reactive Streams `request(n)` pattern for backpressure propagation.
   */
 sealed trait RxResult:
+  /** Whether the stream should continue processing */
   def toContinue: Boolean
+
+  /** The number of elements the downstream can still receive */
+  def demand: Long
+
+  /** Whether this result has unbounded demand */
+  def isUnbounded: Boolean = demand == Long.MaxValue
+
+  /** Whether the downstream is requesting a pause (demand exhausted but still active) */
+  def isPaused: Boolean = toContinue && demand == 0
+
+  /** Combine two results, taking the minimum demand */
   def &&(other: RxResult): RxResult =
-    if this.toContinue && other.toContinue then
+    if !this.toContinue || !other.toContinue then
+      RxResult.Stop
+    else if this.isUnbounded && other.isUnbounded then
+      RxResult.Continue
+    else if this.isUnbounded then
+      RxResult.request(other.demand)
+    else if other.isUnbounded then
+      RxResult.request(this.demand)
+    else
+      RxResult.request(Math.min(this.demand, other.demand))
+
+  /** Create a new result with decremented demand (after emitting one element) */
+  def decrementDemand: RxResult =
+    if !toContinue then
+      RxResult.Stop
+    else if isUnbounded then
+      RxResult.Continue
+    else if demand > 0 then
+      RxResult.request(demand - 1)
+    else
+      RxResult.Paused
+
+  /** Create a new result with added demand */
+  def addDemand(n: Long): RxResult =
+    if !toContinue then
+      RxResult.Stop
+    else if isUnbounded || n == Long.MaxValue then
       RxResult.Continue
     else
-      RxResult.Stop
+      val newDemand = Math.min(Long.MaxValue - 1, demand + n)
+      RxResult.request(newDemand)
 
 object RxResult:
+  /** Continue with unbounded demand (default behavior, no backpressure) */
   object Continue extends RxResult:
     override def toContinue: Boolean = true
+    override def demand: Long        = Long.MaxValue
 
+  /** Stop processing the stream */
   object Stop extends RxResult:
     override def toContinue: Boolean = false
+    override def demand: Long        = 0
+
+  /** Paused state - stream is active but waiting for more demand */
+  object Paused extends RxResult:
+    override def toContinue: Boolean = true
+    override def demand: Long        = 0
+
+  /** Request a specific number of elements */
+  def request(n: Long): RxResult =
+    require(n >= 0, s"Demand must be non-negative: ${n}")
+    if n == Long.MaxValue then
+      Continue
+    else if n == 0 then
+      Paused
+    else
+      Demand(n)
+
+  /** A result with a specific bounded demand */
+  private case class Demand(override val demand: Long) extends RxResult:
+    override def toContinue: Boolean = true
 
 object RxRunner extends LogSupport:
 
@@ -582,6 +651,159 @@ class RxRunner(
             source.add(OnError(new InterruptedException("cancelled")))
           }
         )
+      // ==================== Backpressure Operators ====================
+      case BufferOp(in, capacity) =>
+        import scala.collection.mutable.ArrayDeque
+        val buffer              = new ArrayDeque[A](capacity)
+        var upstreamPaused      = false
+        var inputCancelable     = Cancelable.empty
+        val pendingDemand       = new AtomicLong(Long.MaxValue)
+        val lock                = new Object
+        var downstreamCompleted = false
+
+        def drainBuffer(): RxResult =
+          lock.synchronized {
+            var result: RxResult = RxResult.Continue
+            while buffer.nonEmpty && result.toContinue && (pendingDemand.get() > 0 || pendingDemand
+                .get() == Long.MaxValue)
+            do
+              val elem = buffer.removeHead()
+              result = effect(OnNext(elem))
+              if pendingDemand.get() != Long.MaxValue then
+                pendingDemand.decrementAndGet()
+            result
+          }
+
+        inputCancelable =
+          run(in) { ev =>
+            ev match
+              case OnNext(v) =>
+                lock.synchronized {
+                  if buffer.size < capacity then
+                    buffer.addOne(v.asInstanceOf[A])
+                    drainBuffer()
+                  else
+                    // Buffer full - apply backpressure
+                    upstreamPaused = true
+                    RxResult.Paused
+                }
+              case other =>
+                lock.synchronized {
+                  downstreamCompleted = true
+                }
+                effect(other)
+          }
+        Cancelable { () =>
+          inputCancelable.cancel
+        }
+
+      case BackpressureDropOp(in, onDrop) =>
+        val downstreamBusy = new AtomicBoolean(false)
+
+        run(in) { ev =>
+          ev match
+            case OnNext(v) =>
+              if !downstreamBusy.get() then
+                downstreamBusy.set(true)
+                try
+                  effect(OnNext(v))
+                finally
+                  downstreamBusy.set(false)
+              else
+                // Downstream is busy, drop the element
+                onDrop.foreach(f => Try(f(v.asInstanceOf[A])))
+                RxResult.Continue
+            case other =>
+              effect(other)
+        }
+
+      case BackpressureBufferOp(in, capacity, strategy) =>
+        import scala.collection.mutable.ArrayDeque
+        val buffer = new ArrayDeque[A](capacity)
+        val lock   = new Object
+
+        run(in) { ev =>
+          ev match
+            case OnNext(v) =>
+              lock.synchronized {
+                if buffer.size < capacity then
+                  buffer.addOne(v.asInstanceOf[A])
+                else
+                  // Buffer is full, apply strategy
+                  strategy match
+                    case Rx.BackpressureOverflowStrategy.DropOldest =>
+                      buffer.removeHead()
+                      buffer.addOne(v.asInstanceOf[A])
+                    case Rx.BackpressureOverflowStrategy.DropNewest =>
+                    // Don't add the new element
+                    case Rx.BackpressureOverflowStrategy.Error =>
+                      return effect(OnError(Rx.BackpressureOverflowException(capacity)))
+              }
+              // Drain one element to downstream
+              val elem = lock.synchronized(buffer.removeHeadOption())
+              elem match
+                case Some(e) =>
+                  effect(OnNext(e))
+                case None =>
+                  RxResult.Continue
+            case other =>
+              // Drain remaining buffer
+              var result: RxResult = RxResult.Continue
+              while result.toContinue do
+                val elem = lock.synchronized(buffer.removeHeadOption())
+                elem match
+                  case Some(e) =>
+                    result = effect(OnNext(e))
+                  case None =>
+                    result = effect(other)
+              result
+        }
+
+      case BackpressureLatestOp(in) =>
+        val latest = new AtomicReference[Option[A]](None)
+        val lock   = new Object
+
+        run(in) { ev =>
+          ev match
+            case OnNext(v) =>
+              val shouldEmit = lock.synchronized {
+                val wasEmpty = latest.get().isEmpty
+                latest.set(Some(v.asInstanceOf[A]))
+                wasEmpty // Only emit if there was no pending value
+              }
+              if shouldEmit then
+                var result: RxResult = RxResult.Continue
+                while result.toContinue do
+                  val toEmit = lock.synchronized {
+                    val value = latest.get()
+                    latest.set(None)
+                    value
+                  }
+                  toEmit match
+                    case Some(e) =>
+                      result = effect(OnNext(e))
+                    case None =>
+                      result = RxResult.Continue
+                result
+              else
+                RxResult.Continue
+            case other =>
+              // Emit any pending latest value
+              val pending = lock.synchronized {
+                val value = latest.get()
+                latest.set(None)
+                value
+              }
+              pending match
+                case Some(e) =>
+                  val r = effect(OnNext(e))
+                  if r.toContinue then
+                    effect(other)
+                  else
+                    r
+                case None =>
+                  effect(other)
+        }
 
   /**
     * A base implementation for merging streams and generating tuples
