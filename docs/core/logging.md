@@ -69,29 +69,29 @@ catch
     error(s"Unexpected error: ${e.getMessage}", e)
 ```
 
-## Conditional Logging
+## Zero-Overhead Logging with Scala Macros
 
-Avoid expensive computations when log level is disabled:
+The logging methods use Scala 3 `inline` macros, which means:
 
-```scala
-if logger.isDebugEnabled then
-  debug(s"Expensive computation: ${computeDetails()}")
-```
-
-Or use by-name parameters (evaluated lazily):
+1. **Automatic lazy evaluation**: The message is only evaluated if the log level is enabled
+2. **Zero overhead**: If the log level is disabled, there is no runtime cost for creating log messages
 
 ```scala
+// expensiveComputation() is only called if DEBUG is enabled
 debug(s"Result: ${expensiveComputation()}")
-// Only computed if DEBUG is enabled
 ```
+
+Unlike traditional logging frameworks, you don't need to wrap expensive computations with level checks.
 
 ## Source Location
 
-Log messages automatically include source location:
+Log messages automatically include source location at the end of the message:
 
 ```
-2024-01-15 10:30:45 INFO  [MyService.scala:25] Processing: data
+2024-01-15 10:30:45.123+0900  info [MyService] Processing: data - (MyService.scala:14)
 ```
+
+The source code location `(file:line)` is captured at compile time using Scala macros.
 
 ## Best Practices
 
