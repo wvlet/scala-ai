@@ -37,18 +37,19 @@ bar.finish()
 ### Command Launcher
 
 ```scala
-import wvlet.uni.cli.launcher.Launcher
+import wvlet.uni.cli.launcher.*
 
 case class MyApp(
+  @option(prefix = "-n,--name", description = "User name")
   name: String = "world",
+  @option(prefix = "-v,--verbose", description = "Enable verbose output")
   verbose: Boolean = false
-):
-  def run(): Unit =
-    if verbose then println(s"Running with name: ${name}")
-    println(s"Hello, ${name}!")
+)
 
-// Parse args and run
-Launcher.execute[MyApp](args)
+// Parse command-line arguments
+val app = Launcher.execute[MyApp](args)
+if app.verbose then println(s"Running with name: ${app.name}")
+println(s"Hello, ${app.name}!")
 ```
 
 ## Features
