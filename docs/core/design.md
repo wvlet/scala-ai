@@ -20,7 +20,7 @@ import wvlet.uni.design.Design
 
 case class AppConfig(appName: String)
 
-class MyApp(val config: AppConfig):
+class MyApp(private val config: AppConfig):
   def greet(): String = s"Hello from ${config.appName}!"
 ```
 
@@ -40,97 +40,37 @@ design.build[MyApp] { app =>
 // Session automatically starts and shuts down
 ```
 
-## Basic Usage
+## Design
 
-### Creating a Design
+Design is an immutable object for holding object bindings and their lifecycle hooks:
 
 ```scala
 import wvlet.uni.design.Design
 
-// Define interfaces
-trait DatabaseService:
-  def findUser(id: String): Option[User]
-
-trait UserService:
-  def getUser(id: String): User
-
-// Define implementations
-class PostgresDatabase extends DatabaseService:
-  def findUser(id: String): Option[User] = ???
-
-class UserServiceImpl(db: DatabaseService) extends UserService:
-  def getUser(id: String): User =
-    db.findUser(id).getOrElse(throw RuntimeException("Not found"))
-
-// Create a design
-val design = Design.newDesign
-  .bindImpl[DatabaseService, PostgresDatabase]
-  .bindImpl[UserService, UserServiceImpl]
+val design: Design =
+  Design.newDesign
+    .bindImpl[A, AImpl]                           // Bind A to AImpl (singleton)
+    .bindInstance[B](B(1))                        // Bind to a specific instance
+    .bindSingleton[S]                             // Bind S as a singleton
+    .bindEagerSingleton[ES]                       // Eagerly initialized singleton
+    .bindProvider { (d1: D1) => P(d1) }            // Provider with 1 dependency
+    .bindProvider { (d1: D1, d2: D2) =>           // Provider with 2 dependencies
+      P(d1, d2)
+    }
+    .bindProvider { (d1: D1, d2: D2, d3: D3) =>   // Up to 5 dependencies supported
+      P(d1, d2, d3)
+    }
 ```
 
-### Building Instances
+### Binding Summary
 
-```scala
-// Build and use a service
-design.build[UserService] { userService =>
-  val user = userService.getUser("123")
-  println(s"Found: ${user}")
-}
-```
-
-## Binding Types
-
-### Implementation Binding
-
-Bind an interface to its implementation class:
-
-```scala
-design.bindImpl[Service, ServiceImpl]
-```
-
-This creates a singleton instance of `ServiceImpl` whenever `Service` is requested.
-
-### Instance Binding
-
-Bind a pre-created instance directly:
-
-```scala
-val config = Config("localhost", 8080)
-design.bindInstance[Config](config)
-```
-
-### Singleton Binding
-
-Ensure only one instance is created and shared:
-
-```scala
-design.bindSingleton[DatabasePool]
-```
-
-### Provider Binding
-
-Use a factory function to create instances with dependencies:
-
-```scala
-// Single dependency
-design.bindProvider[Config, HttpClient] { config =>
-  HttpClient(config.host, config.port)
-}
-
-// Multiple dependencies
-design.bindProvider[Config, Logger, HttpClient] { (config, logger) =>
-  logger.info(s"Creating client for ${config.host}")
-  HttpClient(config.host, config.port)
-}
-```
-
-### Eager Singleton Binding
-
-Initialize singletons immediately when the session starts, rather than lazily:
-
-```scala
-design.bindEagerSingleton[CacheService]
-```
+| Method | Description |
+|--------|-------------|
+| `bindImpl[A, AImpl]` | Bind interface A to implementation AImpl (singleton) |
+| `bindInstance[A](obj)` | Bind to a specific pre-created instance |
+| `bindSingleton[A]` | Bind A as a lazily-initialized singleton |
+| `bindEagerSingleton[A]` | Bind A as an eagerly-initialized singleton |
+| `bindProvider { (d1: D1) => A(d1) }` | Bind using a factory function with dependencies |
 
 ## Lifecycle Management
 
@@ -314,7 +254,7 @@ design
 Use tagged types to bind multiple instances of the same type:
 
 ```scala
-import wvlet.uni.design.tag.*
+import wvlet.uni.surface.tag.*
 
 // Define tags as traits
 trait Production
@@ -345,7 +285,7 @@ design.build[MigrationService] { service =>
 Useful for configuration values:
 
 ```scala
-import wvlet.uni.design.tag.*
+import wvlet.uni.surface.tag.*
 
 trait Port
 trait Host
@@ -489,17 +429,17 @@ type MyString = String
 
 Design.newDesign
   .bindInstance[MyString]("hello")
-  .bindProvider[MyString, Service] { s => Service(s) }  // May fail
+  .bindProvider { (s: MyString) => Service(s) }  // May fail
 ```
 
 **Solution**: Use tagged types instead:
 
 ```scala
-import wvlet.uni.design.tag.*
+import wvlet.uni.surface.tag.*
 
 trait EnvTag
 
 Design.newDesign
   .bindInstance[String @@ EnvTag]("hello")
-  .bindProvider[String @@ EnvTag, Service] { s => Service(s) }  // Works correctly
+  .bindProvider { (s: String @@ EnvTag) => Service(s) }  // Works correctly
 ```
