@@ -158,15 +158,15 @@ Use `shouldMatch` for type-safe pattern matching assertions:
 
 ```scala
 test("pattern matching") {
-  val result: Any = User("Alice", 30)
+  val result: Any = ("Alice", 30)
 
-  result shouldMatch { case User(name, age) =>
+  result shouldMatch { case (name: String, age: Int) =>
     name shouldBe "Alice"
     age shouldBe 30
   }
 
   // Type checking
-  result shouldMatch { case _: User => }
+  result shouldMatch { case (_: String, _: Int) => }
 }
 ```
 
@@ -230,8 +230,8 @@ test("platform-specific test") {
   if isScalaJS then
     skip("Not supported on Scala.js")
 
-  // JVM-only code
-  performJvmOperation()
+  // JVM-only code, e.g., accessing a system property
+  System.getProperty("java.version") shouldNotBe null
 }
 ```
 
@@ -372,7 +372,7 @@ sbt test
 sbt coreJVM/test
 
 # Run a specific test class
-sbt "agent/testOnly *LLMAgentTest"
+sbt "my-project/testOnly *MyTest"
 
 # Run with debug logging
 sbt "coreJVM/testOnly * -- -l debug"
