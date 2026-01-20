@@ -157,16 +157,18 @@ test("string assertions") {
 Use `shouldMatch` for type-safe pattern matching assertions:
 
 ```scala
-test("pattern matching") {
-  val result: Any = ("Alice", 30)
+case class User(name: String, age: Int)
 
-  result shouldMatch { case (name: String, age: Int) =>
+test("pattern matching") {
+  val result: Any = User("Alice", 30)
+
+  result shouldMatch { case User(name, age) =>
     name shouldBe "Alice"
     age shouldBe 30
   }
 
   // Type checking
-  result shouldMatch { case (_: String, _: Int) => }
+  result shouldMatch { case _: User => }
 }
 ```
 
