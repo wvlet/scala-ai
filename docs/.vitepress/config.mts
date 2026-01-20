@@ -15,11 +15,11 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', href: '/favicon.ico' }]
+    ['link', { rel: 'icon', href: '/uni/favicon.ico' }]
   ],
 
   themeConfig: {
-    logo: '/logo.png',
+    logo: '/uni-logo-1024x1024.png',
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Modules', link: '/core/' },
