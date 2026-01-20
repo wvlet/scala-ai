@@ -60,7 +60,7 @@ case class Spinner(
   def withText(text: String): Spinner           = this.copy(text = text)
   def withSpinner(style: SpinnerStyle): Spinner = this.copy(style = style)
   def withStyle(style: SpinnerStyle): Spinner   = this.copy(style = style)
-  def withColor(color: Tint): Spinner          = this.copy(color = color)
+  def withColor(color: Tint): Spinner           = this.copy(color = color)
   def withStream(stream: PrintStream): Spinner  = this.copy(stream = stream)
   def withEnabled(enabled: Boolean): Spinner    = this.copy(enabled = enabled)
   def withHideCursor(hide: Boolean): Spinner    = this.copy(hideCursor = hide)

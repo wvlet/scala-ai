@@ -72,7 +72,7 @@ case class ProgressBar(
   def withSuffix(suffix: String): ProgressBar      = this.copy(suffix = suffix)
   def withShowPercent(show: Boolean): ProgressBar  = this.copy(showPercent = show)
   def withShowCount(show: Boolean): ProgressBar    = this.copy(showCount = show)
-  def withColor(color: Tint): ProgressBar         = this.copy(color = color)
+  def withColor(color: Tint): ProgressBar          = this.copy(color = color)
   def withStream(stream: PrintStream): ProgressBar = this.copy(stream = stream)
   def withEnabled(enabled: Boolean): ProgressBar   = this.copy(enabled = enabled)
   def withHideCursor(hide: Boolean): ProgressBar   = this.copy(hideCursor = hide)
