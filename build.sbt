@@ -201,6 +201,8 @@ lazy val bedrock = project
   )
   .dependsOn(agent, test.jvm % Test)
 
+val NETTY_VERSION = "4.1.118.Final"
+
 lazy val netty = project
   .in(file("uni-netty"))
   .settings(
@@ -209,7 +211,10 @@ lazy val netty = project
     description := "Netty-based HTTP server for uni",
     libraryDependencies ++=
       Seq(
-        "io.netty" % "netty-all" % "4.1.118.Final"
+        "io.netty" % "netty-handler"                 % NETTY_VERSION,
+        "io.netty" % "netty-codec-http"              % NETTY_VERSION,
+        "io.netty" % "netty-transport-native-epoll"  % NETTY_VERSION classifier "linux-x86_64",
+        "io.netty" % "netty-transport-native-epoll"  % NETTY_VERSION classifier "linux-aarch_64"
       )
   )
   .dependsOn(uni.jvm, test.jvm % Test)

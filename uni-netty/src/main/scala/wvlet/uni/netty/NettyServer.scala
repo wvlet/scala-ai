@@ -13,7 +13,7 @@
  */
 package wvlet.uni.netty
 
-import wvlet.uni.http.{HttpFilter, HttpHandler, Request, Response}
+import wvlet.uni.http.{HttpHandler, Request, Response}
 import wvlet.uni.rx.Rx
 
 import java.net.InetSocketAddress
@@ -86,10 +86,6 @@ case class NettyServerConfig(
   )
 
   def withFilter(filter: RxHttpFilter): NettyServerConfig = copy(filters = filters :+ filter)
-
-  def withFilter(filter: HttpFilter): NettyServerConfig = copy(filters =
-    filters :+ RxHttpFilter.fromSync(filter)
-  )
 
   def withFilters(filters: Seq[RxHttpFilter]): NettyServerConfig = copy(filters =
     this.filters ++ filters

@@ -107,10 +107,20 @@ class NettyHttpServer(config: NettyServerConfig) extends LogSupport:
         if channel != null then
           channel.close().sync()
       finally
-        if workerGroup != null then
-          workerGroup.shutdownGracefully()
-        if bossGroup != null then
-          bossGroup.shutdownGracefully()
+        val workerFuture =
+          if workerGroup != null then
+            workerGroup.shutdownGracefully()
+          else
+            null
+        val bossFuture =
+          if bossGroup != null then
+            bossGroup.shutdownGracefully()
+          else
+            null
+        if workerFuture != null then
+          workerFuture.sync()
+        if bossFuture != null then
+          bossFuture.sync()
         running = false
   }
 

@@ -51,13 +51,6 @@ object RxHttpFilter:
   def apply(f: (Request, RxHttpHandler) => Rx[Response]): RxHttpFilter =
     (request: Request, next: RxHttpHandler) => f(request, next)
 
-  def fromSync(filter: HttpFilter): RxHttpFilter =
-    (request: Request, next: RxHttpHandler) =>
-      val syncHandler = HttpHandler { req =>
-        next.handle(req).await
-      }
-      Rx.single(filter.apply(request, syncHandler))
-
   def chain(filters: Seq[RxHttpFilter]): RxHttpFilter =
     filters.foldRight(identity) { (filter, acc) =>
       filter.andThen(acc)
