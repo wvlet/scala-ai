@@ -15,7 +15,7 @@ package wvlet.uni.http
 
 import wvlet.uni.rx.{Rx, RxDeferred, RxScheduler}
 
-import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.io.InputStream
 import java.net.URI
 import java.net.http.HttpClient.Redirect
 import java.net.http.HttpRequest.BodyPublishers
@@ -24,28 +24,15 @@ import java.net.http.HttpClient
 import java.util.function.Consumer
 import java.util.zip.{GZIPInputStream, InflaterInputStream}
 import scala.jdk.CollectionConverters.*
-import scala.util.Try
 
 // Type alias to avoid confusion with java.net.http.HttpResponse
 private[http] type JHttpResponse = java.net.http.HttpResponse[InputStream]
 
 /**
-  * Synchronous HTTP channel implementation using Java 11+ HttpClient.
+  * Shared helper methods for Java HTTP channel implementations.
   */
-class JavaHttpChannel extends HttpChannel:
-  private val javaClient: HttpClient = HttpClient
-    .newBuilder()
-    .followRedirects(Redirect.NEVER) // Redirects handled by DefaultHttpSyncClient
-    .build()
-
-  override def send(request: Request, config: HttpClientConfig): Response =
-    val httpReq  = buildRequest(request, config)
-    val httpResp = javaClient.send(httpReq, BodyHandlers.ofInputStream())
-    readResponse(httpResp)
-
-  override def close(): Unit = ()
-
-  private def buildRequest(request: Request, config: HttpClientConfig): java.net.http.HttpRequest =
+private[http] object JavaHttpChannelHelper:
+  def buildRequest(request: Request, config: HttpClientConfig): java.net.http.HttpRequest =
     val builder = java
       .net
       .http
@@ -53,7 +40,6 @@ class JavaHttpChannel extends HttpChannel:
       .newBuilder(URI.create(request.fullUri))
       .timeout(java.time.Duration.ofMillis(config.readTimeoutMillis))
 
-    // Set request headers
     request
       .headers
       .entries
@@ -61,7 +47,6 @@ class JavaHttpChannel extends HttpChannel:
         builder.setHeader(k, v)
       }
 
-    // Set method and body
     builder.method(
       request.method.name,
       if request.content.isEmpty then
@@ -72,8 +57,7 @@ class JavaHttpChannel extends HttpChannel:
 
     builder.build()
 
-  private def readResponse(httpResponse: JHttpResponse): Response =
-    // Read headers
+  def readResponse(httpResponse: JHttpResponse): Response =
     val headerBuilder = HttpMultiMap.newBuilder
     httpResponse
       .headers()
@@ -89,8 +73,7 @@ class JavaHttpChannel extends HttpChannel:
             }
       }
     val headers = headerBuilder.result()
-
-    val status = HttpStatus.ofCode(httpResponse.statusCode())
+    val status  = HttpStatus.ofCode(httpResponse.statusCode())
 
     // Handle content decompression
     val inputStream =
@@ -115,12 +98,34 @@ class JavaHttpChannel extends HttpChannel:
 
   end readResponse
 
+end JavaHttpChannelHelper
+
+/**
+  * Synchronous HTTP channel implementation using Java 11+ HttpClient.
+  */
+class JavaHttpChannel extends HttpChannel:
+  import JavaHttpChannelHelper.*
+
+  private val javaClient: HttpClient = HttpClient
+    .newBuilder()
+    .followRedirects(Redirect.NEVER) // Redirects handled by DefaultHttpSyncClient
+    .build()
+
+  override def send(request: Request, config: HttpClientConfig): Response =
+    val httpReq  = buildRequest(request, config)
+    val httpResp = javaClient.send(httpReq, BodyHandlers.ofInputStream())
+    readResponse(httpResp)
+
+  override def close(): Unit = ()
+
 end JavaHttpChannel
 
 /**
   * Asynchronous HTTP channel implementation using Java 11+ HttpClient.
   */
 class JavaHttpAsyncChannel extends HttpAsyncChannel:
+  import JavaHttpChannelHelper.*
+
   private val javaClient: HttpClient = HttpClient
     .newBuilder()
     .followRedirects(Redirect.NEVER)
@@ -181,69 +186,5 @@ class JavaHttpAsyncChannel extends HttpAsyncChannel:
     source.filter(_.isDefined).map(_.get)
 
   override def close(): Unit = ()
-
-  private def buildRequest(request: Request, config: HttpClientConfig): java.net.http.HttpRequest =
-    val builder = java
-      .net
-      .http
-      .HttpRequest
-      .newBuilder(URI.create(request.fullUri))
-      .timeout(java.time.Duration.ofMillis(config.readTimeoutMillis))
-
-    request
-      .headers
-      .entries
-      .foreach { case (k, v) =>
-        builder.setHeader(k, v)
-      }
-
-    builder.method(
-      request.method.name,
-      if request.content.isEmpty then
-        BodyPublishers.noBody()
-      else
-        BodyPublishers.ofByteArray(request.content.toContentBytes)
-    )
-
-    builder.build()
-
-  private def readResponse(httpResponse: JHttpResponse): Response =
-    val headerBuilder = HttpMultiMap.newBuilder
-    httpResponse
-      .headers()
-      .map()
-      .asScala
-      .foreach { case (key, values) =>
-        if !key.startsWith(":") then
-          values
-            .asScala
-            .foreach { v =>
-              headerBuilder.add(key, v)
-            }
-      }
-    val headers = headerBuilder.result()
-    val status  = HttpStatus.ofCode(httpResponse.statusCode())
-
-    val inputStream =
-      headers.get(HttpHeader.ContentEncoding).map(_.toLowerCase) match
-        case Some("gzip") =>
-          GZIPInputStream(httpResponse.body())
-        case Some("deflate") =>
-          InflaterInputStream(httpResponse.body())
-        case _ =>
-          httpResponse.body()
-
-    try
-      val body    = inputStream.readAllBytes()
-      val content =
-        if body.isEmpty then
-          HttpContent.Empty
-        else
-          HttpContent.bytes(body)
-      Response(status, headers, content)
-    finally
-      inputStream.close()
-
-  end readResponse
 
 end JavaHttpAsyncChannel

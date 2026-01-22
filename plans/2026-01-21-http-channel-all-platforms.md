@@ -10,9 +10,9 @@ Implement platform-specific HTTP channels for all three platforms, adapting batt
 ## Reference Implementation
 
 All implementations are adapted from airframe-http:
-- JVM: `/Users/leo/work/airframe/airframe-http/.jvm/src/main/scala/wvlet/airframe/http/client/JavaHttpClientChannel.scala`
-- JS: `/Users/leo/work/airframe/airframe-http/.js/src/main/scala/wvlet/airframe/http/client/JSFetchChannel.scala`
-- Native: `/Users/leo/work/airframe/airframe-http/.native/src/main/scala/wvlet/airframe/http/client/CurlChannel.scala`
+- JVM: `JavaHttpClientChannel.scala` (Java 11+ HttpClient)
+- JS: `JSFetchChannel.scala` (Fetch API)
+- Native: `CurlChannel.scala` (libcurl bindings)
 
 ## New Files
 

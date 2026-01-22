@@ -31,30 +31,7 @@ class FetchChannel extends HttpAsyncChannel:
   private given ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   override def send(request: HttpRequest, config: HttpClientConfig): Rx[HttpResponse] =
-    val req =
-      new RequestInit:
-        method = request.method.name.asInstanceOf[org.scalajs.dom.HttpMethod]
-
-        headers =
-          new Headers(
-            request
-              .headers
-              .entries
-              .map { case (k, v) =>
-                js.Array(k, v)
-              }
-              .toJSArray
-          )
-
-        // Redirects handled by DefaultHttpAsyncClient
-        redirect = RequestRedirect.manual
-
-        // Set body if present
-        body =
-          if request.content.isEmpty then
-            js.undefined
-          else
-            request.content.toContentBytes.toTypedArray
+    val req = buildRequestInit(request)
 
     val future = org
       .scalajs
@@ -93,26 +70,7 @@ class FetchChannel extends HttpAsyncChannel:
 
   override def sendStreaming(request: HttpRequest, config: HttpClientConfig): Rx[Array[Byte]] =
     val source = Rx.variable[Option[Array[Byte]]](None)
-
-    val req =
-      new RequestInit:
-        method = request.method.name.asInstanceOf[org.scalajs.dom.HttpMethod]
-        headers =
-          new Headers(
-            request
-              .headers
-              .entries
-              .map { case (k, v) =>
-                js.Array(k, v)
-              }
-              .toJSArray
-          )
-        redirect = RequestRedirect.manual
-        body =
-          if request.content.isEmpty then
-            js.undefined
-          else
-            request.content.toContentBytes.toTypedArray
+    val req    = buildRequestInit(request)
 
     org
       .scalajs
@@ -152,5 +110,26 @@ class FetchChannel extends HttpAsyncChannel:
   end sendStreaming
 
   override def close(): Unit = ()
+
+  private def buildRequestInit(request: HttpRequest): RequestInit =
+    new RequestInit:
+      method = request.method.name.asInstanceOf[org.scalajs.dom.HttpMethod]
+      headers =
+        new Headers(
+          request
+            .headers
+            .entries
+            .map { case (k, v) =>
+              js.Array(k, v)
+            }
+            .toJSArray
+        )
+      // Redirects handled by DefaultHttpAsyncClient
+      redirect = RequestRedirect.manual
+      body =
+        if request.content.isEmpty then
+          js.undefined
+        else
+          request.content.toContentBytes.toTypedArray
 
 end FetchChannel
