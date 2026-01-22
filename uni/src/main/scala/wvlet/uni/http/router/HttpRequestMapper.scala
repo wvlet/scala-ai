@@ -14,7 +14,7 @@
 package wvlet.uni.http.router
 
 import wvlet.uni.http.Request
-import wvlet.uni.surface.{MethodParameter, MethodSurface, Primitive}
+import wvlet.uni.surface.{MethodParameter, MethodSurface, Primitive, Surface}
 
 /**
   * Maps HTTP request data to method parameters.
@@ -22,9 +22,8 @@ import wvlet.uni.surface.{MethodParameter, MethodSurface, Primitive}
   * The mapping order is:
   *   1. Path parameters (from URL path, e.g., `:id` -> "123")
   *   2. Query parameters (from URL query string)
-  *   3. Request body (for complex types)
-  *   4. Default values (if parameter has a default)
-  *   5. The Request object itself (if parameter type is Request)
+  *   3. Default values (if parameter has a default)
+  *   4. The Request object itself (if parameter type is Request)
   */
 class HttpRequestMapper:
 
@@ -70,11 +69,11 @@ class HttpRequestMapper:
       request
     // Try path parameters first
     else if pathParams.contains(paramName) then
-      convertValue(pathParams(paramName), param)
+      convertValue(pathParams(paramName), param.surface)
     // Try query parameters
     else if request.getQueryParam(paramName).isDefined then
       val queryValue = request.getQueryParam(paramName).get
-      convertValue(queryValue, param)
+      convertValue(queryValue, param.surface)
     // Try method arg default value (requires controller instance)
     else
       controllerOpt.flatMap(ctrl => param.getMethodArgDefaultValue(ctrl)) match
@@ -93,10 +92,9 @@ class HttpRequestMapper:
   end bindParameter
 
   /**
-    * Convert a string value to the expected parameter type.
+    * Convert a string value to the expected type based on Surface.
     */
-  private def convertValue(value: String, param: MethodParameter): Any =
-    val surface = param.surface
+  private def convertValue(value: String, surface: Surface): Any =
     surface match
       case Primitive.String =>
         value
@@ -121,8 +119,7 @@ class HttpRequestMapper:
         else
           surface.typeArgs.headOption match
             case Some(innerSurface) =>
-              val innerValue = convertValueBySurface(value, innerSurface)
-              Some(innerValue)
+              Some(convertValue(value, innerSurface))
             case None =>
               Some(value)
       case _ =>
@@ -131,30 +128,6 @@ class HttpRequestMapper:
     end match
 
   end convertValue
-
-  /**
-    * Convert a string value based on a Surface type.
-    */
-  private def convertValueBySurface(value: String, surface: wvlet.uni.surface.Surface): Any =
-    surface match
-      case Primitive.String =>
-        value
-      case Primitive.Int =>
-        value.toInt
-      case Primitive.Long =>
-        value.toLong
-      case Primitive.Double =>
-        value.toDouble
-      case Primitive.Float =>
-        value.toFloat
-      case Primitive.Boolean =>
-        value.toBoolean
-      case Primitive.Short =>
-        value.toShort
-      case Primitive.Byte =>
-        value.toByte
-      case _ =>
-        value
 
 end HttpRequestMapper
 

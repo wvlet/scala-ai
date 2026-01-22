@@ -63,14 +63,14 @@ object PathComponent:
     override def toString: String = s":${name}"
 
   /**
-    * Parse a path string into a sequence of PathComponents.
+    * Split a path string into segments.
     *
     * @param path
-    *   The path pattern to parse (e.g., "/users/:id/posts/:postId")
+    *   The path to split (e.g., "/users/123/posts")
     * @return
-    *   A sequence of PathComponent instances
+    *   A sequence of path segments
     */
-  def parse(path: String): Seq[PathComponent] =
+  def splitPath(path: String): Seq[String] =
     val normalizedPath =
       if path.startsWith("/") then
         path.substring(1)
@@ -79,14 +79,21 @@ object PathComponent:
     if normalizedPath.isEmpty then
       Seq.empty
     else
-      normalizedPath
-        .split("/")
-        .map { segment =>
-          if segment.startsWith(":") then
-            Parameter(segment.substring(1))
-          else
-            Literal(segment)
-        }
-        .toSeq
+      normalizedPath.split("/").toSeq
+
+  /**
+    * Parse a path string into a sequence of PathComponents.
+    *
+    * @param path
+    *   The path pattern to parse (e.g., "/users/:id/posts/:postId")
+    * @return
+    *   A sequence of PathComponent instances
+    */
+  def parse(path: String): Seq[PathComponent] = splitPath(path).map { segment =>
+    if segment.startsWith(":") then
+      Parameter(segment.substring(1))
+    else
+      Literal(segment)
+  }
 
 end PathComponent

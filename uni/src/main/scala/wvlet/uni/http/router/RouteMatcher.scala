@@ -34,7 +34,7 @@ class RouteMatcher(routes: Seq[Route]):
   def findRoute(request: Request): Option[RouteMatch] =
     val requestPath       = request.path
     val requestMethod     = request.method
-    val requestComponents = parsePathSegments(requestPath)
+    val requestComponents = PathComponent.splitPath(requestPath)
 
     routes
       .find(route => matches(route, requestMethod, requestComponents))
@@ -78,20 +78,6 @@ class RouteMatcher(routes: Seq[Route]):
         name -> value
       }
       .toMap
-
-  /**
-    * Parse a request path into segments.
-    */
-  private def parsePathSegments(path: String): Seq[String] =
-    val normalizedPath =
-      if path.startsWith("/") then
-        path.substring(1)
-      else
-        path
-    if normalizedPath.isEmpty then
-      Seq.empty
-    else
-      normalizedPath.split("/").toSeq
 
 end RouteMatcher
 

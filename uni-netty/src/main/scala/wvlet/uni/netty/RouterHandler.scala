@@ -34,23 +34,15 @@ class RouterHandler(router: Router, controllerProvider: ControllerProvider)
   private val matcher = RouteMatcher(router.routes)
   private val mapper  = HttpRequestMapper()
 
-  // Cache for filter instances
-  private var filterInstance: Option[RxHttpFilter] = None
-
-  /**
-    * Initialize the filter instance if the router has one configured.
-    */
-  private def getFilter: Option[RxHttpFilter] =
-    if filterInstance.isEmpty && router.filterSurfaceOpt.isDefined then
-      filterInstance = router
-        .filterSurfaceOpt
-        .map { surface =>
-          controllerProvider.getFilter(surface).asInstanceOf[RxHttpFilter]
-        }
-    filterInstance
+  // Lazily initialized filter instance (thread-safe)
+  private lazy val filterInstance: Option[RxHttpFilter] = router
+    .filterSurfaceOpt
+    .map { surface =>
+      controllerProvider.getFilter(surface).asInstanceOf[RxHttpFilter]
+    }
 
   override def handle(request: Request): Rx[Response] =
-    getFilter match
+    filterInstance match
       case Some(filter) =>
         // Apply filter before handling
         filter.apply(request, RxHttpHandler(handleRequest))
