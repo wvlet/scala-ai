@@ -1,0 +1,114 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.netty
+
+import wvlet.uni.http.{HttpFilter, HttpHandler, Request, Response}
+import wvlet.uni.rx.Rx
+
+import java.net.InetSocketAddress
+
+/**
+  * Entry point for creating a Netty-based HTTP server
+  */
+object NettyServer:
+
+  def withPort(port: Int): NettyServerConfig = NettyServerConfig().withPort(port)
+
+  def withHandler(handler: HttpHandler): NettyServerConfig = NettyServerConfig().withHandler(
+    handler
+  )
+
+  def withHandler(f: Request => Response): NettyServerConfig = NettyServerConfig().withHandler(f)
+
+  def withRxHandler(handler: RxHttpHandler): NettyServerConfig = NettyServerConfig().withRxHandler(
+    handler
+  )
+
+  def withRxHandler(f: Request => Rx[Response]): NettyServerConfig = NettyServerConfig()
+    .withRxHandler(f)
+
+/**
+  * Configuration for NettyServer with builder pattern
+  */
+case class NettyServerConfig(
+    name: String = "netty-server",
+    host: String = "0.0.0.0",
+    port: Int = 8080,
+    handler: RxHttpHandler = RxHttpHandler.notFound,
+    filters: Seq[RxHttpFilter] = Seq.empty,
+    maxContentLength: Int = 65536,
+    maxInitialLineLength: Int = 4096,
+    maxHeaderSize: Int = 8192,
+    useNativeTransport: Boolean = true
+):
+
+  def withName(name: String): NettyServerConfig                      = copy(name = name)
+  def withHost(host: String): NettyServerConfig                      = copy(host = host)
+  def withPort(port: Int): NettyServerConfig                         = copy(port = port)
+  def withMaxContentLength(maxContentLength: Int): NettyServerConfig = copy(maxContentLength =
+    maxContentLength
+  )
+
+  def withMaxInitialLineLength(maxInitialLineLength: Int): NettyServerConfig = copy(
+    maxInitialLineLength = maxInitialLineLength
+  )
+
+  def withMaxHeaderSize(maxHeaderSize: Int): NettyServerConfig = copy(maxHeaderSize = maxHeaderSize)
+  def withUseNativeTransport(useNativeTransport: Boolean): NettyServerConfig = copy(
+    useNativeTransport = useNativeTransport
+  )
+
+  def noNativeTransport: NettyServerConfig = withUseNativeTransport(false)
+
+  def withHandler(handler: HttpHandler): NettyServerConfig = copy(handler =
+    RxHttpHandler.fromSync(handler)
+  )
+
+  def withHandler(f: Request => Response): NettyServerConfig = copy(handler =
+    RxHttpHandler.fromFunction(f)
+  )
+
+  def withRxHandler(handler: RxHttpHandler): NettyServerConfig = copy(handler = handler)
+
+  def withRxHandler(f: Request => Rx[Response]): NettyServerConfig = copy(handler =
+    RxHttpHandler(f)
+  )
+
+  def withFilter(filter: RxHttpFilter): NettyServerConfig = copy(filters = filters :+ filter)
+
+  def withFilter(filter: HttpFilter): NettyServerConfig = copy(filters =
+    filters :+ RxHttpFilter.fromSync(filter)
+  )
+
+  def withFilters(filters: Seq[RxHttpFilter]): NettyServerConfig = copy(filters =
+    this.filters ++ filters
+  )
+
+  /**
+    * Start the server and return the running server instance
+    */
+  def start(): NettyHttpServer =
+    val server = NettyHttpServer(this)
+    server.start()
+    server
+
+  /**
+    * Start the server and run the given block, then stop the server
+    */
+  def start[A](block: NettyHttpServer => A): A =
+    val server = start()
+    try block(server)
+    finally server.stop()
+
+end NettyServerConfig
