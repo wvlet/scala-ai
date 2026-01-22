@@ -87,8 +87,12 @@ class NettyRequestHandler(handler: RxHttpHandler)
       ctx.writeAndFlush(nettyResponse).addListener(ChannelFutureListener.CLOSE)
 
   private def toUniRequest(nettyRequest: FullHttpRequest): Request =
-    val method = HttpMethod.of(nettyRequest.method().name()).getOrElse(HttpMethod.GET)
-    val uri    = nettyRequest.uri()
+    val method = HttpMethod
+      .of(nettyRequest.method().name())
+      .getOrElse {
+        throw IllegalArgumentException(s"Unsupported HTTP method: ${nettyRequest.method().name()}")
+      }
+    val uri = nettyRequest.uri()
 
     val headersBuilder = HttpMultiMap.newBuilder
     nettyRequest
@@ -114,6 +118,8 @@ class NettyRequestHandler(handler: RxHttpHandler)
         HttpContent.Empty
 
     Request(method = method, uri = uri, headers = headersBuilder.result(), content = content)
+
+  end toUniRequest
 
   private def toNettyResponse(response: Response): DefaultFullHttpResponse =
     val status = HttpResponseStatus.valueOf(response.status.code)
