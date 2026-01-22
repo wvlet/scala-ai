@@ -259,7 +259,8 @@ class RouterTest extends UniTest:
     val router = Router.filter[TestFilter].andThen(Router.of[UserController])
 
     router.filterSurfaceOpt.isDefined shouldBe true
-    router.filterSurfaceOpt.get.name shouldBe "TestFilter"
+    // In Scala.js, local class names include a suffix (e.g., "TestFilter.1")
+    router.filterSurfaceOpt.get.name shouldContain "TestFilter"
   }
 
 end RouterTest
