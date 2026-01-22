@@ -14,10 +14,8 @@
 package wvlet.uni.http.router
 
 import wvlet.uni.http.{HttpContent, Response}
-import wvlet.uni.json.JSON
 import wvlet.uni.json.JSON.JSONValue
 import wvlet.uni.rx.Rx
-import wvlet.uni.weaver.ObjectWeaver
 
 /**
   * Converts controller method return values to HTTP responses.
@@ -148,31 +146,14 @@ object ResponseConverter:
     .replace("\t", "\\t")
 
   /**
-    * Convert an object to a JSON string using ObjectWeaver or fall back to simple reflection.
+    * Convert an object to a JSON string. Falls back to toString for non-standard types.
+    *
+    * Note: For proper JSON serialization of case classes, use ObjectWeaver with a derived codec.
+    * This method provides a simple fallback that works across all platforms (JVM, JS, Native).
     */
   private def toJsonString(value: Any): String =
-    // For case classes and other types, use simple reflection
-    val clazz  = value.getClass
-    val fields = clazz.getDeclaredFields.filterNot(_.getName.startsWith("$"))
-
-    if clazz.isRecord || clazz.getName.contains("$") || fields.nonEmpty then
-      // Try to serialize as a JSON object
-      val entries = fields.flatMap { field =>
-        field.setAccessible(true)
-        try
-          val fieldValue = field.get(value)
-          val key        = escapeJsonString(field.getName)
-          val jsonValue  = elementToJsonString(fieldValue)
-          Some(s"\"${key}\":${jsonValue}")
-        catch
-          case _: Exception =>
-            None
-      }
-      if entries.nonEmpty then
-        s"{${entries.mkString(",")}}"
-      else
-        s"\"${escapeJsonString(value.toString)}\""
-    else
-      s"\"${escapeJsonString(value.toString)}\""
+    // For cross-platform compatibility, we use toString as fallback
+    // Users should provide proper ObjectWeaver codecs for complex types
+    s"\"${escapeJsonString(value.toString)}\""
 
 end ResponseConverter
