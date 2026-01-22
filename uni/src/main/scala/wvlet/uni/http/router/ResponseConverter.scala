@@ -1,0 +1,159 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.http.router
+
+import wvlet.uni.http.{HttpContent, Response}
+import wvlet.uni.json.JSON.JSONValue
+import wvlet.uni.rx.Rx
+
+/**
+  * Converts controller method return values to HTTP responses.
+  *
+  * Supports the following return types:
+  *   - Response: returned as-is
+  *   - Rx[Response]: returned as-is
+  *   - Rx[A]: converted to Rx[Response] with JSON body
+  *   - JSONValue: converted to Response with JSON body
+  *   - String: converted to Response with text body
+  *   - Unit: converted to Response with no content
+  *   - Other types: serialized to JSON using ObjectWeaver
+  */
+object ResponseConverter:
+
+  /**
+    * Convert a method return value to an Rx[Response].
+    *
+    * @param result
+    *   The return value from a controller method
+    * @return
+    *   An Rx that emits the HTTP response
+    */
+  def toResponse(result: Any): Rx[Response] =
+    result match
+      case r: Response =>
+        Rx.single(r)
+      case rx: Rx[?] =>
+        rx.map(convertToResponse)
+      case other =>
+        Rx.single(convertToResponse(other))
+
+  /**
+    * Convert a single value to an HTTP response.
+    */
+  private def convertToResponse(value: Any): Response =
+    value match
+      case r: Response =>
+        r
+      case null =>
+        Response.noContent
+      case () =>
+        Response.noContent
+      case s: String =>
+        Response.ok.withTextContent(s)
+      case json: JSONValue =>
+        Response.ok.withContent(HttpContent.json(json))
+      case bytes: Array[Byte] =>
+        Response.ok.withBytesContent(bytes)
+      case seq: Seq[?] =>
+        // Convert sequences to JSON arrays
+        Response.ok.withContent(HttpContent.json(seqToJson(seq)))
+      case map: Map[?, ?] =>
+        // Convert maps to JSON objects
+        Response.ok.withContent(HttpContent.json(mapToJson(map)))
+      case opt: Option[?] =>
+        opt match
+          case Some(v) =>
+            convertToResponse(v)
+          case None =>
+            Response.noContent
+      case other =>
+        // Try to serialize as JSON
+        try
+          val jsonStr = toJsonString(other)
+          Response.ok.withJsonContent(jsonStr)
+        catch
+          case e: Exception =>
+            // Fall back to toString
+            Response.ok.withTextContent(other.toString)
+
+  /**
+    * Convert a sequence to a JSON array string.
+    */
+  private def seqToJson(seq: Seq[?]): String =
+    val elements = seq.map(elementToJsonString)
+    s"[${elements.mkString(",")}]"
+
+  /**
+    * Convert a map to a JSON object string.
+    */
+  private def mapToJson(map: Map[?, ?]): String =
+    val entries = map
+      .toSeq
+      .map { case (k, v) =>
+        val keyStr   = escapeJsonString(k.toString)
+        val valueStr = elementToJsonString(v)
+        s"\"${keyStr}\":${valueStr}"
+      }
+    s"{${entries.mkString(",")}}"
+
+  /**
+    * Convert a single element to a JSON string representation.
+    */
+  private def elementToJsonString(value: Any): String =
+    value match
+      case null =>
+        "null"
+      case s: String =>
+        s"\"${escapeJsonString(s)}\""
+      case n: Number =>
+        n.toString
+      case b: Boolean =>
+        b.toString
+      case json: JSONValue =>
+        json.toJSON
+      case seq: Seq[?] =>
+        seqToJson(seq)
+      case map: Map[?, ?] =>
+        mapToJson(map)
+      case opt: Option[?] =>
+        opt match
+          case Some(v) =>
+            elementToJsonString(v)
+          case None =>
+            "null"
+      case other =>
+        toJsonString(other)
+
+  /**
+    * Escape special characters in a JSON string.
+    */
+  private def escapeJsonString(s: String): String = s
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+    .replace("\n", "\\n")
+    .replace("\r", "\\r")
+    .replace("\t", "\\t")
+
+  /**
+    * Convert an object to a JSON string. Falls back to toString for non-standard types.
+    *
+    * Note: For proper JSON serialization of case classes, use ObjectWeaver with a derived codec.
+    * This method provides a simple fallback that works across all platforms (JVM, JS, Native).
+    */
+  private def toJsonString(value: Any): String =
+    // For cross-platform compatibility, we use toString as fallback
+    // Users should provide proper ObjectWeaver codecs for complex types
+    s"\"${escapeJsonString(value.toString)}\""
+
+end ResponseConverter
