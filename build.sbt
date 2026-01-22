@@ -41,7 +41,7 @@ val jsBuildSettings = Seq[Setting[?]](
       // For scheduling with timer
       "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
       // For Fetch API and DOM access
-      "org.scala-js" %%% "scalajs-dom" % "2.8.0"
+      "org.scala-js" %%% "scalajs-dom" % "2.8.1"
     )
 )
 
