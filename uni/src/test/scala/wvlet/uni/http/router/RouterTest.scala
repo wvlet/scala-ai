@@ -234,41 +234,8 @@ class RouterTest extends UniTest:
     }
   }
 
-  test("ResponseConverter should convert return values") {
-    test("convert String to Response") {
-      val rx     = ResponseConverter.toResponse("hello")
-      val result = rx.toSeq.head
-      result.status.code shouldBe 200
-      result.content.toContentString shouldBe "hello"
-    }
-
-    test("convert Response as-is") {
-      val response = Response.notFound
-      val rx       = ResponseConverter.toResponse(response)
-      val result   = rx.toSeq.head
-      result.status.code shouldBe 404
-    }
-
-    test("convert Unit to no content") {
-      val rx     = ResponseConverter.toResponse(())
-      val result = rx.toSeq.head
-      result.status.code shouldBe 204
-    }
-
-    test("convert Seq to JSON array") {
-      val rx     = ResponseConverter.toResponse(Seq(1, 2, 3))
-      val result = rx.toSeq.head
-      result.status.code shouldBe 200
-      result.content.toContentString shouldBe "[1,2,3]"
-    }
-
-    test("convert Map to JSON object") {
-      val rx     = ResponseConverter.toResponse(Map("key" -> "value"))
-      val result = rx.toSeq.head
-      result.status.code shouldBe 200
-      result.content.toContentString shouldBe "{\"key\":\"value\"}"
-    }
-  }
+  // Note: ResponseConverter tests that use Rx.toSeq are in JVM-specific tests
+  // at uni/.jvm/src/test/scala/wvlet/uni/http/router/ResponseConverterJvmTest.scala
 
   test("ControllerProvider implementations") {
     test("SimpleControllerProvider creates instances") {
