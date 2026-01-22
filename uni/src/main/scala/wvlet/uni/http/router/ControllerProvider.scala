@@ -52,13 +52,12 @@ end ControllerProvider
   * an object factory (e.g., traits or abstract classes), it will throw an exception.
   */
 class SimpleControllerProvider extends ControllerProvider:
-  // Use concurrent TrieMap for thread-safe caching
-  private val cache = scala.collection.concurrent.TrieMap[String, Any]()
+  // Use mutable Map with synchronized access for cross-platform compatibility
+  private val cache = scala.collection.mutable.Map[String, Any]()
 
-  override def get(surface: Surface): Any = cache.getOrElseUpdate(
-    surface.fullName,
-    createInstance(surface)
-  )
+  override def get(surface: Surface): Any = synchronized {
+    cache.getOrElseUpdate(surface.fullName, createInstance(surface))
+  }
 
   private def createInstance(surface: Surface): Any =
     surface.objectFactory match
