@@ -45,6 +45,10 @@ class ParamController:
   def itemDetail(id: String, detailId: String): String = s"item ${id}, detail ${detailId}"
 
 class RouterTest extends UniTest:
+  // Share router instances to reduce memory usage from Surface macro expansion
+  private lazy val userRouter    = Router.of[UserController]
+  private lazy val productRouter = Router.of[ProductController]
+  private lazy val paramRouter   = Router.of[ParamController]
 
   test("PathComponent.parse should parse path patterns") {
     test("parse simple path") {
@@ -87,20 +91,20 @@ class RouterTest extends UniTest:
   }
 
   test("Router.of should extract routes from controller") {
-    val router = Router.of[UserController]
-
     test("extract all endpoints") {
-      router.routes.size shouldBe 4
+      userRouter.routes.size shouldBe 4
     }
 
     test("extract GET /users") {
-      val route = router.routes.find(r => r.method == HttpMethod.GET && r.pathPattern == "/users")
+      val route = userRouter
+        .routes
+        .find(r => r.method == HttpMethod.GET && r.pathPattern == "/users")
       (route.isDefined == true) shouldBe true
       route.get.methodSurface.name shouldBe "listUsers"
     }
 
     test("extract GET /users/:id") {
-      val route = router
+      val route = userRouter
         .routes
         .find(r => r.method == HttpMethod.GET && r.pathPattern == "/users/:id")
       (route.isDefined == true) shouldBe true
@@ -108,13 +112,15 @@ class RouterTest extends UniTest:
     }
 
     test("extract POST /users") {
-      val route = router.routes.find(r => r.method == HttpMethod.POST && r.pathPattern == "/users")
+      val route = userRouter
+        .routes
+        .find(r => r.method == HttpMethod.POST && r.pathPattern == "/users")
       (route.isDefined == true) shouldBe true
       route.get.methodSurface.name shouldBe "createUser"
     }
 
     test("extract DELETE /users/:id") {
-      val route = router
+      val route = userRouter
         .routes
         .find(r => r.method == HttpMethod.DELETE && r.pathPattern == "/users/:id")
       (route.isDefined == true) shouldBe true
@@ -123,16 +129,12 @@ class RouterTest extends UniTest:
   }
 
   test("Router.andThen should combine routers") {
-    val userRouter    = Router.of[UserController]
-    val productRouter = Router.of[ProductController]
-    val combined      = userRouter.andThen(productRouter)
-
+    val combined = userRouter.andThen(productRouter)
     combined.routes.size shouldBe (userRouter.routes.size + productRouter.routes.size)
   }
 
   test("RouteMatcher should match routes") {
-    val router  = Router.of[UserController]
-    val matcher = RouteMatcher(router.routes)
+    val matcher = RouteMatcher(userRouter.routes)
 
     test("match GET /users") {
       val request = Request.get("/users")
@@ -171,9 +173,7 @@ class RouterTest extends UniTest:
   }
 
   test("RouteMatcher should extract multiple path params") {
-    val router  = Router.of[ParamController]
-    val matcher = RouteMatcher(router.routes)
-
+    val matcher = RouteMatcher(paramRouter.routes)
     val request = Request.get("/items/42/details/7")
     val result  = matcher.findRoute(request)
     (result.isDefined == true) shouldBe true
@@ -181,8 +181,7 @@ class RouterTest extends UniTest:
   }
 
   test("HttpRequestMapper should bind parameters") {
-    val router  = Router.of[ParamController]
-    val matcher = RouteMatcher(router.routes)
+    val matcher = RouteMatcher(paramRouter.routes)
     val mapper  = HttpRequestMapper()
 
     test("bind path parameters") {
@@ -256,7 +255,7 @@ class RouterTest extends UniTest:
   test("Router.filter should add filter surface") {
     class TestFilter
 
-    val router = Router.filter[TestFilter].andThen(Router.of[UserController])
+    val router = Router.filter[TestFilter].andThen(userRouter)
 
     router.filterSurfaceOpt.isDefined shouldBe true
     // In Scala.js, local class names include a suffix (e.g., "TestFilter.1")
