@@ -29,4 +29,7 @@ private[http] object HttpCompat extends HttpCompatApi:
   override def rootCauseExceptionClassifier: PartialFunction[Throwable, Failed] =
     HttpExceptionClassifier.rootCauseExceptionClassifierSimple
 
+  // Auto-register JS channel factory when this object is loaded
+  Http.setDefaultChannelFactory(JSHttpChannelFactory)
+
 end HttpCompat

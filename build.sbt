@@ -39,7 +39,9 @@ val jsBuildSettings = Seq[Setting[?]](
       // For using java.time.Instant in Scala.js
       ("org.scala-js" %%% "scalajs-java-time" % "1.0.0").cross(CrossVersion.for3Use2_13),
       // For scheduling with timer
-      "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1"
+      "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
+      // For Fetch API and DOM access
+      "org.scala-js" %%% "scalajs-dom" % "2.8.0"
     )
 )
 
@@ -49,7 +51,9 @@ val nativeBuildSettings = Seq[Setting[?]](
     Seq(
       // For using java.time libraries
       "org.ekrich" %%% "sjavatime" % "1.5.0"
-    )
+    ),
+  // Link against libcurl for HTTP client support
+  nativeConfig ~= { _.withLinkingOptions(_ :+ "-lcurl") }
 )
 
 val noPublish = Seq(
