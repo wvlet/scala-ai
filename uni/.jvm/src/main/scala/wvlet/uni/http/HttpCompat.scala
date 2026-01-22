@@ -81,4 +81,7 @@ private[http] object HttpCompat extends HttpCompatApi:
     case e if e.getCause != null =>
       HttpExceptionClassifier.classifyExecutionFailure(e.getCause)
 
+  // Auto-register JVM channel factory when this object is loaded
+  Http.setDefaultChannelFactory(JVMHttpChannelFactory)
+
 end HttpCompat

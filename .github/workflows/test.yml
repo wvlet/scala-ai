@@ -100,6 +100,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '23'
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
       - name: Scala Native test
         run: JVM_OPTS=-Xmx4g ./sbt "projectNative/test"
       - name: Publish Test Report
