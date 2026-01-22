@@ -53,7 +53,9 @@ val nativeBuildSettings = Seq[Setting[?]](
       "org.ekrich" %%% "sjavatime" % "1.5.0"
     ),
   // Link against libcurl for HTTP client support
-  nativeConfig ~= { _.withLinkingOptions(_ :+ "-lcurl") }
+  nativeConfig ~= {
+    _.withLinkingOptions(_ :+ "-lcurl")
+  }
 )
 
 val noPublish = Seq(
@@ -81,7 +83,15 @@ lazy val root = project
   .settings(buildSettings, name := "uni", publish / skip := true)
   .aggregate((jvmProjects ++ jsProjects ++ nativeProjects): _*)
 
-lazy val jvmProjects: Seq[ProjectReference]    = Seq(core.jvm, uni.jvm, agent, bedrock, netty, test.jvm)
+lazy val jvmProjects: Seq[ProjectReference] = Seq(
+  core.jvm,
+  uni.jvm,
+  agent,
+  bedrock,
+  netty,
+  test.jvm
+)
+
 lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, test.js)
 lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, uni.native, test.native)
 
@@ -205,7 +215,7 @@ lazy val bedrock = project
   )
   .dependsOn(agent, test.jvm % Test)
 
-val NETTY_VERSION = "4.1.118.Final"
+val NETTY_VERSION = "4.1.130.Final"
 
 lazy val netty = project
   .in(file("uni-netty"))
@@ -215,10 +225,10 @@ lazy val netty = project
     description := "Netty-based HTTP server for uni",
     libraryDependencies ++=
       Seq(
-        "io.netty" % "netty-handler"                 % NETTY_VERSION,
-        "io.netty" % "netty-codec-http"              % NETTY_VERSION,
-        "io.netty" % "netty-transport-native-epoll"  % NETTY_VERSION classifier "linux-x86_64",
-        "io.netty" % "netty-transport-native-epoll"  % NETTY_VERSION classifier "linux-aarch_64"
+        "io.netty" % "netty-handler"                % NETTY_VERSION,
+        "io.netty" % "netty-codec-http"             % NETTY_VERSION,
+        "io.netty" % "netty-transport-native-epoll" % NETTY_VERSION classifier "linux-x86_64",
+        "io.netty" % "netty-transport-native-epoll" % NETTY_VERSION classifier "linux-aarch_64"
       )
   )
   .dependsOn(uni.jvm, test.jvm % Test)
