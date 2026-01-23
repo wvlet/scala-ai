@@ -39,8 +39,24 @@ private[surface] object CompileTimeSurfaceFactory:
       surfaceExpr
 
   def methodsOf[A](using tpe: Type[A], quotes: Quotes): Expr[Seq[MethodSurface]] =
-    val f = new CompileTimeSurfaceFactory(using quotes)
-    f.methodsOf(tpe)
+    import quotes.reflect.*
+    val f      = new CompileTimeSurfaceFactory(using quotes)
+    val result = f.methodsOf(tpe)
+    // Use full type name including type arguments for correct caching of generic types
+    val fullTypeName = f.fullTypeNameOf(tpe)
+    // Wrap with cache lookup to avoid creating new MethodSurface instances on every call
+    '{
+      Surface
+        .methodSurfaceCache
+        .getOrElseUpdate(
+          ${
+            Expr(fullTypeName)
+          },
+          ${
+            result
+          }
+        )
+    }
 
 end CompileTimeSurfaceFactory
 
@@ -51,7 +67,7 @@ private[surface] class CompileTimeSurfaceFactory[Q <: Quotes](using quotes: Q):
   import quotes.*
   import quotes.reflect.*
 
-  private def fullTypeNameOf(t: Type[?]): String = fullTypeNameOf(TypeRepr.of(using t))
+  def fullTypeNameOf(t: Type[?]): String = fullTypeNameOf(TypeRepr.of(using t))
 
   private def fullTypeNameOf(t: TypeRepr): String =
     def sanitize(symbol: Symbol): String =

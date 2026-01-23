@@ -97,4 +97,52 @@ class RouterTest extends UniTest:
     filtered.filterSurfaceOpt.isDefined shouldBe true
   }
 
+  test("Surface.methodsOf should cache MethodSurface instances") {
+    import wvlet.uni.surface.Surface
+
+    // Call methodsOf twice for the SAME type
+    val methods1 = Surface.methodsOf[TestController]
+    val methods2 = Surface.methodsOf[TestController]
+
+    // Verify caching works - same instances should be returned
+    (methods1 eq methods2) shouldBe true
+
+    // Individual method surfaces should also be the same
+    if methods1.nonEmpty && methods2.nonEmpty then
+      (methods1.head eq methods2.head) shouldBe true
+
+    // Cache should contain the entry
+    Surface.methodSurfaceCache.contains("wvlet.uni.http.router.TestController") shouldBe true
+  }
+
+  test("Surface.methodsOf should cache generic types separately") {
+    import wvlet.uni.surface.Surface
+
+    // Generic class with a method that returns the type parameter
+    class Box[T]:
+      def get: T = ???
+
+    // Get method surfaces for different type arguments
+    val intMethods    = Surface.methodsOf[Box[Int]]
+    val stringMethods = Surface.methodsOf[Box[String]]
+
+    // They should be cached separately (different cache keys)
+    (intMethods eq stringMethods) shouldBe false
+
+    // Each should have correct return type
+    val intGet    = intMethods.find(_.name == "get")
+    val stringGet = stringMethods.find(_.name == "get")
+
+    intGet.isDefined shouldBe true
+    stringGet.isDefined shouldBe true
+
+    // Return types should be different
+    intGet.get.returnType.name shouldBe "Int"
+    stringGet.get.returnType.name shouldBe "String"
+
+    // Verify both are cached with full type names including type args
+    Surface.methodSurfaceCache.keys.exists(_.contains("Box[Int]")) shouldBe true
+    Surface.methodSurfaceCache.keys.exists(_.contains("Box[String]")) shouldBe true
+  }
+
 end RouterTest
