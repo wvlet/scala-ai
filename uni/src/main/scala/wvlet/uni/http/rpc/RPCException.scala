@@ -102,12 +102,14 @@ end RPCErrorMessage
 
 object RPCException:
 
-  private def fromRPCErrorMessage(m: RPCErrorMessage): RPCException = RPCException(
-    status = RPCStatus.ofCode(m.code),
-    message = m.message,
-    cause = None,
-    appErrorCode = m.appErrorCode
-  )
+  private def fromRPCErrorMessage(m: RPCErrorMessage): RPCException =
+    val status =
+      try
+        RPCStatus.ofCode(m.code)
+      catch
+        case _: IllegalArgumentException =>
+          RPCStatus.UNKNOWN_I1
+    RPCException(status = status, message = m.message, cause = None, appErrorCode = m.appErrorCode)
 
   def fromJson(json: String): RPCException =
     val m = RPCErrorMessage.fromJson(json)
@@ -122,20 +124,28 @@ object RPCException:
     */
   def fromResponse(response: Response): RPCException =
     val rpcStatusOpt = response.header(HttpHeader.xRPCStatus).flatMap(x => Try(x.toInt).toOption)
+    def safeOfCode(code: Int): RPCStatus =
+      try
+        RPCStatus.ofCode(code)
+      catch
+        case _: IllegalArgumentException =>
+          RPCStatus.UNKNOWN_I1
+
     rpcStatusOpt match
       case Some(rpcStatusCode) =>
         try
           val contentOpt = response.contentAsString
           if contentOpt.isEmpty || contentOpt.get.isBlank then
-            val status = RPCStatus.ofCode(rpcStatusCode)
+            val status = safeOfCode(rpcStatusCode)
             status.newException(status.name)
           else
             RPCException.fromJson(contentOpt.get)
         catch
           case e: Throwable =>
-            RPCStatus
-              .ofCode(rpcStatusCode)
-              .newException(s"Failed to parse RPC error details: ${e.getMessage}", e)
+            safeOfCode(rpcStatusCode).newException(
+              s"Failed to parse RPC error details: ${e.getMessage}",
+              e
+            )
       case None =>
         // No RPC status header - derive from HTTP status
         val rpcStatus = RPCStatus.fromHttpStatus(response.status)

@@ -107,6 +107,13 @@ class RPCRequestMapper:
     controllerOpt
       .flatMap(ctrl => param.getMethodArgDefaultValue(ctrl))
       .orElse(param.getDefaultValue)
+      .orElse {
+        // For Option types, treat missing values as None
+        if param.surface.isOption then
+          Some(None)
+        else
+          None
+      }
 
   /**
     * Convert a JSON value to the expected Scala type
@@ -175,7 +182,21 @@ class RPCRequestMapper:
               convertJsonValue(elem, elemSurface, s"${paramName}[${idx}]")
             }
         else if surface.isOption then
-          Some(arr.v)
+          // Handle Option[Seq[T]] by converting elements if inner type is Seq
+          val innerSurface = surface.typeArgs.headOption
+          innerSurface match
+            case Some(inner) if inner.isSeq =>
+              val elemSurface = inner.typeArgs.headOption.getOrElse(Primitive.String)
+              Some(
+                arr
+                  .v
+                  .zipWithIndex
+                  .map { case (elem, idx) =>
+                    convertJsonValue(elem, elemSurface, s"${paramName}[${idx}]")
+                  }
+              )
+            case _ =>
+              Some(arr.v)
         else
           arr.v
 
