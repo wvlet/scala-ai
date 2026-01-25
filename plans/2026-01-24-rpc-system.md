@@ -266,14 +266,48 @@ greeter.hello("World")  // Full IDE support
 ### Status
 
 - **Phase 1 (RPCStatus & Exception)**: ✅ Complete
-- **Phase 2 (Server-Side)**: ✅ Complete
+- **Phase 2 (Server-Side)**: 🔲 Deferred - removed half-baked implementation
 - **Phase 3 (Code Generator)**: 🔲 Pending
 
 PR: https://github.com/wvlet/uni/pull/367
 
+### What's Implemented
+
+Files in `uni/src/main/scala/wvlet/uni/http/rpc/`:
+- `RPCStatusType.scala` - Scala 3 enum for status categories
+- `RPCStatus.scala` - Scala 3 enum for 30+ status codes
+- `RPCException.scala` - Exception with JSON serialization
+
+Test: `uni/.jvm/src/test/scala/wvlet/uni/http/rpc/RPCStatusTest.scala` (27 tests)
+
 ### Design Changes from Original Plan
 
-#### 1. RPCException Immutability
+#### 1. Scala 3 Enums for RPCStatusType and RPCStatus
+
+Changed from sealed trait/abstract class to Scala 3 enums for cleaner code:
+
+```scala
+// RPCStatusType as Scala 3 enum
+enum RPCStatusType(val prefix: String, val minCode: Int, val maxCode: Int):
+  case SUCCESS extends RPCStatusType("S", 0, 1000)
+  case USER_ERROR extends RPCStatusType("U", 1000, 2000)
+  case INTERNAL_ERROR extends RPCStatusType("I", 2000, 3000)
+  case RESOURCE_EXHAUSTED extends RPCStatusType("R", 3000, 4000)
+
+// RPCStatus as Scala 3 enum
+enum RPCStatus(val statusType: RPCStatusType, val httpStatus: HttpStatus):
+  case SUCCESS_S0 extends RPCStatus(RPCStatusType.SUCCESS, HttpStatus.Ok_200)
+  case INVALID_REQUEST_U1 extends RPCStatus(RPCStatusType.USER_ERROR, HttpStatus.BadRequest_400)
+  // ... 30+ status codes
+```
+
+Benefits:
+- Built-in `values` method returns all cases
+- Built-in `valueOf` for name lookup
+- Pattern matching exhaustivity checks
+- Cleaner, more idiomatic Scala 3
+
+#### 2. RPCException Immutability
 
 Original design had mutable `includeStackTrace` var. Changed to immutable case class:
 
@@ -288,26 +322,12 @@ case class RPCException(
   def noStackTrace: RPCException = copy(includeStackTrace = Some(false))
 ```
 
-#### 2. RPCRouter Implementation
+#### 3. Server-Side Implementation Deferred
 
-Uses inline macros combining `MethodSurface.of[T]` with `Surface.of[T]`:
-
-```scala
-object RPCRouter:
-  inline def of[T]: Router = of[T]("/rpc")
-  inline def of[T](prefix: String): Router =
-    val methods       = MethodSurface.of[T]
-    val serviceSurface = Surface.of[T]
-    buildRouter(prefix, serviceSurface, methods)
-```
-
-#### 3. Header Naming Convention
-
-Changed from `xRPCStatus` to `XRPCStatus` following standard HTTP header conventions:
-
-```scala
-val XRPCStatus: String = "X-RPC-Status"
-```
+Removed half-baked RPCRouter, RPCHandler, RPCRequestMapper. These require:
+- ObjectWeaver support for complex object parameters (code generator needed)
+- More thorough design for request/response handling
+- Better integration with existing Router infrastructure
 
 #### 4. RPCErrorMessage Simplified (metadata field removed)
 
@@ -355,57 +375,36 @@ case obj: JSONObject =>
 
 ### Key Learnings
 
-#### 1. Error Handling Strategy
+#### 1. Scala 3 Enum Benefits
 
-All JSON parsing and type conversion errors should return user-facing error codes:
+Using Scala 3 enums instead of sealed traits:
+- `RPCStatusType.values` returns `Array[RPCStatusType]` automatically
+- `RPCStatus.values` returns all 30+ status codes
+- Pattern matching with exhaustivity checking
+- No need for manual `all` method maintenance
 
-| Error Condition | Status Code |
-|----------------|-------------|
-| Invalid JSON body | `INVALID_REQUEST_U1` (400) |
-| Null for non-optional param | `INVALID_ARGUMENT_U2` (400) |
-| Type mismatch (string for int) | `INVALID_ARGUMENT_U2` (400) |
-| Missing required param | `INVALID_ARGUMENT_U2` (400) |
-| Unknown RPC method | `NOT_FOUND_U5` (404) |
-| Handler exception | `INTERNAL_ERROR_I0` (500) |
+#### 2. Error Code Derivation from Name
 
-#### 2. Optional Parameter Handling
-
-Option types should default to `None` when the parameter is missing:
-
+Status codes are derived from the enum name suffix:
 ```scala
-private def getDefaultValue(param: MethodParameter, controllerOpt: Option[Any]): Option[Any] =
-  controllerOpt
-    .flatMap(ctrl => param.getMethodArgDefaultValue(ctrl))
-    .orElse(param.getDefaultValue)
-    .orElse {
-      if param.surface.isOption then Some(None) else None
-    }
+lazy val code: Int = RPCStatus.extractErrorCode(toString)
+// "INVALID_REQUEST_U1" -> U=1000, 1 -> 1001
+// "INTERNAL_ERROR_I0" -> I=2000, 0 -> 2000
 ```
 
-#### 3. Unknown Status Code Recovery
-
-When deserializing responses with unknown status codes, fall back to `UNKNOWN_I1`:
-
-```scala
-private def safeOfCode(code: Int): RPCStatus =
-  try RPCStatus.ofCode(code)
-  catch case _: IllegalArgumentException => RPCStatus.UNKNOWN_I1
-```
-
-#### 4. ObjectWeaver Compile-Time Requirement
+#### 3. ObjectWeaver Compile-Time Requirement
 
 ObjectWeaver uses Scala 3 macros and requires compile-time type information:
 - ✅ `ObjectWeaver.derived[MyClass]` - Works (compile-time)
 - ❌ `ObjectWeaver.fromSurface(surface)` - Does not exist (runtime)
 
-This is why complex object parameters need code generation.
+This is why complex object parameters need code generation for server-side RPC.
 
-### Limitations
+### Current Limitations
 
-1. **Complex object parameters**: Not supported without code generator
-2. **MsgPack serialization**: Not implemented (JSON only for now)
-3. **Integration tests**: Removed due to CI memory constraints (OOM with NettyServer)
-4. **Map types**: `Map[String, Any]` not directly supported by ObjectWeaver
+1. **Server-side RPC not implemented**: RPCRouter/RPCHandler deferred until code generator
+2. **MsgPack serialization**: RPCException supports it but not fully tested
+3. **Map types**: `Map[String, Any]` not directly supported by ObjectWeaver
 
 ### ObjectWeaver Requirements for Full RPC Support
 
