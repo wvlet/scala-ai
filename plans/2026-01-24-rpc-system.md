@@ -258,3 +258,127 @@ greeter.hello("World")  // Full IDE support
 3. Code generation test - Verify generated client compiles
 4. IDE test - Verify code completion in IntelliJ
 5. Integration test - Server + client end-to-end
+
+---
+
+## Implementation Notes (2026-01-25)
+
+### Status
+
+- **Phase 1 (RPCStatus & Exception)**: ✅ Complete
+- **Phase 2 (Server-Side)**: ✅ Complete
+- **Phase 3 (Code Generator)**: 🔲 Pending
+
+PR: https://github.com/wvlet/uni/pull/367
+
+### Design Changes from Original Plan
+
+#### 1. RPCException Immutability
+
+Original design had mutable `includeStackTrace` var. Changed to immutable case class:
+
+```scala
+case class RPCException(
+    status: RPCStatus = RPCStatus.INTERNAL_ERROR_I0,
+    message: String = "",
+    cause: Option[Throwable] = None,
+    appErrorCode: Option[Int] = None,
+    private val includeStackTrace: Option[Boolean] = None  // In constructor
+) extends Exception:
+  def noStackTrace: RPCException = copy(includeStackTrace = Some(false))
+```
+
+#### 2. RPCRouter Implementation
+
+Uses inline macros combining `MethodSurface.of[T]` with `Surface.of[T]`:
+
+```scala
+object RPCRouter:
+  inline def of[T]: Router = of[T]("/rpc")
+  inline def of[T](prefix: String): Router =
+    val methods       = MethodSurface.of[T]
+    val serviceSurface = Surface.of[T]
+    buildRouter(prefix, serviceSurface, methods)
+```
+
+#### 3. Header Naming Convention
+
+Changed from `xRPCStatus` to `XRPCStatus` following standard HTTP header conventions:
+
+```scala
+val XRPCStatus: String = "X-RPC-Status"
+```
+
+#### 4. Complex Object Parameters Not Supported
+
+ObjectWeaver requires compile-time types via `derived[A]` macro. Cannot deserialize
+complex objects at runtime using Surface alone. This will be addressed by the code
+generator which can generate type-specific deserializers.
+
+```scala
+case obj: JSONObject =>
+  throw RPCStatus.INVALID_ARGUMENT_U2.newException(
+    s"Parameter '${paramName}' has unsupported type ${surface.name}. " +
+      "Complex object parameters are not yet supported in RPC."
+  )
+```
+
+### Key Learnings
+
+#### 1. Error Handling Strategy
+
+All JSON parsing and type conversion errors should return user-facing error codes:
+
+| Error Condition | Status Code |
+|----------------|-------------|
+| Invalid JSON body | `INVALID_REQUEST_U1` (400) |
+| Null for non-optional param | `INVALID_ARGUMENT_U2` (400) |
+| Type mismatch (string for int) | `INVALID_ARGUMENT_U2` (400) |
+| Missing required param | `INVALID_ARGUMENT_U2` (400) |
+| Unknown RPC method | `NOT_FOUND_U5` (404) |
+| Handler exception | `INTERNAL_ERROR_I0` (500) |
+
+#### 2. Optional Parameter Handling
+
+Option types should default to `None` when the parameter is missing:
+
+```scala
+private def getDefaultValue(param: MethodParameter, controllerOpt: Option[Any]): Option[Any] =
+  controllerOpt
+    .flatMap(ctrl => param.getMethodArgDefaultValue(ctrl))
+    .orElse(param.getDefaultValue)
+    .orElse {
+      if param.surface.isOption then Some(None) else None
+    }
+```
+
+#### 3. Unknown Status Code Recovery
+
+When deserializing responses with unknown status codes, fall back to `UNKNOWN_I1`:
+
+```scala
+private def safeOfCode(code: Int): RPCStatus =
+  try RPCStatus.ofCode(code)
+  catch case _: IllegalArgumentException => RPCStatus.UNKNOWN_I1
+```
+
+#### 4. ObjectWeaver Compile-Time Requirement
+
+ObjectWeaver uses Scala 3 macros and requires compile-time type information:
+- ✅ `ObjectWeaver.derived[MyClass]` - Works (compile-time)
+- ❌ `ObjectWeaver.fromSurface(surface)` - Does not exist (runtime)
+
+This is why complex object parameters need code generation.
+
+### Limitations
+
+1. **Complex object parameters**: Not supported without code generator
+2. **MsgPack serialization**: Not implemented (JSON only for now)
+3. **Integration tests**: Removed due to CI memory constraints (OOM with NettyServer)
+
+### Future Work (Phase 3)
+
+1. **Code Generator** - Generate type-safe clients with full IDE support
+2. **Complex Object Support** - Generate parameter deserializers
+3. **MsgPack Support** - Add binary serialization option
+4. **Cross-Platform Client** - HTTP client for JS/Native
