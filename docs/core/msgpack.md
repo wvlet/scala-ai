@@ -111,13 +111,13 @@ case class User(name: String, age: Int) derives Weaver
 case class Address(city: String, country: String)
 given Weaver[Address] = Weaver.of[Address]
 
-val user = User("Alice", 30)
-
 // Serialize to MessagePack bytes
-val bytes = Weaver.weave(user)
+val userBytes = Weaver.weave(User("Alice", 30))
+val addressBytes = Weaver.weave(Address("Tokyo", "Japan"))
 
 // Deserialize from bytes
-val restored = Weaver.unweave[User](bytes)
+val user = Weaver.unweave[User](userBytes)
+val address = Weaver.unweave[Address](addressBytes)
 ```
 
 ## MessagePack vs JSON
