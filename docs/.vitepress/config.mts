@@ -16,6 +16,16 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', href: '/uni/favicon.ico' }],
+    // Google Analytics
+    ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-55G099WF5N' }],
+    [
+      'script',
+      {},
+      `window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-55G099WF5N');`
+    ],
     // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Uni - Essential Scala Utilities' }],
