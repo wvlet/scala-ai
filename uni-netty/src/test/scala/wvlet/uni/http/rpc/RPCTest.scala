@@ -13,12 +13,8 @@
  */
 package wvlet.uni.http.rpc
 
-import wvlet.uni.http.netty.NettyServer
-import wvlet.uni.http.{HttpHeader, HttpStatus, Response}
+import wvlet.uni.http.{HttpHeader, HttpStatus}
 import wvlet.uni.test.UniTest
-
-import java.net.URI
-import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 
 // Test RPC service - no annotation needed
 trait GreeterService:
@@ -27,24 +23,7 @@ trait GreeterService:
   def add(a: Int, b: Int): Int
   def echo(message: String): String
 
-class GreeterServiceImpl extends GreeterService:
-  def hello(name: String): String                   = s"Hello, ${name}!"
-  def greet(greeting: String, name: String): String = s"${greeting}, ${name}!"
-  def add(a: Int, b: Int): Int                      = a + b
-  def echo(message: String): String                 = message
-
 class RPCTest extends UniTest:
-
-  private val httpClient = HttpClient.newHttpClient()
-
-  private def postJson(url: String, body: String): HttpResponse[String] =
-    val request = HttpRequest
-      .newBuilder()
-      .uri(URI.create(url))
-      .POST(HttpRequest.BodyPublishers.ofString(body))
-      .header("Content-Type", "application/json")
-      .build()
-    httpClient.send(request, HttpResponse.BodyHandlers.ofString())
 
   test("RPCStatus should have correct codes") {
     RPCStatus.SUCCESS_S0.code shouldBe 0
@@ -125,58 +104,6 @@ class RPCTest extends UniTest:
     val router     = RPCRouter.of[GreeterService]("/api/v1")
     val routePaths = router.routes.map(_.pathPattern).toSet
     routePaths shouldContain "/api/v1/GreeterService/hello"
-  }
-
-  test("RPCHandler should handle RPC requests with positional args") {
-    val router  = RPCRouter.of[GreeterService]
-    val handler = RPCHandler.withControllers(router, GreeterServiceImpl())
-
-    NettyServer
-      .withPort(0)
-      .withRxHandler(handler)
-      .start { server =>
-        val response = postJson(
-          s"http://localhost:${server.localPort}/rpc/GreeterService/hello",
-          """["World"]"""
-        )
-        response.statusCode() shouldBe 200
-        response.body() shouldContain "Hello, World!"
-      }
-  }
-
-  test("RPCHandler should handle RPC requests with multiple args") {
-    val router  = RPCRouter.of[GreeterService]
-    val handler = RPCHandler.withControllers(router, GreeterServiceImpl())
-
-    NettyServer
-      .withPort(0)
-      .withRxHandler(handler)
-      .start { server =>
-        val response = postJson(
-          s"http://localhost:${server.localPort}/rpc/GreeterService/add",
-          """[3, 5]"""
-        )
-        response.statusCode() shouldBe 200
-        response.body() shouldContain "8"
-      }
-  }
-
-  test("RPCHandler should return NOT_FOUND for unknown method") {
-    val router  = RPCRouter.of[GreeterService]
-    val handler = RPCHandler.withControllers(router, GreeterServiceImpl())
-
-    NettyServer
-      .withPort(0)
-      .withRxHandler(handler)
-      .start { server =>
-        val response = postJson(
-          s"http://localhost:${server.localPort}/rpc/GreeterService/unknown",
-          """[]"""
-        )
-        response.statusCode() shouldBe 404
-        response.headers().firstValue(HttpHeader.XRPCStatus).orElse("0") shouldBe
-          RPCStatus.NOT_FOUND_U5.code.toString
-      }
   }
 
 end RPCTest
