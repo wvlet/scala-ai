@@ -17,7 +17,6 @@ import wvlet.uni.http.Request
 import wvlet.uni.json.JSON
 import wvlet.uni.json.JSON.*
 import wvlet.uni.surface.{MethodParameter, MethodSurface, Primitive, Surface}
-import wvlet.uni.weaver.ObjectWeaver
 
 /**
   * Maps RPC request JSON body to method parameters.
@@ -217,27 +216,15 @@ class RPCRequestMapper:
             .newException(s"Parameter '${paramName}' expects ${surface.name}, got array")
 
       case obj: JSONObject =>
-        // Use ObjectWeaver for complex object deserialization
-        val targetSurface =
-          if surface.isOption then
-            surface.typeArgs.headOption.getOrElse(surface)
-          else
-            surface
-        try
-          val jsonString   = obj.toJSON
-          val deserialized = ObjectWeaver.fromSurface(targetSurface).fromJson(jsonString)
-          if surface.isOption then
-            Some(deserialized)
-          else
-            deserialized
-        catch
-          case e: Exception =>
-            throw RPCStatus
-              .INVALID_ARGUMENT_U2
-              .newException(
-                s"Failed to deserialize parameter '${paramName}' as ${targetSurface.name}: ${e
-                    .getMessage}"
-              )
+        // Complex object deserialization requires compile-time generated weavers.
+        // For now, only primitive types and sequences are supported.
+        // Complex object parameters will be supported with the RPC code generator.
+        throw RPCStatus
+          .INVALID_ARGUMENT_U2
+          .newException(
+            s"Parameter '${paramName}' has unsupported type ${surface.name}. " +
+              "Complex object parameters are not yet supported in RPC."
+          )
 
   private def convertNumber(n: Number, surface: Surface, paramName: String): Any =
     surface match
