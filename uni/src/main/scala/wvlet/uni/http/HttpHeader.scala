@@ -104,4 +104,7 @@ object HttpHeader:
   val XRequestId: String     = "X-Request-Id"
   val XCorrelationId: String = "X-Correlation-Id"
 
+  // RPC headers
+  val xRPCStatus: String = "x-rpc-status"
+
 end HttpHeader
