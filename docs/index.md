@@ -27,9 +27,9 @@ features:
   - title: CLI Utilities
     details: Terminal styling, progress indicators, and type-safe command-line argument parsing.
     link: /cli/
-  - title: LLM Agent Framework
-    details: Build AI agents with tool calling, chat sessions, and AWS Bedrock integration.
-    link: /agent/
+  - title: UniTest
+    details: Lightweight testing framework with expressive assertions, property-based testing, and cross-platform support.
+    link: /core/unitest
 ---
 
 ## Getting Started
@@ -66,6 +66,7 @@ class MyService extends LogSupport:
 | Module | Description |
 |--------|-------------|
 | `uni` | Core utilities: Design, logging, JSON, MessagePack, Rx, HTTP client |
+| `uni-test` | Lightweight testing framework with cross-platform support |
 | `uni-agent` | LLM agent framework with tool integration |
 | `uni-bedrock` | AWS Bedrock chat model integration |
 
