@@ -91,7 +91,6 @@ val msgpack = anyWeaver.weave(data)
 ## Verification
 
 ```bash
-cd /Users/leo/work/uni/.worktree/feature-weaver-any
 ./sbt "uniJVM/testOnly *AnyWeaverTest"
 ./sbt scalafmtAll
 ./sbt test
