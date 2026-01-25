@@ -152,6 +152,9 @@ class AnyWeaverImpl(knownWeavers: Map[Class[?], Weaver[?]]) extends Weaver[Any]:
         unpack(u, keyContext)
         if keyContext.hasError then
           context.setError(keyContext.getError.get)
+          // Skip the value for current pair (key already consumed by unpack)
+          u.skipValue
+          i += 1
           // Skip remaining pairs
           while i < len do
             u.skipValue
@@ -174,6 +177,7 @@ class AnyWeaverImpl(knownWeavers: Map[Class[?], Weaver[?]]) extends Weaver[Any]:
         val value = valContext.getLastValue
         buffer += (key -> value)
         i += 1
+      end while
       context.setObject(buffer.toMap)
     catch
       case e: Exception =>
