@@ -635,4 +635,6 @@ object PrimitiveWeaver:
             else
               context.setObject(Some(elementContext.getLastValue))
 
+  given anyWeaver: Weaver[Any] = AnyWeaver.default
+
 end PrimitiveWeaver
