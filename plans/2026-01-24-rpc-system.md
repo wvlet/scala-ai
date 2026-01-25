@@ -307,7 +307,45 @@ Benefits:
 - Pattern matching exhaustivity checks
 - Cleaner, more idiomatic Scala 3
 
-#### 2. RPCException Immutability
+#### 2. Code Range Design (1000-sized buckets)
+
+Considered alternative: smaller ranges like 0-99, 100-199, 200-299, 300-399.
+
+**Decision: Keep 1000-sized ranges (0-999, 1000-1999, 2000-2999, 3000-3999)**
+
+| Range | Category | Prefix | Current Count |
+|-------|----------|--------|---------------|
+| 0-999 | SUCCESS | S | 1 |
+| 1000-1999 | USER_ERROR | U | 15 |
+| 2000-2999 | INTERNAL_ERROR | I | 9 |
+| 3000-3999 | RESOURCE_EXHAUSTED | R | 9 |
+
+**Rationale:**
+
+1. **No HTTP status code collision**
+   - Codes like `1001`, `2000`, `3000` are clearly distinct from HTTP `200`, `400`, `500`
+   - Using 0-399 would overlap with HTTP 1xx/2xx/3xx causing confusion in logs/headers
+
+2. **Leading digit identifies category**
+   - `1xxx` = User error (client mistake, don't retry)
+   - `2xxx` = Internal error (server issue, may retry)
+   - `3xxx` = Resource exhausted (throttling, retry with backoff)
+
+3. **Wire format compatibility**
+   - Numeric code is sent in `X-RPC-Status` header and `RPCErrorMessage.code`
+   - Changing ranges would be a breaking wire protocol change
+
+4. **Sufficient extensibility**
+   - Current: ~34 codes used out of 4000 available
+   - 1000 per category costs nothing and leaves room for future standard RPC statuses
+   - `appErrorCode` field handles application-specific error codes separately
+
+5. **Comparison with other systems**
+   - gRPC uses 0-16 (tiny fixed set) - not comparable since our design already exceeds that
+   - HTTP uses 100-599 - our ranges intentionally avoid this space
+   - airframe-rpc uses same 1000-sized ranges - proven design
+
+#### 3. RPCException Immutability
 
 Original design had mutable `includeStackTrace` var. Changed to immutable case class:
 
