@@ -52,7 +52,13 @@ class RPCHandler(router: Router, controllerProvider: ControllerProvider)
   private lazy val filterInstance: Option[RxHttpFilter] = router
     .filterSurfaceOpt
     .map { surface =>
-      controllerProvider.getFilter(surface).asInstanceOf[RxHttpFilter]
+      controllerProvider.getFilter(surface) match
+        case f: RxHttpFilter =>
+          f
+        case other =>
+          throw ClassCastException(
+            s"Expected an RxHttpFilter for ${surface.fullName}, but got ${other.getClass.getName}"
+          )
     }
 
   override def handle(request: Request): Rx[Response] =

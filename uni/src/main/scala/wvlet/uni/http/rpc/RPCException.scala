@@ -29,27 +29,19 @@ case class RPCException(
     status: RPCStatus = RPCStatus.INTERNAL_ERROR_I0,
     message: String = "",
     cause: Option[Throwable] = None,
-    appErrorCode: Option[Int] = None
+    appErrorCode: Option[Int] = None,
+    private val includeStackTrace: Option[Boolean] = None
 ) extends Exception(s"[${status}] ${message}", cause.orNull):
-
-  private var includeStackTrace: Option[Boolean] = None
 
   /**
     * Suppress stack trace in the RPC error response
     */
-  def noStackTrace: RPCException =
-    includeStackTrace = Some(false)
-    this
+  def noStackTrace: RPCException = copy(includeStackTrace = Some(false))
 
   /**
     * Whether stack trace should be included in the error response
     */
-  def shouldReportStackTrace: Boolean =
-    includeStackTrace match
-      case Some(b) =>
-        b
-      case None =>
-        status.shouldReportStackTrace
+  def shouldReportStackTrace: Boolean = includeStackTrace.getOrElse(status.shouldReportStackTrace)
 
   /**
     * Convert to serializable error message
@@ -75,7 +67,7 @@ case class RPCException(
     * Convert to HTTP response with RPC status header
     */
   def toResponse: Response = Response(status.httpStatus)
-    .addHeader(HttpHeader.xRPCStatus, status.code.toString)
+    .addHeader(HttpHeader.XRPCStatus, status.code.toString)
     .withJsonContent(toJson)
 
 end RPCException
@@ -123,7 +115,7 @@ object RPCException:
     * Extract RPCException from HTTP response
     */
   def fromResponse(response: Response): RPCException =
-    val rpcStatusOpt = response.header(HttpHeader.xRPCStatus).flatMap(x => Try(x.toInt).toOption)
+    val rpcStatusOpt = response.header(HttpHeader.XRPCStatus).flatMap(x => Try(x.toInt).toOption)
     def safeOfCode(code: Int): RPCStatus =
       try
         RPCStatus.ofCode(code)
@@ -135,7 +127,7 @@ object RPCException:
       case Some(rpcStatusCode) =>
         try
           val contentOpt = response.contentAsString
-          if contentOpt.isEmpty || contentOpt.get.isBlank then
+          if contentOpt.forall(_.isBlank) then
             val status = safeOfCode(rpcStatusCode)
             status.newException(status.name)
           else

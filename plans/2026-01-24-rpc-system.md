@@ -98,8 +98,7 @@ case class RPCException(
     status: RPCStatus = RPCStatus.INTERNAL_ERROR_I0,
     message: String = "",
     cause: Option[Throwable] = None,
-    appErrorCode: Option[Int] = None,
-    metadata: Map[String, Any] = Map.empty
+    appErrorCode: Option[Int] = None
 ) extends Exception:
   def noStackTrace: RPCException
   def shouldReportStackTrace: Boolean
@@ -112,8 +111,7 @@ case class RPCErrorMessage(
     code: Int,
     codeName: String,
     message: String,
-    appErrorCode: Option[Int] = None,
-    metadata: Map[String, Any] = Map.empty
+    appErrorCode: Option[Int] = None
 ) derives ObjectWeaver
 
 object RPCException:

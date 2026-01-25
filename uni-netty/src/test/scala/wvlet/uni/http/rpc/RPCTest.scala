@@ -107,7 +107,7 @@ class RPCTest extends UniTest:
     val ex       = RPCStatus.NOT_FOUND_U5.newException("not found")
     val response = ex.toResponse
     response.status shouldBe HttpStatus.NotFound_404
-    response.header(HttpHeader.xRPCStatus) shouldBe Some("1005")
+    response.header(HttpHeader.XRPCStatus) shouldBe Some(RPCStatus.NOT_FOUND_U5.code.toString)
   }
 
   test("RPCRouter should create routes for all public methods") {
@@ -174,7 +174,8 @@ class RPCTest extends UniTest:
           """[]"""
         )
         response.statusCode() shouldBe 404
-        response.headers().firstValue(HttpHeader.xRPCStatus).orElse("0") shouldBe "1005"
+        response.headers().firstValue(HttpHeader.XRPCStatus).orElse("0") shouldBe
+          RPCStatus.NOT_FOUND_U5.code.toString
       }
   }
 

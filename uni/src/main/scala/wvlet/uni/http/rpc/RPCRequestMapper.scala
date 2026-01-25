@@ -17,6 +17,7 @@ import wvlet.uni.http.Request
 import wvlet.uni.json.JSON
 import wvlet.uni.json.JSON.*
 import wvlet.uni.surface.{MethodParameter, MethodSurface, Primitive, Surface}
+import wvlet.uni.weaver.ObjectWeaver
 
 /**
   * Maps RPC request JSON body to method parameters.
@@ -196,17 +197,36 @@ class RPCRequestMapper:
                   }
               )
             case _ =>
-              Some(arr.v)
+              // Unknown inner type for Option, convert elements and wrap
+              Some(arr.v.map(elem => convertJsonValue(elem, Primitive.String, paramName)))
         else
-          arr.v
+          // Array for non-Seq/non-Option type is a type mismatch
+          throw RPCStatus
+            .INVALID_ARGUMENT_U2
+            .newException(s"Parameter '${paramName}' expects ${surface.name}, got array")
 
       case obj: JSONObject =>
-        // For complex objects, we would need ObjectWeaver deserialization
-        // For now, return as JSONObject
-        if surface.isOption then
-          Some(obj)
-        else
-          obj
+        // Use ObjectWeaver for complex object deserialization
+        val targetSurface =
+          if surface.isOption then
+            surface.typeArgs.headOption.getOrElse(surface)
+          else
+            surface
+        try
+          val jsonString   = obj.toJSON
+          val deserialized = ObjectWeaver.fromSurface(targetSurface).fromJson(jsonString)
+          if surface.isOption then
+            Some(deserialized)
+          else
+            deserialized
+        catch
+          case e: Exception =>
+            throw RPCStatus
+              .INVALID_ARGUMENT_U2
+              .newException(
+                s"Failed to deserialize parameter '${paramName}' as ${targetSurface.name}: ${e
+                    .getMessage}"
+              )
 
   private def convertNumber(n: Number, surface: Surface, paramName: String): Any =
     surface match
