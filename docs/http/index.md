@@ -1,12 +1,14 @@
 # HTTP Framework
 
-uni provides a cross-platform HTTP client with automatic retry, streaming support, and reactive integration.
+uni provides a cross-platform HTTP client and a Netty-based HTTP server with automatic retry, streaming support, and reactive integration.
 
 ## Overview
 
 | Component | Description |
 |-----------|-------------|
 | [HTTP Client](./client) | Sync and async HTTP clients |
+| [REST Server](./server) | Netty-based HTTP server with routing |
+| [Router](./router) | Type-safe route definitions |
 | [Retry Strategies](./retry) | Automatic retry for transient failures |
 
 ## Quick Start

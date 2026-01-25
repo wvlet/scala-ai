@@ -77,6 +77,8 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/http/' },
             { text: 'HTTP Client', link: '/http/client' },
+            { text: 'REST Server', link: '/http/server' },
+            { text: 'Router', link: '/http/router' },
             { text: 'Retry Strategies', link: '/http/retry' }
           ]
         },
@@ -144,6 +146,8 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/http/' },
             { text: 'HTTP Client', link: '/http/client' },
+            { text: 'REST Server', link: '/http/server' },
+            { text: 'Router', link: '/http/router' },
             { text: 'Retry Strategies', link: '/http/retry' }
           ]
         },
