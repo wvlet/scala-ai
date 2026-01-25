@@ -24,25 +24,34 @@ import wvlet.uni.http.HttpStatus
   *   - INTERNAL_ERROR: Server error, generally retryable (maps to 5xx HTTP)
   *   - RESOURCE_EXHAUSTED: Resource limits exceeded, retry after backoff (maps to 429 HTTP)
   */
-sealed trait RPCStatusType:
-  /**
-    * Single-character prefix used in status code names (S, U, I, R)
-    */
-  def prefix: String
+enum RPCStatusType(val prefix: String, val minCode: Int, val maxCode: Int):
 
-  /**
-    * The error code range [minCode, maxCode)
-    */
-  def codeRange: (Int, Int)
+  /** Successful responses */
+  case SUCCESS extends RPCStatusType("S", 0, 1000)
 
-  def minCode: Int = codeRange._1
-  def maxCode: Int = codeRange._2
+  /** User/client errors - not retryable in general */
+  case USER_ERROR extends RPCStatusType("U", 1000, 2000)
+
+  /** Server internal errors - generally retryable */
+  case INTERNAL_ERROR extends RPCStatusType("I", 2000, 3000)
+
+  /** Resource exhausted or quota exceeded - retry after backoff */
+  case RESOURCE_EXHAUSTED extends RPCStatusType("R", 3000, 4000)
+
+  def codeRange: (Int, Int) = (minCode, maxCode)
 
   def isValidCode(code: Int): Boolean = minCode <= code && code < maxCode
 
-  def isValidHttpStatus(httpStatus: HttpStatus): Boolean
-
-  def name: String = toString
+  def isValidHttpStatus(httpStatus: HttpStatus): Boolean =
+    this match
+      case SUCCESS =>
+        httpStatus.isSuccessful
+      case USER_ERROR =>
+        httpStatus.isClientError
+      case INTERNAL_ERROR =>
+        httpStatus.isServerError
+      case RESOURCE_EXHAUSTED =>
+        httpStatus == HttpStatus.TooManyRequests_429
 
 end RPCStatusType
 
@@ -50,47 +59,13 @@ object RPCStatusType:
 
   def ofPrefix(prefix: Char): RPCStatusType =
     val p = prefix.toString
-    all
+    RPCStatusType
+      .values
       .find(_.prefix == p)
-      .getOrElse(throw IllegalArgumentException(s"Unknown RPCStatus code prefix: ${prefix}"))
-
-  /**
-    * Successful responses
-    */
-  case object SUCCESS extends RPCStatusType:
-    override def prefix: String                                     = "S"
-    override def codeRange: (Int, Int)                              = (0, 1000)
-    override def isValidHttpStatus(httpStatus: HttpStatus): Boolean = httpStatus.isSuccessful
-
-  /**
-    * User/client errors - not retryable in general
-    */
-  case object USER_ERROR extends RPCStatusType:
-    override def prefix: String                                     = "U"
-    override def codeRange: (Int, Int)                              = (1000, 2000)
-    override def isValidHttpStatus(httpStatus: HttpStatus): Boolean = httpStatus.isClientError
-
-  /**
-    * Server internal errors - generally retryable
-    */
-  case object INTERNAL_ERROR extends RPCStatusType:
-    override def prefix: String                                     = "I"
-    override def codeRange: (Int, Int)                              = (2000, 3000)
-    override def isValidHttpStatus(httpStatus: HttpStatus): Boolean = httpStatus.isServerError
-
-  /**
-    * Resource exhausted or quota exceeded - retry after backoff
-    */
-  case object RESOURCE_EXHAUSTED extends RPCStatusType:
-    override def prefix: String                                     = "R"
-    override def codeRange: (Int, Int)                              = (3000, 4000)
-    override def isValidHttpStatus(httpStatus: HttpStatus): Boolean =
-      httpStatus == HttpStatus.TooManyRequests_429
-
-  def all: Seq[RPCStatusType] = Seq(SUCCESS, USER_ERROR, INTERNAL_ERROR, RESOURCE_EXHAUSTED)
+      .getOrElse(throw IllegalArgumentException(s"Unknown RPCStatusType prefix: ${prefix}"))
 
   def unapply(s: String): Option[RPCStatusType] =
     val name = s.toUpperCase
-    all.find(_.toString == name)
+    RPCStatusType.values.find(_.toString == name)
 
 end RPCStatusType
