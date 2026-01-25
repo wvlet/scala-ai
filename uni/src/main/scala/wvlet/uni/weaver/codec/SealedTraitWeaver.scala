@@ -6,7 +6,7 @@ import wvlet.uni.msgpack.spi.Unpacker
 import wvlet.uni.msgpack.spi.Value
 import wvlet.uni.msgpack.spi.ValueType
 import wvlet.uni.surface.CName
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
 
@@ -21,11 +21,11 @@ import wvlet.uni.weaver.WeaverContext
   */
 class SealedTraitWeaver[A](
     traitName: String,
-    childWeavers: Map[String, (ObjectWeaver[? <: A], Option[A])]
-) extends ObjectWeaver[A]:
+    childWeavers: Map[String, (Weaver[? <: A], Option[A])]
+) extends Weaver[A]:
 
   // Build canonical name lookup for flexible type matching
-  private val weaversByCanonicalName: Map[String, (String, ObjectWeaver[? <: A], Option[A])] =
+  private val weaversByCanonicalName: Map[String, (String, Weaver[? <: A], Option[A])] =
     childWeavers.map { (name, weaverAndInstance) =>
       CName.toCanonicalName(name) -> (name, weaverAndInstance._1, weaverAndInstance._2)
     }
@@ -50,7 +50,7 @@ class SealedTraitWeaver[A](
             case None =>
               // Case class: pack child to msgpack, read back as Value, and repack with discriminator
               val childPacker = MessagePack.newPacker()
-              childWeaver.asInstanceOf[ObjectWeaver[A]].pack(childPacker, v, config)
+              childWeaver.asInstanceOf[Weaver[A]].pack(childPacker, v, config)
               val childMsgpack  = childPacker.toByteArray
               val childUnpacker = MessagePack.newUnpacker(childMsgpack)
               val childValue    = childUnpacker.unpackValue

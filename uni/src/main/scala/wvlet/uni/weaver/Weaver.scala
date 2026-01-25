@@ -7,7 +7,7 @@ import wvlet.uni.msgpack.spi.Unpacker
 import wvlet.uni.weaver.codec.JSONWeaver
 import wvlet.uni.weaver.codec.PrimitiveWeaver
 
-trait ObjectWeaver[A]:
+trait Weaver[A]:
   def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack         = toMsgPack(v, config)
   def unweave(msgpack: MsgPack, config: WeaverConfig = WeaverConfig()): A =
     val unpacker = MessagePack.newUnpacker(msgpack)
@@ -44,38 +44,42 @@ trait ObjectWeaver[A]:
     */
   def unpack(u: Unpacker, context: WeaverContext): Unit
 
-end ObjectWeaver
+end Weaver
 
-object ObjectWeaver:
+object Weaver:
 
   /**
-    * Derive an ObjectWeaver for a case class at compile-time. Usage:
+    * Derive a Weaver for a case class at compile-time. Usage:
     * {{{
     * case class Person(name: String, age: Int)
-    * given ObjectWeaver[Person] = ObjectWeaver.derived[Person]
+    * given Weaver[Person] = Weaver.derived[Person]
     *
     * // Or with derives clause:
-    * case class Person(name: String, age: Int) derives ObjectWeaver
+    * case class Person(name: String, age: Int) derives Weaver
     * }}}
     */
-  inline def derived[A]: ObjectWeaver[A] = ObjectWeaverDerivation.deriveWeaver[A]
+  inline def derived[A]: Weaver[A] = WeaverDerivation.deriveWeaver[A]
 
-  def weave[A](v: A, config: WeaverConfig = WeaverConfig())(using
-      weaver: ObjectWeaver[A]
-  ): MsgPack = weaver.weave(v, config)
+  def weave[A](v: A, config: WeaverConfig = WeaverConfig())(using weaver: Weaver[A]): MsgPack =
+    weaver.weave(v, config)
 
   def unweave[A](msgpack: MsgPack, config: WeaverConfig = WeaverConfig())(using
-      weaver: ObjectWeaver[A]
+      weaver: Weaver[A]
   ): A = weaver.unweave(msgpack, config)
 
-  def toJson[A](v: A, config: WeaverConfig = WeaverConfig())(using
-      weaver: ObjectWeaver[A]
-  ): String = weaver.toJson(v, config)
+  def toJson[A](v: A, config: WeaverConfig = WeaverConfig())(using weaver: Weaver[A]): String =
+    weaver.toJson(v, config)
 
-  def fromJson[A](json: String, config: WeaverConfig = WeaverConfig())(using
-      weaver: ObjectWeaver[A]
-  ): A = weaver.fromJson(json, config)
+  def fromJson[A](json: String, config: WeaverConfig = WeaverConfig())(using weaver: Weaver[A]): A =
+    weaver.fromJson(json, config)
 
   export PrimitiveWeaver.given
 
-end ObjectWeaver
+end Weaver
+
+// Backward compatibility aliases
+@deprecated("Use Weaver instead", "2026.1.x")
+type ObjectWeaver[A] = Weaver[A]
+
+@deprecated("Use Weaver instead", "2026.1.x")
+val ObjectWeaver = Weaver

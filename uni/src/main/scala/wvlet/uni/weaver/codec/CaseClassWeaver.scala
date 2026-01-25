@@ -6,7 +6,7 @@ import wvlet.uni.msgpack.spi.ValueType
 import wvlet.uni.surface.CName
 import wvlet.uni.surface.Parameter
 import wvlet.uni.surface.Surface
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
 
@@ -14,8 +14,7 @@ import wvlet.uni.weaver.WeaverContext
   * A weaver for case classes that serializes to/from MsgPack maps. Uses map format for schema
   * evolution robustness.
   */
-class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[ObjectWeaver[?]])
-    extends ObjectWeaver[A]:
+class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[Weaver[?]]) extends Weaver[A]:
 
   // Pre-compute canonicalized name lookup for flexible field matching
   private val paramsByCanonicalName: Map[String, (Int, Parameter)] =
@@ -37,7 +36,7 @@ class CaseClassWeaver[A](surface: Surface, fieldWeavers: IndexedSeq[ObjectWeaver
         val param = surface.params(i)
         p.packString(param.name)
         val value = param.get(v)
-        fieldWeavers(i).asInstanceOf[ObjectWeaver[Any]].pack(p, value, config)
+        fieldWeavers(i).asInstanceOf[Weaver[Any]].pack(p, value, config)
         i += 1
 
   override def unpack(u: Unpacker, context: WeaverContext): Unit =

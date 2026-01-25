@@ -18,14 +18,14 @@ import wvlet.uni.json.Json
 import wvlet.uni.json.JSON.*
 import wvlet.uni.msgpack.spi.*
 import wvlet.uni.msgpack.spi.Value.TimestampValue
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
 
 /**
   * Codec for JSON values. Internally, JSON String is converted to MessagePack
   */
-object JSONWeaver extends ObjectWeaver[String]:
+object JSONWeaver extends Weaver[String]:
   override def pack(p: Packer, json: String, config: WeaverConfig): Unit =
     val msgpack = MessagePack.fromJSON(json)
     p.writePayload(msgpack)
@@ -68,14 +68,14 @@ object JSONWeaver extends ObjectWeaver[String]:
 
 end JSONWeaver
 
-object RawJSONWeaver extends ObjectWeaver[Json]:
+object RawJSONWeaver extends Weaver[Json]:
   override def pack(p: Packer, v: Json, config: WeaverConfig): Unit = JSONWeaver.pack(p, v, config)
   override def unpack(u: Unpacker, context: WeaverContext): Unit    = JSONWeaver.unpack(u, context)
 
 /**
   * Codec for JSONValue
   */
-object JSONValueWeaver extends ObjectWeaver[JSONValue]:
+object JSONValueWeaver extends Weaver[JSONValue]:
   override def pack(p: Packer, v: JSONValue, config: WeaverConfig): Unit = JSONWeaver.packJsonValue(
     p,
     v,

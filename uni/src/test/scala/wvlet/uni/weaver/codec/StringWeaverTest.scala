@@ -1,7 +1,7 @@
 package wvlet.uni.weaver.codec
 
 import wvlet.uni.msgpack.spi.MessagePack
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
@@ -19,8 +19,8 @@ class StringWeaverTest extends UniTest:
     )
 
     for str <- testStrings do
-      val packed   = ObjectWeaver.weave(str)
-      val unpacked = ObjectWeaver.unweave[String](packed)
+      val packed   = Weaver.weave(str)
+      val unpacked = Weaver.unweave[String](packed)
       unpacked shouldBe str
   }
 
@@ -38,7 +38,7 @@ class StringWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packInt(intValue)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[String](packed)
+      val unpacked = Weaver.unweave[String](packed)
       unpacked shouldBe expectedStr
   }
 
@@ -52,7 +52,7 @@ class StringWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packDouble(floatValue)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[String](packed)
+      val unpacked = Weaver.unweave[String](packed)
 
       // Check semantic equality (parse back to numbers)
       BigDecimal(unpacked) shouldBe BigDecimal(expectedStr)
@@ -66,7 +66,7 @@ class StringWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packBoolean(booleanValue)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[String](packed)
+      val unpacked = Weaver.unweave[String](packed)
       unpacked shouldBe expectedStr
   }
 
@@ -75,7 +75,7 @@ class StringWeaverTest extends UniTest:
     val packer = MessagePack.newPacker()
     packer.packNil
     val packed   = packer.toByteArray
-    val unpacked = ObjectWeaver.unweave[String](packed)
+    val unpacked = Weaver.unweave[String](packed)
     unpacked shouldBe null
   }
 
@@ -88,7 +88,7 @@ class StringWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[String](packed)
+      Weaver.unweave[String](packed)
     }
   }
 
@@ -103,8 +103,8 @@ class StringWeaverTest extends UniTest:
     )
 
     for str <- testCases do
-      val json     = ObjectWeaver.toJson(str)
-      val unpacked = ObjectWeaver.fromJson[String](json)
+      val json     = Weaver.toJson(str)
+      val unpacked = Weaver.fromJson[String](json)
       unpacked shouldBe str
   }
 

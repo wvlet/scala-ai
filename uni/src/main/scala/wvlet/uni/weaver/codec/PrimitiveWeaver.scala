@@ -3,7 +3,7 @@ package wvlet.uni.weaver.codec
 import wvlet.uni.msgpack.spi.Packer
 import wvlet.uni.msgpack.spi.Unpacker
 import wvlet.uni.msgpack.spi.ValueType
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
 import scala.collection.mutable.ListBuffer
@@ -47,7 +47,7 @@ object PrimitiveWeaver:
   private def unpackArrayToBuffer[A](
       u: Unpacker,
       context: WeaverContext,
-      elementWeaver: ObjectWeaver[A]
+      elementWeaver: Weaver[A]
   ): Option[ListBuffer[A]] =
     try
       val arraySize = u.unpackArrayHeader
@@ -82,8 +82,8 @@ object PrimitiveWeaver:
   private def unpackMapToBuffer[K, V](
       u: Unpacker,
       context: WeaverContext,
-      keyWeaver: ObjectWeaver[K],
-      valueWeaver: ObjectWeaver[V]
+      keyWeaver: Weaver[K],
+      valueWeaver: Weaver[V]
   ): Option[ListBuffer[(K, V)]] =
     try
       val mapSize = u.unpackMapHeader
@@ -134,8 +134,8 @@ object PrimitiveWeaver:
         context.setError(e)
         None
 
-  given intWeaver: ObjectWeaver[Int] =
-    new ObjectWeaver[Int]:
+  given intWeaver: Weaver[Int] =
+    new Weaver[Int]:
       override def pack(p: Packer, v: Int, config: WeaverConfig): Unit = p.packInt(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -186,8 +186,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Int"))
 
-  given stringWeaver: ObjectWeaver[String] =
-    new ObjectWeaver[String]:
+  given stringWeaver: Weaver[String] =
+    new Weaver[String]:
       override def pack(p: Packer, v: String, config: WeaverConfig): Unit = p.packString(v)
 
       // Helper method to safely perform unpacking operations
@@ -219,8 +219,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to String"))
 
-  given longWeaver: ObjectWeaver[Long] =
-    new ObjectWeaver[Long]:
+  given longWeaver: Weaver[Long] =
+    new Weaver[Long]:
       override def pack(p: Packer, v: Long, config: WeaverConfig): Unit = p.packLong(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -256,8 +256,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Long"))
 
-  given doubleWeaver: ObjectWeaver[Double] =
-    new ObjectWeaver[Double]:
+  given doubleWeaver: Weaver[Double] =
+    new Weaver[Double]:
       override def pack(p: Packer, v: Double, config: WeaverConfig): Unit = p.packDouble(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -284,8 +284,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Double"))
 
-  given floatWeaver: ObjectWeaver[Float] =
-    new ObjectWeaver[Float]:
+  given floatWeaver: Weaver[Float] =
+    new Weaver[Float]:
       override def pack(p: Packer, v: Float, config: WeaverConfig): Unit = p.packFloat(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -321,8 +321,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Float"))
 
-  given booleanWeaver: ObjectWeaver[Boolean] =
-    new ObjectWeaver[Boolean]:
+  given booleanWeaver: Weaver[Boolean] =
+    new Weaver[Boolean]:
       override def pack(p: Packer, v: Boolean, config: WeaverConfig): Unit = p.packBoolean(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -354,8 +354,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Boolean"))
 
-  given byteWeaver: ObjectWeaver[Byte] =
-    new ObjectWeaver[Byte]:
+  given byteWeaver: Weaver[Byte] =
+    new Weaver[Byte]:
       override def pack(p: Packer, v: Byte, config: WeaverConfig): Unit = p.packByte(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -400,8 +400,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Byte"))
 
-  given shortWeaver: ObjectWeaver[Short] =
-    new ObjectWeaver[Short]:
+  given shortWeaver: Weaver[Short] =
+    new Weaver[Short]:
       override def pack(p: Packer, v: Short, config: WeaverConfig): Unit = p.packShort(v)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -446,8 +446,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Short"))
 
-  given charWeaver: ObjectWeaver[Char] =
-    new ObjectWeaver[Char]:
+  given charWeaver: Weaver[Char] =
+    new Weaver[Char]:
       override def pack(p: Packer, v: Char, config: WeaverConfig): Unit = p.packString(v.toString)
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
@@ -482,8 +482,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Char"))
 
-  given listWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[List[A]] =
-    new ObjectWeaver[List[A]]:
+  given listWeaver[A](using elementWeaver: Weaver[A]): Weaver[List[A]] =
+    new Weaver[List[A]]:
       override def pack(p: Packer, v: List[A], config: WeaverConfig): Unit =
         p.packArrayHeader(v.size)
         v.foreach(elementWeaver.pack(p, _, config))
@@ -501,11 +501,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to List"))
 
-  given mapWeaver[K, V](using
-      keyWeaver: ObjectWeaver[K],
-      valueWeaver: ObjectWeaver[V]
-  ): ObjectWeaver[Map[K, V]] =
-    new ObjectWeaver[Map[K, V]]:
+  given mapWeaver[K, V](using keyWeaver: Weaver[K], valueWeaver: Weaver[V]): Weaver[Map[K, V]] =
+    new Weaver[Map[K, V]]:
       override def pack(p: Packer, v: Map[K, V], config: WeaverConfig): Unit =
         p.packMapHeader(v.size)
         v.foreach { case (key, value) =>
@@ -526,8 +523,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Map"))
 
-  given seqWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[Seq[A]] =
-    new ObjectWeaver[Seq[A]]:
+  given seqWeaver[A](using elementWeaver: Weaver[A]): Weaver[Seq[A]] =
+    new Weaver[Seq[A]]:
       override def pack(p: Packer, v: Seq[A], config: WeaverConfig): Unit =
         p.packArrayHeader(v.size)
         v.foreach(elementWeaver.pack(p, _, config))
@@ -545,8 +542,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Seq"))
 
-  given indexedSeqWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[IndexedSeq[A]] =
-    new ObjectWeaver[IndexedSeq[A]]:
+  given indexedSeqWeaver[A](using elementWeaver: Weaver[A]): Weaver[IndexedSeq[A]] =
+    new Weaver[IndexedSeq[A]]:
       override def pack(p: Packer, v: IndexedSeq[A], config: WeaverConfig): Unit =
         p.packArrayHeader(v.size)
         v.foreach(elementWeaver.pack(p, _, config))
@@ -564,8 +561,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to IndexedSeq"))
 
-  given javaListWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[java.util.List[A]] =
-    new ObjectWeaver[java.util.List[A]]:
+  given javaListWeaver[A](using elementWeaver: Weaver[A]): Weaver[java.util.List[A]] =
+    new Weaver[java.util.List[A]]:
       override def pack(p: Packer, v: java.util.List[A], config: WeaverConfig): Unit =
         p.packArrayHeader(v.size)
         v.asScala.foreach(elementWeaver.pack(p, _, config))
@@ -586,10 +583,10 @@ object PrimitiveWeaver:
             )
 
   given listMapWeaver[K, V](using
-      keyWeaver: ObjectWeaver[K],
-      valueWeaver: ObjectWeaver[V]
-  ): ObjectWeaver[scala.collection.immutable.ListMap[K, V]] =
-    new ObjectWeaver[scala.collection.immutable.ListMap[K, V]]:
+      keyWeaver: Weaver[K],
+      valueWeaver: Weaver[V]
+  ): Weaver[scala.collection.immutable.ListMap[K, V]] =
+    new Weaver[scala.collection.immutable.ListMap[K, V]]:
       override def pack(
           p: Packer,
           v: scala.collection.immutable.ListMap[K, V],
@@ -614,8 +611,8 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to ListMap"))
 
-  given optionWeaver[A](using elementWeaver: ObjectWeaver[A]): ObjectWeaver[Option[A]] =
-    new ObjectWeaver[Option[A]]:
+  given optionWeaver[A](using elementWeaver: Weaver[A]): Weaver[Option[A]] =
+    new Weaver[Option[A]]:
       override def pack(p: Packer, v: Option[A], config: WeaverConfig): Unit =
         v match
           case Some(value) =>

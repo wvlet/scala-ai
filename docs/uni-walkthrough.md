@@ -222,7 +222,7 @@ val unpacker = MessagePack.newUnpacker(bytes)
 val name = unpacker.unpackString()
 val age = unpacker.unpackInt()
 
-// For complex objects, use ObjectWeaver (see Object Weaving section)
+// For complex objects, use Weaver (see Object Weaving section)
 ```
 
 ## Reactive Streams (Rx)
@@ -376,22 +376,16 @@ Object weaving provides automatic serialization/deserialization capabilities.
 ### Basic Weaving
 
 ```scala
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 
-case class Config(host: String, port: Int, ssl: Boolean)
+case class Config(host: String, port: Int, ssl: Boolean) derives Weaver
 
 // Convert case classes to/from various formats
 val config = Config("localhost", 8080, true)
 
-// To Map
-val configMap = ObjectWeaver.toMap(config)
-
-// From Map
-val restoredConfig = ObjectWeaver.fromMap[Config](configMap)
-
 // JSON integration
-val jsonString = ObjectWeaver.toJSON(config)
-val fromJson = ObjectWeaver.fromJSON[Config](jsonString)
+val jsonString = Weaver.toJson(config)
+val fromJson = Weaver.fromJson[Config](jsonString)
 ```
 
 ## Best Practices

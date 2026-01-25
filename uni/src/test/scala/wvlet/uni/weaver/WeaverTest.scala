@@ -9,64 +9,64 @@ class WeaverTest extends UniTest:
 
   test("weave int") {
     val v       = 1
-    val msgpack = ObjectWeaver.weave(1)
-    val v2      = ObjectWeaver.unweave[Int](msgpack)
+    val msgpack = Weaver.weave(1)
+    val v2      = Weaver.unweave[Int](msgpack)
     v shouldBe v2
   }
 
   test("toJson") {
     val v    = 1
-    val json = ObjectWeaver.toJson(1)
-    val v2   = ObjectWeaver.fromJson[Int](json)
+    val json = Weaver.toJson(1)
+    val v2   = Weaver.fromJson[Int](json)
     v shouldBe v2
   }
 
   test("weave string") {
     val v       = "hello"
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[String](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[String](msgpack)
     v shouldBe v2
   }
 
   test("string toJson") {
     val v    = "hello world"
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[String](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[String](json)
     v shouldBe v2
   }
 
   test("weave List[Int]") {
     val v       = List(1, 2, 3, 4, 5)
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[List[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[List[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave empty List[Int]") {
     val v       = List.empty[Int]
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[List[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[List[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave List[String]") {
     val v       = List("hello", "world", "test")
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[List[String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[List[String]](msgpack)
     v shouldBe v2
   }
 
   test("List[Int] toJson") {
     val v    = List(1, 2, 3)
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[List[Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[List[Int]](json)
     v shouldBe v2
   }
 
   test("nested List[List[Int]]") {
     val v       = List(List(1, 2), List(3, 4), List(5))
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[List[List[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[List[List[Int]]](msgpack)
     v shouldBe v2
   }
 
@@ -83,7 +83,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[List[Int]](malformedMsgpack)
+        Weaver.unweave[List[Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -95,36 +95,36 @@ class WeaverTest extends UniTest:
 
   test("weave Map[String, Int]") {
     val v       = Map("a" -> 1, "b" -> 2, "c" -> 3)
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Map[String, Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Map[String, Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave empty Map[String, Int]") {
     val v       = Map.empty[String, Int]
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Map[String, Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Map[String, Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave Map[Int, String]") {
     val v       = Map(1 -> "one", 2 -> "two", 3 -> "three")
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Map[Int, String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Map[Int, String]](msgpack)
     v shouldBe v2
   }
 
   test("Map[String, Int] toJson") {
     val v    = Map("x" -> 10, "y" -> 20)
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[Map[String, Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Map[String, Int]](json)
     v shouldBe v2
   }
 
   test("nested Map[String, List[Int]]") {
     val v       = Map("numbers" -> List(1, 2, 3), "more" -> List(4, 5), "empty" -> List.empty[Int])
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Map[String, List[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Map[String, List[Int]]](msgpack)
     v shouldBe v2
   }
 
@@ -134,8 +134,8 @@ class WeaverTest extends UniTest:
       "group2" -> Map("x" -> 10, "y" -> 20),
       "empty"  -> Map.empty[String, Int]
     )
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Map[String, Map[String, Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Map[String, Map[String, Int]]](msgpack)
     v shouldBe v2
   }
 
@@ -154,7 +154,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[Map[String, Int]](malformedMsgpack)
+        Weaver.unweave[Map[String, Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -177,7 +177,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[Map[String, Int]](malformedMsgpack)
+        Weaver.unweave[Map[String, Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -189,106 +189,106 @@ class WeaverTest extends UniTest:
 
   test("weave Seq[Int]") {
     val v       = Seq(1, 2, 3, 4, 5)
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Seq[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Seq[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave empty Seq[Int]") {
     val v       = Seq.empty[Int]
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Seq[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Seq[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave Seq[String]") {
     val v       = Seq("hello", "world", "test")
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Seq[String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Seq[String]](msgpack)
     v shouldBe v2
   }
 
   test("Seq[Int] toJson") {
     val v    = Seq(1, 2, 3)
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[Seq[Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Seq[Int]](json)
     v shouldBe v2
   }
 
   test("nested Seq[Seq[Int]]") {
     val v       = Seq(Seq(1, 2), Seq(3, 4), Seq(5))
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[Seq[Seq[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Seq[Seq[Int]]](msgpack)
     v shouldBe v2
   }
 
   test("weave IndexedSeq[Int]") {
     val v       = IndexedSeq(1, 2, 3, 4, 5)
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[IndexedSeq[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[IndexedSeq[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave empty IndexedSeq[Int]") {
     val v       = IndexedSeq.empty[Int]
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[IndexedSeq[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[IndexedSeq[Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave IndexedSeq[String]") {
     val v       = IndexedSeq("hello", "world", "test")
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[IndexedSeq[String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[IndexedSeq[String]](msgpack)
     v shouldBe v2
   }
 
   test("IndexedSeq[Int] toJson") {
     val v    = IndexedSeq(1, 2, 3)
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[IndexedSeq[Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[IndexedSeq[Int]](json)
     v shouldBe v2
   }
 
   test("nested IndexedSeq[IndexedSeq[Int]]") {
     val v       = IndexedSeq(IndexedSeq(1, 2), IndexedSeq(3, 4), IndexedSeq(5))
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[IndexedSeq[IndexedSeq[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[IndexedSeq[IndexedSeq[Int]]](msgpack)
     v shouldBe v2
   }
 
   test("weave java.util.List[Int]") {
     val v       = List(1, 2, 3, 4, 5).asJava
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[java.util.List[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.List[Int]](msgpack)
     v2.asScala shouldBe v.asScala
   }
 
   test("weave empty java.util.List[Int]") {
     val v       = List.empty[Int].asJava
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[java.util.List[Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.List[Int]](msgpack)
     v2.asScala shouldBe v.asScala
   }
 
   test("weave java.util.List[String]") {
     val v       = List("hello", "world", "test").asJava
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[java.util.List[String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.List[String]](msgpack)
     v2.asScala shouldBe v.asScala
   }
 
   test("java.util.List[Int] toJson") {
     val v    = List(1, 2, 3).asJava
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[java.util.List[Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[java.util.List[Int]](json)
     v2.asScala shouldBe v.asScala
   }
 
   test("nested java.util.List[java.util.List[Int]]") {
     val v       = List(List(1, 2).asJava, List(3, 4).asJava, List(5).asJava).asJava
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[java.util.List[java.util.List[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.List[java.util.List[Int]]](msgpack)
     v2.asScala.map(_.asScala) shouldBe v.asScala.map(_.asScala)
   }
 
@@ -305,7 +305,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[Seq[Int]](malformedMsgpack)
+        Weaver.unweave[Seq[Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -328,7 +328,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[IndexedSeq[Int]](malformedMsgpack)
+        Weaver.unweave[IndexedSeq[Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -351,7 +351,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[java.util.List[Int]](malformedMsgpack)
+        Weaver.unweave[java.util.List[Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -363,8 +363,8 @@ class WeaverTest extends UniTest:
 
   test("weave ListMap[String, Int]") {
     val v       = scala.collection.immutable.ListMap("a" -> 1, "b" -> 2, "c" -> 3)
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
     v shouldBe v2
     // Verify order is preserved
     v.keys.toList shouldBe v2.keys.toList
@@ -373,15 +373,15 @@ class WeaverTest extends UniTest:
 
   test("weave empty ListMap[String, Int]") {
     val v       = scala.collection.immutable.ListMap.empty[String, Int]
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
     v shouldBe v2
   }
 
   test("weave ListMap[Int, String]") {
     val v       = scala.collection.immutable.ListMap(1 -> "one", 2 -> "two", 3 -> "three")
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[Int, String]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[scala.collection.immutable.ListMap[Int, String]](msgpack)
     v shouldBe v2
     // Verify order is preserved
     v.keys.toList shouldBe v2.keys.toList
@@ -390,8 +390,8 @@ class WeaverTest extends UniTest:
 
   test("ListMap[String, Int] toJson") {
     val v    = scala.collection.immutable.ListMap("x" -> 10, "y" -> 20, "z" -> 30)
-    val json = ObjectWeaver.toJson(v)
-    val v2   = ObjectWeaver.fromJson[scala.collection.immutable.ListMap[String, Int]](json)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[scala.collection.immutable.ListMap[String, Int]](json)
     v shouldBe v2
     // Verify order is preserved
     v.keys.toList shouldBe v2.keys.toList
@@ -403,8 +403,8 @@ class WeaverTest extends UniTest:
       .collection
       .immutable
       .ListMap("numbers" -> List(1, 2, 3), "more" -> List(4, 5), "empty" -> List.empty[Int])
-    val msgpack = ObjectWeaver.weave(v)
-    val v2 = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, List[Int]]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[scala.collection.immutable.ListMap[String, List[Int]]](msgpack)
     v shouldBe v2
     // Verify order is preserved
     v.keys.toList shouldBe v2.keys.toList
@@ -419,8 +419,8 @@ class WeaverTest extends UniTest:
         "group2" -> scala.collection.immutable.ListMap("x" -> 10, "y" -> 20),
         "empty"  -> scala.collection.immutable.ListMap.empty[String, Int]
       )
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[
       scala.collection.immutable.ListMap[String, scala.collection.immutable.ListMap[String, Int]]
     ](msgpack)
     v shouldBe v2
@@ -439,8 +439,8 @@ class WeaverTest extends UniTest:
     builder += ("second" -> 2)
     val v        = builder.result()
 
-    val msgpack = ObjectWeaver.weave(v)
-    val v2      = ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[scala.collection.immutable.ListMap[String, Int]](msgpack)
 
     // Verify values are correct
     v shouldBe v2
@@ -466,7 +466,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
+        Weaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>
@@ -489,7 +489,7 @@ class WeaverTest extends UniTest:
 
     val result =
       try
-        ObjectWeaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
+        Weaver.unweave[scala.collection.immutable.ListMap[String, Int]](malformedMsgpack)
         None
       catch
         case e: Exception =>

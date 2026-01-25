@@ -99,20 +99,20 @@ val map = (0 until size).map { _ =>
 
 ## Object Weaving
 
-For automatic serialization of case classes, use ObjectWeaver:
+For automatic serialization of case classes, use Weaver:
 
 ```scala
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 
-case class User(name: String, age: Int)
+case class User(name: String, age: Int) derives Weaver
 
 val user = User("Alice", 30)
 
 // Serialize to MessagePack bytes
-val bytes = ObjectWeaver.toMsgPack(user)
+val bytes = Weaver.weave(user)
 
 // Deserialize from bytes
-val restored = ObjectWeaver.fromMsgPack[User](bytes)
+val restored = Weaver.unweave[User](bytes)
 ```
 
 ## MessagePack vs JSON
@@ -139,5 +139,5 @@ Use JSON when:
 
 1. **Match pack/unpack order** - Data must be unpacked in the same order it was packed
 2. **Include length headers** - For arrays and maps
-3. **Use ObjectWeaver** - For automatic case class serialization
+3. **Use Weaver** - For automatic case class serialization
 4. **Handle format errors** - Wrap unpacking in try-catch

@@ -1,7 +1,7 @@
 package wvlet.uni.weaver.codec
 
 import wvlet.uni.msgpack.spi.MessagePack
-import wvlet.uni.weaver.ObjectWeaver
+import wvlet.uni.weaver.Weaver
 import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
@@ -13,8 +13,8 @@ class PrimitiveWeaverTest extends UniTest:
     val intValues = Seq(0, 1, -1, 127, -128, 32767, -32768, Int.MaxValue, Int.MinValue)
 
     for intValue <- intValues do
-      val packed   = ObjectWeaver.weave(intValue)
-      val unpacked = ObjectWeaver.unweave[Int](packed)
+      val packed   = Weaver.weave(intValue)
+      val unpacked = Weaver.unweave[Int](packed)
       unpacked shouldBe intValue
   }
 
@@ -33,7 +33,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packDouble(floatValue)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[Int](packed)
+      val unpacked = Weaver.unweave[Int](packed)
       unpacked shouldBe expectedInt
   }
 
@@ -47,7 +47,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packed = packer.toByteArray
 
       val exception = intercept[IllegalArgumentException] {
-        ObjectWeaver.unweave[Int](packed)
+        Weaver.unweave[Int](packed)
       }
       exception.getMessage.contains("Cannot convert double") shouldBe true
   }
@@ -67,7 +67,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packString(stringValue)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[Int](packed)
+      val unpacked = Weaver.unweave[Int](packed)
       unpacked shouldBe expectedInt
   }
 
@@ -81,7 +81,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packed = packer.toByteArray
 
       val exception = intercept[IllegalArgumentException] {
-        ObjectWeaver.unweave[Int](packed)
+        Weaver.unweave[Int](packed)
       }
       exception.getMessage.contains("Cannot convert string") shouldBe true
   }
@@ -91,13 +91,13 @@ class PrimitiveWeaverTest extends UniTest:
     val packer1 = MessagePack.newPacker()
     packer1.packBoolean(true)
     val packed1   = packer1.toByteArray
-    val unpacked1 = ObjectWeaver.unweave[Int](packed1)
+    val unpacked1 = Weaver.unweave[Int](packed1)
     unpacked1 shouldBe 1
 
     val packer2 = MessagePack.newPacker()
     packer2.packBoolean(false)
     val packed2   = packer2.toByteArray
-    val unpacked2 = ObjectWeaver.unweave[Int](packed2)
+    val unpacked2 = Weaver.unweave[Int](packed2)
     unpacked2 shouldBe 0
   }
 
@@ -106,7 +106,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packer = MessagePack.newPacker()
     packer.packNil
     val packed   = packer.toByteArray
-    val unpacked = ObjectWeaver.unweave[Int](packed)
+    val unpacked = Weaver.unweave[Int](packed)
     unpacked shouldBe 0
   }
 
@@ -119,7 +119,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val exception = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Int](packed)
+      Weaver.unweave[Int](packed)
     }
     exception.getMessage.contains("Cannot convert") shouldBe true
   }
@@ -139,7 +139,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packed = packer.toByteArray
 
       intercept[Exception] {
-        ObjectWeaver.unweave[Int](packed)
+        Weaver.unweave[Int](packed)
       }
   }
 
@@ -147,8 +147,8 @@ class PrimitiveWeaverTest extends UniTest:
     val longValues = Seq(0L, 1L, -1L, Long.MaxValue, Long.MinValue, 9223372036854775807L)
 
     for longValue <- longValues do
-      val packed   = ObjectWeaver.weave(longValue)
-      val unpacked = ObjectWeaver.unweave[Long](packed)
+      val packed   = Weaver.weave(longValue)
+      val unpacked = Weaver.unweave[Long](packed)
       unpacked shouldBe longValue
   }
 
@@ -157,28 +157,28 @@ class PrimitiveWeaverTest extends UniTest:
     val packerBool = MessagePack.newPacker()
     packerBool.packBoolean(true)
     val packedBool   = packerBool.toByteArray
-    val unpackedBool = ObjectWeaver.unweave[Long](packedBool)
+    val unpackedBool = Weaver.unweave[Long](packedBool)
     unpackedBool shouldBe 1L
 
     // From string
     val packerStr = MessagePack.newPacker()
     packerStr.packString("42")
     val packedStr   = packerStr.toByteArray
-    val unpackedStr = ObjectWeaver.unweave[Long](packedStr)
+    val unpackedStr = Weaver.unweave[Long](packedStr)
     unpackedStr shouldBe 42L
 
     // From nil (should return default value for Long type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Long](packedNil)
+    val unpackedNil = Weaver.unweave[Long](packedNil)
     unpackedNil shouldBe 0L
 
     // From float (whole number)
     val packerFloat = MessagePack.newPacker()
     packerFloat.packDouble(123.0)
     val packedFloat   = packerFloat.toByteArray
-    val unpackedFloat = ObjectWeaver.unweave[Long](packedFloat)
+    val unpackedFloat = Weaver.unweave[Long](packedFloat)
     unpackedFloat shouldBe 123L
   }
 
@@ -186,8 +186,8 @@ class PrimitiveWeaverTest extends UniTest:
     val doubleValues = Seq(0.0, 1.0, -1.0, 3.14159, Double.MaxValue, Double.MinValue)
 
     for doubleValue <- doubleValues do
-      val packed   = ObjectWeaver.weave(doubleValue)
-      val unpacked = ObjectWeaver.unweave[Double](packed)
+      val packed   = Weaver.weave(doubleValue)
+      val unpacked = Weaver.unweave[Double](packed)
       unpacked shouldBe doubleValue
   }
 
@@ -196,28 +196,28 @@ class PrimitiveWeaverTest extends UniTest:
     val packerInt = MessagePack.newPacker()
     packerInt.packLong(42L)
     val packedInt   = packerInt.toByteArray
-    val unpackedInt = ObjectWeaver.unweave[Double](packedInt)
+    val unpackedInt = Weaver.unweave[Double](packedInt)
     unpackedInt shouldBe 42.0
 
     // From string
     val packerStr = MessagePack.newPacker()
     packerStr.packString("3.14")
     val packedStr   = packerStr.toByteArray
-    val unpackedStr = ObjectWeaver.unweave[Double](packedStr)
+    val unpackedStr = Weaver.unweave[Double](packedStr)
     unpackedStr shouldBe 3.14
 
     // From boolean
     val packerBool = MessagePack.newPacker()
     packerBool.packBoolean(false)
     val packedBool   = packerBool.toByteArray
-    val unpackedBool = ObjectWeaver.unweave[Double](packedBool)
+    val unpackedBool = Weaver.unweave[Double](packedBool)
     unpackedBool shouldBe 0.0
 
     // From nil (should return default value for Double type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Double](packedNil)
+    val unpackedNil = Weaver.unweave[Double](packedNil)
     unpackedNil shouldBe 0.0
   }
 
@@ -225,8 +225,8 @@ class PrimitiveWeaverTest extends UniTest:
     val floatValues = Seq(0.0f, 1.0f, -1.0f, 3.14f, Float.MaxValue, Float.MinValue)
 
     for floatValue <- floatValues do
-      val packed   = ObjectWeaver.weave(floatValue)
-      val unpacked = ObjectWeaver.unweave[Float](packed)
+      val packed   = Weaver.weave(floatValue)
+      val unpacked = Weaver.unweave[Float](packed)
       unpacked shouldBe floatValue
   }
 
@@ -235,35 +235,35 @@ class PrimitiveWeaverTest extends UniTest:
     val packerInt = MessagePack.newPacker()
     packerInt.packLong(42L)
     val packedInt   = packerInt.toByteArray
-    val unpackedInt = ObjectWeaver.unweave[Float](packedInt)
+    val unpackedInt = Weaver.unweave[Float](packedInt)
     unpackedInt shouldBe 42.0f
 
     // From double (within range)
     val packerDouble = MessagePack.newPacker()
     packerDouble.packDouble(3.14)
     val packedDouble   = packerDouble.toByteArray
-    val unpackedDouble = ObjectWeaver.unweave[Float](packedDouble)
+    val unpackedDouble = Weaver.unweave[Float](packedDouble)
     unpackedDouble shouldBe 3.14f
 
     // From string
     val packerStr = MessagePack.newPacker()
     packerStr.packString("2.71")
     val packedStr   = packerStr.toByteArray
-    val unpackedStr = ObjectWeaver.unweave[Float](packedStr)
+    val unpackedStr = Weaver.unweave[Float](packedStr)
     unpackedStr shouldBe 2.71f
 
     // From boolean
     val packerBool = MessagePack.newPacker()
     packerBool.packBoolean(true)
     val packedBool   = packerBool.toByteArray
-    val unpackedBool = ObjectWeaver.unweave[Float](packedBool)
+    val unpackedBool = Weaver.unweave[Float](packedBool)
     unpackedBool shouldBe 1.0f
 
     // From nil (should return default value for Float type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Float](packedNil)
+    val unpackedNil = Weaver.unweave[Float](packedNil)
     unpackedNil shouldBe 0.0f
   }
 
@@ -274,7 +274,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val exception = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Float](packed)
+      Weaver.unweave[Float](packed)
     }
     exception.getMessage.contains("out of Float range") shouldBe true
   }
@@ -283,8 +283,8 @@ class PrimitiveWeaverTest extends UniTest:
     val boolValues = Seq(true, false)
 
     for boolValue <- boolValues do
-      val packed   = ObjectWeaver.weave(boolValue)
-      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      val packed   = Weaver.weave(boolValue)
+      val unpacked = Weaver.unweave[Boolean](packed)
       unpacked shouldBe boolValue
   }
 
@@ -293,14 +293,14 @@ class PrimitiveWeaverTest extends UniTest:
     val packerInt = MessagePack.newPacker()
     packerInt.packInt(5)
     val packedInt   = packerInt.toByteArray
-    val unpackedInt = ObjectWeaver.unweave[Boolean](packedInt)
+    val unpackedInt = Weaver.unweave[Boolean](packedInt)
     unpackedInt shouldBe true
 
     // From integer - zero is false
     val packerZero = MessagePack.newPacker()
     packerZero.packInt(0)
     val packedZero   = packerZero.toByteArray
-    val unpackedZero = ObjectWeaver.unweave[Boolean](packedZero)
+    val unpackedZero = Weaver.unweave[Boolean](packedZero)
     unpackedZero shouldBe false
 
     // From string - various true values
@@ -309,7 +309,7 @@ class PrimitiveWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packString(trueStr)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      val unpacked = Weaver.unweave[Boolean](packed)
       unpacked shouldBe true
 
     // From string - various false values
@@ -318,27 +318,27 @@ class PrimitiveWeaverTest extends UniTest:
       val packer = MessagePack.newPacker()
       packer.packString(falseStr)
       val packed   = packer.toByteArray
-      val unpacked = ObjectWeaver.unweave[Boolean](packed)
+      val unpacked = Weaver.unweave[Boolean](packed)
       unpacked shouldBe false
 
     // From float/double - non-zero is true, zero is false
     val packerDoubleTrue = MessagePack.newPacker()
     packerDoubleTrue.packDouble(3.14)
     val packedDoubleTrue   = packerDoubleTrue.toByteArray
-    val unpackedDoubleTrue = ObjectWeaver.unweave[Boolean](packedDoubleTrue)
+    val unpackedDoubleTrue = Weaver.unweave[Boolean](packedDoubleTrue)
     unpackedDoubleTrue shouldBe true
 
     val packerDoubleFalse = MessagePack.newPacker()
     packerDoubleFalse.packDouble(0.0)
     val packedDoubleFalse   = packerDoubleFalse.toByteArray
-    val unpackedDoubleFalse = ObjectWeaver.unweave[Boolean](packedDoubleFalse)
+    val unpackedDoubleFalse = Weaver.unweave[Boolean](packedDoubleFalse)
     unpackedDoubleFalse shouldBe false
 
     // From nil (should return default value for Boolean type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Boolean](packedNil)
+    val unpackedNil = Weaver.unweave[Boolean](packedNil)
     unpackedNil shouldBe false
   }
 
@@ -346,8 +346,8 @@ class PrimitiveWeaverTest extends UniTest:
     val byteValues = Seq(0.toByte, 1.toByte, -1.toByte, Byte.MaxValue, Byte.MinValue)
 
     for byteValue <- byteValues do
-      val packed   = ObjectWeaver.weave(byteValue)
-      val unpacked = ObjectWeaver.unweave[Byte](packed)
+      val packed   = Weaver.weave(byteValue)
+      val unpacked = Weaver.unweave[Byte](packed)
       unpacked shouldBe byteValue
   }
 
@@ -356,35 +356,35 @@ class PrimitiveWeaverTest extends UniTest:
     val packerInt = MessagePack.newPacker()
     packerInt.packLong(42L)
     val packedInt   = packerInt.toByteArray
-    val unpackedInt = ObjectWeaver.unweave[Byte](packedInt)
+    val unpackedInt = Weaver.unweave[Byte](packedInt)
     unpackedInt shouldBe 42.toByte
 
     // From double (whole number within range)
     val packerDouble = MessagePack.newPacker()
     packerDouble.packDouble(100.0)
     val packedDouble   = packerDouble.toByteArray
-    val unpackedDouble = ObjectWeaver.unweave[Byte](packedDouble)
+    val unpackedDouble = Weaver.unweave[Byte](packedDouble)
     unpackedDouble shouldBe 100.toByte
 
     // From string
     val packerStr = MessagePack.newPacker()
     packerStr.packString("50")
     val packedStr   = packerStr.toByteArray
-    val unpackedStr = ObjectWeaver.unweave[Byte](packedStr)
+    val unpackedStr = Weaver.unweave[Byte](packedStr)
     unpackedStr shouldBe 50.toByte
 
     // From boolean
     val packerBool = MessagePack.newPacker()
     packerBool.packBoolean(true)
     val packedBool   = packerBool.toByteArray
-    val unpackedBool = ObjectWeaver.unweave[Byte](packedBool)
+    val unpackedBool = Weaver.unweave[Byte](packedBool)
     unpackedBool shouldBe 1.toByte
 
     // From nil (should return default value for Byte type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Byte](packedNil)
+    val unpackedNil = Weaver.unweave[Byte](packedNil)
     unpackedNil shouldBe 0.toByte
   }
 
@@ -395,7 +395,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val exception = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Byte](packed)
+      Weaver.unweave[Byte](packed)
     }
     exception.getMessage.contains("out of Byte range") shouldBe true
 
@@ -405,7 +405,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packedDouble = packerDouble.toByteArray
 
     val exceptionDouble = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Byte](packedDouble)
+      Weaver.unweave[Byte](packedDouble)
     }
     exceptionDouble.getMessage.contains("Cannot convert double") shouldBe true
   }
@@ -414,8 +414,8 @@ class PrimitiveWeaverTest extends UniTest:
     val shortValues = Seq(0.toShort, 1.toShort, -1.toShort, Short.MaxValue, Short.MinValue)
 
     for shortValue <- shortValues do
-      val packed   = ObjectWeaver.weave(shortValue)
-      val unpacked = ObjectWeaver.unweave[Short](packed)
+      val packed   = Weaver.weave(shortValue)
+      val unpacked = Weaver.unweave[Short](packed)
       unpacked shouldBe shortValue
   }
 
@@ -424,35 +424,35 @@ class PrimitiveWeaverTest extends UniTest:
     val packerInt = MessagePack.newPacker()
     packerInt.packLong(1000L)
     val packedInt   = packerInt.toByteArray
-    val unpackedInt = ObjectWeaver.unweave[Short](packedInt)
+    val unpackedInt = Weaver.unweave[Short](packedInt)
     unpackedInt shouldBe 1000.toShort
 
     // From double (whole number within range)
     val packerDouble = MessagePack.newPacker()
     packerDouble.packDouble(2000.0)
     val packedDouble   = packerDouble.toByteArray
-    val unpackedDouble = ObjectWeaver.unweave[Short](packedDouble)
+    val unpackedDouble = Weaver.unweave[Short](packedDouble)
     unpackedDouble shouldBe 2000.toShort
 
     // From string
     val packerStr = MessagePack.newPacker()
     packerStr.packString("500")
     val packedStr   = packerStr.toByteArray
-    val unpackedStr = ObjectWeaver.unweave[Short](packedStr)
+    val unpackedStr = Weaver.unweave[Short](packedStr)
     unpackedStr shouldBe 500.toShort
 
     // From boolean
     val packerBool = MessagePack.newPacker()
     packerBool.packBoolean(false)
     val packedBool   = packerBool.toByteArray
-    val unpackedBool = ObjectWeaver.unweave[Short](packedBool)
+    val unpackedBool = Weaver.unweave[Short](packedBool)
     unpackedBool shouldBe 0.toShort
 
     // From nil (should return default value for Short type)
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Short](packedNil)
+    val unpackedNil = Weaver.unweave[Short](packedNil)
     unpackedNil shouldBe 0.toShort
   }
 
@@ -463,7 +463,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val exception = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Short](packed)
+      Weaver.unweave[Short](packed)
     }
     exception.getMessage.contains("out of Short range") shouldBe true
 
@@ -473,7 +473,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packedDouble = packerDouble.toByteArray
 
     val exceptionDouble = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Short](packedDouble)
+      Weaver.unweave[Short](packedDouble)
     }
     exceptionDouble.getMessage.contains("Cannot convert double") shouldBe true
   }
@@ -482,8 +482,8 @@ class PrimitiveWeaverTest extends UniTest:
     val charValues = Seq('a', 'Z', '0', '9', ' ', '\n', '\u0000', '\uFFFF')
 
     for charValue <- charValues do
-      val packed   = ObjectWeaver.weave(charValue)
-      val unpacked = ObjectWeaver.unweave[Char](packed)
+      val packed   = Weaver.weave(charValue)
+      val unpacked = Weaver.unweave[Char](packed)
       unpacked shouldBe charValue
   }
 
@@ -492,7 +492,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packer = MessagePack.newPacker()
     packer.packString("A")
     val packed   = packer.toByteArray
-    val unpacked = ObjectWeaver.unweave[Char](packed)
+    val unpacked = Weaver.unweave[Char](packed)
     unpacked shouldBe 'A'
   }
 
@@ -503,7 +503,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     intercept[Exception] {
-      ObjectWeaver.unweave[Char](packed)
+      Weaver.unweave[Char](packed)
     }
   }
 
@@ -512,7 +512,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packer = MessagePack.newPacker()
     packer.packInt(65) // ASCII 'A'
     val packed   = packer.toByteArray
-    val unpacked = ObjectWeaver.unweave[Char](packed)
+    val unpacked = Weaver.unweave[Char](packed)
     unpacked shouldBe 'A'
   }
 
@@ -523,7 +523,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val exception = intercept[IllegalArgumentException] {
-      ObjectWeaver.unweave[Char](packed)
+      Weaver.unweave[Char](packed)
     }
     exception.getMessage.contains("out of Char range") shouldBe true
   }
@@ -533,7 +533,7 @@ class PrimitiveWeaverTest extends UniTest:
     val packerNil = MessagePack.newPacker()
     packerNil.packNil
     val packedNil   = packerNil.toByteArray
-    val unpackedNil = ObjectWeaver.unweave[Char](packedNil)
+    val unpackedNil = Weaver.unweave[Char](packedNil)
     unpackedNil shouldBe '\u0000'
   }
 
@@ -545,13 +545,13 @@ class PrimitiveWeaverTest extends UniTest:
     val packed = packer.toByteArray
 
     val primitiveTypes = Seq(
-      () => ObjectWeaver.unweave[Long](packed),
-      () => ObjectWeaver.unweave[Double](packed),
-      () => ObjectWeaver.unweave[Float](packed),
-      () => ObjectWeaver.unweave[Boolean](packed),
-      () => ObjectWeaver.unweave[Byte](packed),
-      () => ObjectWeaver.unweave[Short](packed),
-      () => ObjectWeaver.unweave[Char](packed)
+      () => Weaver.unweave[Long](packed),
+      () => Weaver.unweave[Double](packed),
+      () => Weaver.unweave[Float](packed),
+      () => Weaver.unweave[Boolean](packed),
+      () => Weaver.unweave[Byte](packed),
+      () => Weaver.unweave[Short](packed),
+      () => Weaver.unweave[Char](packed)
     )
 
     for unpackOperation <- primitiveTypes do
