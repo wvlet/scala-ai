@@ -24,8 +24,10 @@ libraryDependencies += "org.wvlet.uni" %% "uni" % "(version)"
 | Module | Description |
 |--------|-------------|
 | `uni` | Core utilities: Design, logging, JSON, MessagePack, HTTP, Rx |
+| `uni-test` | Lightweight testing framework with cross-platform support |
+| `uni-netty` | Netty-based HTTP server |
 | `uni-agent` | LLM agent framework with tool integration |
-| `uni-test` | Lightweight testing framework |
+| `uni-bedrock` | AWS Bedrock chat model integration |
 
 ## License
 
