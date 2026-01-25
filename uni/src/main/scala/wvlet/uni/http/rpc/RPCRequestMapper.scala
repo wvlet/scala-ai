@@ -180,7 +180,9 @@ class RPCRequestMapper:
               case _: Exception =>
                 strVal
           case _ =>
-            strVal
+            throw RPCStatus
+              .INVALID_ARGUMENT_U2
+              .newException(s"Parameter '${paramName}' expects ${surface.name}, got string")
 
       case arr: JSONArray =>
         if surface.isSeq then
@@ -257,6 +259,8 @@ class RPCRequestMapper:
         val inner = surface.typeArgs.headOption.getOrElse(Primitive.Long)
         Some(convertNumber(n, inner, paramName))
       case _ =>
-        n
+        throw RPCStatus
+          .INVALID_ARGUMENT_U2
+          .newException(s"Parameter '${paramName}' expects ${surface.name}, got number")
 
 end RPCRequestMapper
