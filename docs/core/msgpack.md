@@ -104,7 +104,12 @@ For automatic serialization of case classes, use Weaver:
 ```scala
 import wvlet.uni.weaver.Weaver
 
+// Using derives clause
 case class User(name: String, age: Int) derives Weaver
+
+// Or explicit derivation
+case class Address(city: String, country: String)
+given Weaver[Address] = Weaver.of[Address]
 
 val user = User("Alice", 30)
 
