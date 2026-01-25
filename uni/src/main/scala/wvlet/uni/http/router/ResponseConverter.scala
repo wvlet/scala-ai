@@ -27,7 +27,7 @@ import wvlet.uni.rx.Rx
   *   - JSONValue: converted to Response with JSON body
   *   - String: converted to Response with text body
   *   - Unit: converted to Response with no content
-  *   - Other types: serialized to JSON using ObjectWeaver
+  *   - Other types: serialized to JSON using Weaver
   */
 object ResponseConverter:
 
@@ -148,12 +148,12 @@ object ResponseConverter:
   /**
     * Convert an object to a JSON string. Falls back to toString for non-standard types.
     *
-    * Note: For proper JSON serialization of case classes, use ObjectWeaver with a derived codec.
-    * This method provides a simple fallback that works across all platforms (JVM, JS, Native).
+    * Note: For proper JSON serialization of case classes, use Weaver with a derived codec. This
+    * method provides a simple fallback that works across all platforms (JVM, JS, Native).
     */
   private def toJsonString(value: Any): String =
     // For cross-platform compatibility, we use toString as fallback
-    // Users should provide proper ObjectWeaver codecs for complex types
+    // Users should provide proper Weaver codecs for complex types
     s"\"${escapeJsonString(value.toString)}\""
 
 end ResponseConverter

@@ -150,7 +150,7 @@ class ApiClient(baseUrl: String):
       Request.get(s"${baseUrl}/users/${id}")
     )
     if response.status.isSuccess then
-      ObjectWeaver.fromJSON[User](response.contentAsString)
+      Weaver.fromJson[User](response.contentAsString)
     else
       throw HttpException(response.status)
 
@@ -158,9 +158,9 @@ class ApiClient(baseUrl: String):
     val response = client.send(
       Request
         .post(s"${baseUrl}/users")
-        .withJsonContent(ObjectWeaver.toJSON(user))
+        .withJsonContent(Weaver.toJson(user))
     )
-    ObjectWeaver.fromJSON[User](response.contentAsString)
+    Weaver.fromJson[User](response.contentAsString)
 
   def close(): Unit = client.close()
 ```

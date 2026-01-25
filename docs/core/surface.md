@@ -94,12 +94,12 @@ val design = Design.newDesign
 
 ### Serialization
 
-ObjectWeaver uses Surface for automatic serialization:
+Weaver uses Surface for automatic serialization:
 
 ```scala
 // Surface describes the structure for serialization
-val json = ObjectWeaver.toJSON(user)
-val restored = ObjectWeaver.fromJSON[User](json)
+val json = Weaver.toJson(user)
+val restored = Weaver.fromJson[User](json)
 ```
 
 ### Validation
