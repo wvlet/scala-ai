@@ -307,7 +307,23 @@ Benefits:
 - Pattern matching exhaustivity checks
 - Cleaner, more idiomatic Scala 3
 
-#### 2. Code Range Design (1000-sized buckets)
+#### 2. Naming Decision: Keep `RPC` Prefix
+
+Considered alternatives: `ServiceStatus`, `AppStatus`, `ErrorStatus`, bare `Status`.
+
+**Decision: Keep `RPCStatus`, `RPCStatusType`, `RPCException`**
+
+Rationale:
+- Aligns with package structure (`wvlet.uni.http.rpc`)
+- Matches wire protocol header (`X-RPC-Status`)
+- Avoids confusion/collision with `HttpStatus`
+- Familiar to airframe-rpc users
+- RPC is conceptually a superset - REST is RPC over HTTP with conventions
+
+Note: These can be used for REST/GraphQL servers too. If broader naming is needed
+later, add type aliases (`type ServiceStatus = RPCStatus`) without breaking changes.
+
+#### 3. Code Range Design (1000-sized buckets)
 
 Considered alternative: smaller ranges like 0-99, 100-199, 200-299, 300-399.
 
@@ -345,7 +361,7 @@ Considered alternative: smaller ranges like 0-99, 100-199, 200-299, 300-399.
    - HTTP uses 100-599 - our ranges intentionally avoid this space
    - airframe-rpc uses same 1000-sized ranges - proven design
 
-#### 3. RPCException Immutability
+#### 4. RPCException Immutability
 
 Original design had mutable `includeStackTrace` var. Changed to immutable case class:
 
@@ -360,14 +376,14 @@ case class RPCException(
   def noStackTrace: RPCException = copy(includeStackTrace = Some(false))
 ```
 
-#### 3. Server-Side Implementation Deferred
+#### 5. Server-Side Implementation Deferred
 
 Removed half-baked RPCRouter, RPCHandler, RPCRequestMapper. These require:
 - ObjectWeaver support for complex object parameters (code generator needed)
 - More thorough design for request/response handling
 - Better integration with existing Router infrastructure
 
-#### 4. RPCErrorMessage Simplified (metadata field removed)
+#### 6. RPCErrorMessage Simplified (metadata field removed)
 
 Original airframe-rpc design included a `metadata: Map[String, Any]` field for
 arbitrary error context. Removed for simplicity:
