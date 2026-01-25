@@ -36,10 +36,10 @@ Rename `ObjectWeaver[A]` to `Weaver[A]` for brevity while maintaining backward c
 
 Add to `Weaver.scala`:
 ```scala
-@deprecated("Use Weaver instead", "0.x.x")
+@deprecated("Use Weaver instead", "2026.1.x")
 type ObjectWeaver[A] = Weaver[A]
 
-@deprecated("Use Weaver instead", "0.x.x")
+@deprecated("Use Weaver instead", "2026.1.x")
 val ObjectWeaver = Weaver
 ```
 
