@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wvlet.uni.netty
+package wvlet.uni.http.netty
 
 import wvlet.uni.http.{HttpHandler, HttpMethod, Request, Response}
 import wvlet.uni.rx.Rx
