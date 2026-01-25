@@ -104,31 +104,21 @@ class SealedTraitWeaverTest extends UniTest:
   }
 
   test("error: missing discriminator") {
-    val json   = """{"name":"Rex","age":5}"""
-    val result =
-      try
-        ObjectWeaver.fromJson[Animal](json)
-        None
-      catch
-        case e: Exception =>
-          Some(e)
-    result.isDefined shouldBe true
-    result.get.getMessage shouldContain "Missing discriminator field"
+    val json = """{"name":"Rex","age":5}"""
+    val e    = intercept[IllegalArgumentException] {
+      ObjectWeaver.fromJson[Animal](json)
+    }
+    e.getMessage shouldContain "Missing discriminator field"
   }
 
   test("error: unknown type name") {
-    val json   = """{"@type":"Bird","name":"Tweety"}"""
-    val result =
-      try
-        ObjectWeaver.fromJson[Animal](json)
-        None
-      catch
-        case e: Exception =>
-          Some(e)
-    result.isDefined shouldBe true
-    result.get.getMessage shouldContain "Unknown type"
-    result.get.getMessage shouldContain "Dog"
-    result.get.getMessage shouldContain "Cat"
+    val json = """{"@type":"Bird","name":"Tweety"}"""
+    val e    = intercept[IllegalArgumentException] {
+      ObjectWeaver.fromJson[Animal](json)
+    }
+    e.getMessage shouldContain "Unknown type"
+    e.getMessage shouldContain "Dog"
+    e.getMessage shouldContain "Cat"
   }
 
   test("canonical name matching - lowercase type") {

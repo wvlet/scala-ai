@@ -105,72 +105,57 @@ object ObjectWeaverDerivation:
     // Build child weaver entries: (name, (weaver, Option[singleton]))
     val childEntries: List[Expr[(String, (ObjectWeaver[? <: A], Option[A]))]] = children.map {
       childSym =>
-        val childName = childSym.name.stripSuffix("$")
-
-        // Check if it's a case object (module)
+        val childName    = childSym.name.stripSuffix("$")
         val isCaseObject = childSym.flags.is(Flags.Module)
+        val childType    =
+          if isCaseObject then
+            childSym.termRef
+          else
+            childSym.typeRef
 
-        if isCaseObject then
-          // For case objects, use termRef to get the singleton type
-          val childType = childSym.termRef
-          childType.asType match
-            case '[t] =>
-              val moduleRef     = Ref(childSym)
-              val singletonExpr = moduleRef.asExprOf[t]
+        childType.asType match
+          case '[t] =>
+            Expr.summon[ObjectWeaver[t]] match
+              case Some(weaverExpr) =>
+                val singletonExpr: Expr[Option[A]] =
+                  if isCaseObject then
+                    val moduleRef = Ref(childSym)
+                    '{
+                      Some(
+                        ${
+                          moduleRef.asExprOf[t]
+                        }.asInstanceOf[A]
+                      )
+                    }
+                  else
+                    '{
+                      None
+                    }
 
-              // Summon weaver for the case object type
-              Expr.summon[ObjectWeaver[t]] match
-                case Some(weaverExpr) =>
-                  '{
+                '{
+                  (
+                    ${
+                      Expr(childName)
+                    },
                     (
                       ${
-                        Expr(childName)
-                      },
-                      (
-                        ${
-                          weaverExpr
-                        }.asInstanceOf[ObjectWeaver[? <: A]],
-                        Some(
-                          ${
-                            singletonExpr
-                          }.asInstanceOf[A]
-                        )
-                      )
+                        weaverExpr
+                      }.asInstanceOf[ObjectWeaver[? <: A]],
+                      $singletonExpr
                     )
-                  }
-                case None =>
-                  report.errorAndAbort(
-                    s"No ObjectWeaver found for case object '${childName}'. " +
-                      s"Make sure it has 'derives ObjectWeaver'."
                   )
-          end match
-        else
-          // For case classes, use typeRef to get the class type
-          val childType = childSym.typeRef
-          childType.asType match
-            case '[t] =>
-              // Summon weaver for the case class type
-              Expr.summon[ObjectWeaver[t]] match
-                case Some(weaverExpr) =>
-                  '{
-                    (
-                      ${
-                        Expr(childName)
-                      },
-                      (
-                        ${
-                          weaverExpr
-                        }.asInstanceOf[ObjectWeaver[? <: A]],
-                        None: Option[A]
-                      )
-                    )
-                  }
-                case None =>
-                  report.errorAndAbort(
-                    s"No ObjectWeaver found for child type '${childName}' of sealed trait ${symbol
-                        .fullName}. " + s"Make sure it has 'derives ObjectWeaver'."
-                  )
-        end if
+                }
+              case None =>
+                val targetType =
+                  if isCaseObject then
+                    "case object"
+                  else
+                    "child type"
+                report.errorAndAbort(
+                  s"No ObjectWeaver found for ${targetType} '${childName}' of sealed trait ${symbol
+                      .fullName}. " + s"Make sure it has 'derives ObjectWeaver'."
+                )
+        end match
     }
 
     // Build the Map expression
