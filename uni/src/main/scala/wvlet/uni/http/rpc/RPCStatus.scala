@@ -177,7 +177,8 @@ enum RPCStatus(val statusType: RPCStatusType, val httpStatus: HttpStatus):
   case EXCEEDED_CPU_LIMIT_R3 extends RPCStatus(RESOURCE_EXHAUSTED, HttpStatus.TooManyRequests_429)
 
   /** Memory usage limit reached */
-  case EXCEEDED_MEMORY_LIMIT_R4 extends RPCStatus(RESOURCE_EXHAUSTED, HttpStatus.TooManyRequests_429)
+  case EXCEEDED_MEMORY_LIMIT_R4
+      extends RPCStatus(RESOURCE_EXHAUSTED, HttpStatus.TooManyRequests_429)
 
   /** Running time limit reached */
   case EXCEEDED_TIME_LIMIT_R5 extends RPCStatus(RESOURCE_EXHAUSTED, HttpStatus.TooManyRequests_429)
