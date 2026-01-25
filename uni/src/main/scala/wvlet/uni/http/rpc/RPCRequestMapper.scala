@@ -46,7 +46,12 @@ class RPCRequestMapper:
       controllerOpt: Option[Any] = None
   ): Seq[Any] =
     val jsonBody = request.content.asString.getOrElse("[]")
-    val json     = JSON.parse(jsonBody)
+    val json     =
+      try
+        JSON.parse(jsonBody)
+      catch
+        case e: Exception =>
+          throw RPCStatus.INVALID_REQUEST_U1.newException(s"Invalid JSON body: ${e.getMessage}")
 
     json match
       case arr: JSONArray =>
@@ -66,6 +71,8 @@ class RPCRequestMapper:
                 .newException(s"Required parameter '${param.name}' is missing")
             )
           }
+
+  end bindParameters
 
   private def bindPositionalArgs(
       arr: JSONArray,
@@ -125,7 +132,9 @@ class RPCRequestMapper:
         if surface.isOption then
           None
         else
-          null
+          throw RPCStatus
+            .INVALID_ARGUMENT_U2
+            .newException(s"Parameter '${paramName}' cannot be null (expected ${surface.name})")
 
       case JSONBoolean(boolVal) =>
         surface match
