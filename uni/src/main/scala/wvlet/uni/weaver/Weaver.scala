@@ -49,16 +49,19 @@ end Weaver
 object Weaver:
 
   /**
-    * Derive a Weaver for a case class at compile-time. Usage:
+    * Derive a Weaver for a case class or sealed trait at compile-time.
     * {{{
     * case class Person(name: String, age: Int)
-    * given Weaver[Person] = Weaver.derived[Person]
+    * given Weaver[Person] = Weaver.of[Person]
     *
     * // Or with derives clause:
     * case class Person(name: String, age: Int) derives Weaver
     * }}}
     */
-  inline def derived[A]: Weaver[A] = WeaverDerivation.deriveWeaver[A]
+  inline def of[A]: Weaver[A] = WeaverDerivation.deriveWeaver[A]
+
+  // For `derives Weaver` clause
+  inline def derived[A]: Weaver[A] = of[A]
 
   def weave[A](v: A, config: WeaverConfig = WeaverConfig())(using weaver: Weaver[A]): MsgPack =
     weaver.weave(v, config)

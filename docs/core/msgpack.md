@@ -104,15 +104,20 @@ For automatic serialization of case classes, use Weaver:
 ```scala
 import wvlet.uni.weaver.Weaver
 
+// Using derives clause
 case class User(name: String, age: Int) derives Weaver
 
-val user = User("Alice", 30)
+// Or explicit derivation
+case class Address(city: String, country: String)
+given Weaver[Address] = Weaver.of[Address]
 
 // Serialize to MessagePack bytes
-val bytes = Weaver.weave(user)
+val userBytes = Weaver.weave(User("Alice", 30))
+val addressBytes = Weaver.weave(Address("Tokyo", "Japan"))
 
 // Deserialize from bytes
-val restored = Weaver.unweave[User](bytes)
+val user = Weaver.unweave[User](userBytes)
+val address = Weaver.unweave[Address](addressBytes)
 ```
 
 ## MessagePack vs JSON
