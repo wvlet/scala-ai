@@ -185,14 +185,10 @@ object WeaverDerivation:
   end deriveSealedTraitWeaver
 
   private def deriveEnumWeaver[A: Type](using Quotes): Expr[Weaver[A]] =
+    // The compile-time check (tpe <:< TypeRepr.of[scala.reflect.Enum]) guarantees
+    // Surface.of[A] returns EnumSurface, so the cast is safe.
     '{
-      Surface.of[A] match
-        case es: EnumSurface =>
-          EnumWeaver[A](es)
-        case other =>
-          throw IllegalArgumentException(
-            s"Expected EnumSurface for ${other.name}, but got ${other.getClass.getSimpleName}"
-          )
+      EnumWeaver[A](Surface.of[A].asInstanceOf[EnumSurface])
     }
 
 end WeaverDerivation
