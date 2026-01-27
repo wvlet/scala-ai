@@ -13,104 +13,54 @@ import java.time.ZonedDateTime
 
 object JvmWeaver:
 
-  private def safeUnpackNil(context: WeaverContext, u: Unpacker): Unit =
-    try
-      u.unpackNil
-      context.setNull
-    catch
-      case e: Exception =>
-        context.setError(e)
-
-  given zonedDateTimeWeaver: Weaver[ZonedDateTime] =
-    new Weaver[ZonedDateTime]:
-      override def pack(p: Packer, v: ZonedDateTime, config: WeaverConfig): Unit = p.packString(
-        v.toString
-      )
+  private def stringBasedWeaver[A](
+      typeName: String,
+      serialize: A => String,
+      deserialize: String => A
+  ): Weaver[A] =
+    new Weaver[A]:
+      override def pack(p: Packer, v: A, config: WeaverConfig): Unit = p.packString(serialize(v))
 
       override def unpack(u: Unpacker, context: WeaverContext): Unit =
         u.getNextValueType match
           case ValueType.STRING =>
-            try
-              context.setObject(ZonedDateTime.parse(u.unpackString))
-            catch
-              case e: Exception =>
-                context.setError(
-                  IllegalArgumentException(s"Cannot convert string to ZonedDateTime", e)
-                )
+            PrimitiveWeaver.safeConvertFromString(
+              context,
+              u,
+              deserialize,
+              context.setObject,
+              typeName
+            )
           case ValueType.NIL =>
-            safeUnpackNil(context, u)
+            PrimitiveWeaver.safeUnpackNil(context, u)
           case other =>
             u.skipValue
             context.setError(
-              IllegalArgumentException(s"Cannot convert ${other} to ZonedDateTime, expected STRING")
+              IllegalArgumentException(s"Cannot convert ${other} to ${typeName}, expected STRING")
             )
 
-  given localDateWeaver: Weaver[LocalDate] =
-    new Weaver[LocalDate]:
-      override def pack(p: Packer, v: LocalDate, config: WeaverConfig): Unit = p.packString(
-        v.toString
-      )
+  given zonedDateTimeWeaver: Weaver[ZonedDateTime] = stringBasedWeaver(
+    "ZonedDateTime",
+    _.toString,
+    ZonedDateTime.parse(_)
+  )
 
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.STRING =>
-            try
-              context.setObject(LocalDate.parse(u.unpackString))
-            catch
-              case e: Exception =>
-                context.setError(IllegalArgumentException(s"Cannot convert string to LocalDate", e))
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(
-              IllegalArgumentException(s"Cannot convert ${other} to LocalDate, expected STRING")
-            )
+  given localDateWeaver: Weaver[LocalDate] = stringBasedWeaver(
+    "LocalDate",
+    _.toString,
+    LocalDate.parse(_)
+  )
 
-  given localDateTimeWeaver: Weaver[LocalDateTime] =
-    new Weaver[LocalDateTime]:
-      override def pack(p: Packer, v: LocalDateTime, config: WeaverConfig): Unit = p.packString(
-        v.toString
-      )
+  given localDateTimeWeaver: Weaver[LocalDateTime] = stringBasedWeaver(
+    "LocalDateTime",
+    _.toString,
+    LocalDateTime.parse(_)
+  )
 
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.STRING =>
-            try
-              context.setObject(LocalDateTime.parse(u.unpackString))
-            catch
-              case e: Exception =>
-                context.setError(
-                  IllegalArgumentException(s"Cannot convert string to LocalDateTime", e)
-                )
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(
-              IllegalArgumentException(s"Cannot convert ${other} to LocalDateTime, expected STRING")
-            )
-
-  given durationWeaver: Weaver[Duration] =
-    new Weaver[Duration]:
-      override def pack(p: Packer, v: Duration, config: WeaverConfig): Unit = p.packString(
-        v.toString
-      )
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.STRING =>
-            try
-              context.setObject(Duration.parse(u.unpackString))
-            catch
-              case e: Exception =>
-                context.setError(IllegalArgumentException(s"Cannot convert string to Duration", e))
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(
-              IllegalArgumentException(s"Cannot convert ${other} to Duration, expected STRING")
-            )
+  given durationWeaver: Weaver[Duration] = stringBasedWeaver(
+    "Duration",
+    _.toString,
+    Duration.parse(_)
+  )
 
 end JvmWeaver

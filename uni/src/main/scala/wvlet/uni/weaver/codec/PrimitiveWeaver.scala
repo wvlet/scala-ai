@@ -13,7 +13,11 @@ import java.util.UUID
 
 object PrimitiveWeaver:
 
-  private def safeUnpack[T](context: WeaverContext, operation: => T, setValue: T => Unit): Unit =
+  private[codec] def safeUnpack[T](
+      context: WeaverContext,
+      operation: => T,
+      setValue: T => Unit
+  ): Unit =
     try
       val value = operation
       setValue(value)
@@ -21,7 +25,7 @@ object PrimitiveWeaver:
       case e: Exception =>
         context.setError(e)
 
-  private def safeConvertFromString[T](
+  private[codec] def safeConvertFromString[T](
       context: WeaverContext,
       u: Unpacker,
       converter: String => T,
@@ -33,12 +37,12 @@ object PrimitiveWeaver:
       val convertedValue = converter(s)
       setValue(convertedValue)
     catch
-      case e: NumberFormatException =>
-        context.setError(new IllegalArgumentException(s"Cannot convert string to ${typeName}", e))
-      case e: Exception =>
+      case e: IllegalArgumentException =>
         context.setError(e)
+      case e: Exception =>
+        context.setError(new IllegalArgumentException(s"Cannot convert string to ${typeName}", e))
 
-  private def safeUnpackNil(context: WeaverContext, u: Unpacker): Unit =
+  private[codec] def safeUnpackNil(context: WeaverContext, u: Unpacker): Unit =
     try
       u.unpackNil
       context.setNull
