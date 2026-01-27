@@ -11,8 +11,9 @@ Enable `derives Weaver` for Scala 3 enums by leveraging the existing `EnumSurfac
 `Surface.of[A]` already creates `EnumSurface` for Scala 3 enums with a `stringExtractor` function that uses `valueOf()` (see `CompileTimeSurfaceFactory.scala:707-760`). This is the same approach used by airframe-codec.
 
 ### Serialization Format
-- **Pack**: `v.toString` → string name (e.g., `Color.Red` → `"Red"`)
-- **Unpack**: `stringExtractor(cls, name)` → enum instance
+- **Pack**: `productPrefix` → stable case name (e.g., `Color.Red` → `"Red"`). Uses `productPrefix` instead of `toString` to avoid issues with overridden `toString`.
+- **Unpack**: `stringExtractor(cls, name)` → enum instance via `valueOf`
+- **No ordinal support**: Integer-based serialization is intentionally not supported because enum ordering can change across code changes, breaking deserialization.
 
 ## Files to Modify
 
@@ -24,7 +25,7 @@ Simple weaver that delegates to `EnumSurface.stringExtractor`:
 class EnumWeaver[A](enumSurface: EnumSurface) extends Weaver[A]:
   def pack(p: Packer, v: A, config: WeaverConfig): Unit =
     if v == null then p.packNil
-    else p.packString(v.toString)
+    else p.packString(v.asInstanceOf[Product].productPrefix)
 
   def unpack(u: Unpacker, context: WeaverContext): Unit =
     // Read string, use stringExtractor to get enum instance
@@ -56,10 +57,11 @@ private def deriveEnumWeaver[A: Type](using Quotes): Expr[Weaver[A]] =
 ### 3. Create `uni/src/test/scala/wvlet/uni/weaver/codec/EnumWeaverTest.scala`
 
 Test cases:
-- Simple enum roundtrip
+- Simple enum roundtrip (msgpack and JSON)
 - Enum with parameters (preserved via `valueOf` lookup)
-- Error handling for unknown values
-- Enum in case class fields
+- Enum with custom `toString` (verifies `productPrefix`-based serialization)
+- Error handling for unknown values and wrong types
+- Case class with enum fields
 - List/Option containing enums
 
 ## Verification
