@@ -76,4 +76,33 @@ object JvmWeaver:
 
   given urlWeaver: Weaver[URL] = stringBasedWeaver("URL", _.toString, s => URL(s))
 
+  given pathWeaver: Weaver[java.nio.file.Path] = stringBasedWeaver(
+    "Path",
+    _.toString,
+    java.nio.file.Path.of(_)
+  )
+
+  given optionalWeaver[A](using elementWeaver: Weaver[A]): Weaver[java.util.Optional[A]] =
+    new Weaver[java.util.Optional[A]]:
+      override def pack(p: Packer, v: java.util.Optional[A], config: WeaverConfig): Unit =
+        if v.isPresent then
+          elementWeaver.pack(p, v.get, config)
+        else
+          p.packNil
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.NIL =>
+            u.unpackNil
+            context.setObject(java.util.Optional.empty[A]())
+          case _ =>
+            val elementContext = WeaverContext(context.config)
+            elementWeaver.unpack(u, elementContext)
+            if elementContext.hasError then
+              context.setError(elementContext.getError.get)
+            else if elementContext.isNull then
+              context.setObject(java.util.Optional.empty[A]())
+            else
+              context.setObject(java.util.Optional.of(elementContext.getLastValue.asInstanceOf[A]))
+
 end JvmWeaver

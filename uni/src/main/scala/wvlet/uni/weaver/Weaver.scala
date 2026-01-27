@@ -77,6 +77,7 @@ object Weaver:
     weaver.fromJson(json, config)
 
   export PrimitiveWeaver.given
+  export PrimitiveWeaver.TupleElementWeaver
 
 end Weaver
 

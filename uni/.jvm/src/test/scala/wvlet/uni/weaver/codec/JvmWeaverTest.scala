@@ -186,6 +186,62 @@ class JvmWeaverTest extends UniTest:
     v2 shouldBe v
   }
 
+  // ====== java.nio.file.Path ======
+
+  test("roundtrip Path") {
+    val v       = java.nio.file.Path.of("/tmp/test.txt")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.nio.file.Path](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Path to/from JSON") {
+    val v    = java.nio.file.Path.of("/home/user/docs")
+    val json = Weaver.toJson(v)
+    json shouldBe "\"/home/user/docs\""
+    val v2 = Weaver.fromJson[java.nio.file.Path](json)
+    v2 shouldBe v
+  }
+
+  test("Path relative") {
+    val v       = java.nio.file.Path.of("relative/path/file.txt")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.nio.file.Path](msgpack)
+    v2 shouldBe v
+  }
+
+  // ====== java.util.Optional ======
+
+  test("roundtrip Optional with value") {
+    val v       = java.util.Optional.of("hello")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Optional[String]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("roundtrip Optional empty") {
+    val v       = java.util.Optional.empty[String]()
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Optional[String]](msgpack)
+    v2.isPresent shouldBe false
+  }
+
+  test("Optional[Int] to/from JSON") {
+    val v    = java.util.Optional.of(42)
+    val json = Weaver.toJson(v)
+    json shouldBe "42"
+    val v2 = Weaver.fromJson[java.util.Optional[Int]](json)
+    v2 shouldBe v
+  }
+
+  test("Optional empty to/from JSON") {
+    val v    = java.util.Optional.empty[Int]()
+    val json = Weaver.toJson(v)
+    json shouldBe "null"
+    val v2 = Weaver.fromJson[java.util.Optional[Int]](json)
+    v2.isPresent shouldBe false
+  }
+
   // ====== Error handling ======
 
   test("ZonedDateTime invalid string") {

@@ -499,4 +499,115 @@ class WeaverTest extends UniTest:
     result.get.getMessage.contains("Cannot convert") shouldBe true
   }
 
+  // ====== java.util.Map ======
+
+  test("weave java.util.Map[String, Int]") {
+    val v       = Map("a" -> 1, "b" -> 2, "c" -> 3).asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Map[String, Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave empty java.util.Map[String, Int]") {
+    val v       = Map.empty[String, Int].asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Map[String, Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave java.util.Map[Int, String]") {
+    val v       = Map(1 -> "one", 2 -> "two").asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Map[Int, String]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("java.util.Map[String, Int] toJson") {
+    val v    = Map("x" -> 10, "y" -> 20).asJava
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[java.util.Map[String, Int]](json)
+    v2.asScala shouldBe v.asScala
+  }
+
+  // ====== java.util.Set ======
+
+  test("weave java.util.Set[Int]") {
+    val v       = Set(1, 2, 3).asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Set[Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave empty java.util.Set[Int]") {
+    val v       = Set.empty[Int].asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Set[Int]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("weave java.util.Set[String]") {
+    val v       = Set("hello", "world").asJava
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[java.util.Set[String]](msgpack)
+    v2.asScala shouldBe v.asScala
+  }
+
+  test("java.util.Set[Int] toJson") {
+    val v    = Set(1, 2, 3).asJava
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[java.util.Set[Int]](json)
+    v2.asScala shouldBe v.asScala
+  }
+
+  // ====== Tuples ======
+
+  test("weave EmptyTuple") {
+    val v       = EmptyTuple
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[EmptyTuple](msgpack)
+    v2 shouldBe v
+  }
+
+  test("weave Tuple1 (Int)") {
+    val v: Tuple1[Int] = Tuple1(42)
+    val msgpack        = Weaver.weave(v)
+    val v2             = Weaver.unweave[Tuple1[Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("weave (Int, String)") {
+    val v       = (1, "hello")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[(Int, String)](msgpack)
+    v2 shouldBe v
+  }
+
+  test("weave (Int, String, Boolean)") {
+    val v       = (1, "hello", true)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[(Int, String, Boolean)](msgpack)
+    v2 shouldBe v
+  }
+
+  test("weave (Int, String, Double, Long)") {
+    val v       = (1, "hello", 3.14, 42L)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[(Int, String, Double, Long)](msgpack)
+    v2 shouldBe v
+  }
+
+  test("(Int, String) toJson") {
+    val v    = (1, "hello")
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[(Int, String)](json)
+    v2 shouldBe v
+  }
+
+  test("nested tuple (Int, List[String])") {
+    val v       = (42, List("a", "b", "c"))
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[(Int, List[String])](msgpack)
+    v2 shouldBe v
+  }
+
 end WeaverTest
