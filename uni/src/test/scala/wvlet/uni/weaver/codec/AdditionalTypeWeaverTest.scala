@@ -180,8 +180,8 @@ class AdditionalTypeWeaverTest extends UniTest:
     v2 shouldBe v
   }
 
-  test("UUID random roundtrip") {
-    val v       = UUID.randomUUID()
+  test("UUID another roundtrip") {
+    val v       = UUID.fromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
     val msgpack = Weaver.weave(v)
     val v2      = Weaver.unweave[UUID](msgpack)
     v2 shouldBe v
