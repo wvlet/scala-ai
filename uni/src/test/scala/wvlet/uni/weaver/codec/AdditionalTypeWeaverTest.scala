@@ -1,0 +1,226 @@
+package wvlet.uni.weaver.codec
+
+import wvlet.uni.test.UniTest
+import wvlet.uni.weaver.Weaver
+import java.time.Instant
+import java.util.UUID
+
+class AdditionalTypeWeaverTest extends UniTest:
+
+  // ====== Set[A] ======
+
+  test("roundtrip Set[Int]") {
+    val v       = Set(1, 2, 3)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Set[Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("roundtrip Set[String]") {
+    val v       = Set("a", "b", "c")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Set[String]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("empty Set") {
+    val v       = Set.empty[Int]
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Set[Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Set to/from JSON") {
+    val v    = Set(1, 2, 3)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Set[Int]](json)
+    v2 shouldBe v
+  }
+
+  // ====== BigInt ======
+
+  test("roundtrip BigInt (fits in Long)") {
+    val v       = BigInt(123456789L)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[BigInt](msgpack)
+    v2 shouldBe v
+  }
+
+  test("roundtrip BigInt (exceeds Long)") {
+    val v       = BigInt("123456789012345678901234567890")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[BigInt](msgpack)
+    v2 shouldBe v
+  }
+
+  test("BigInt to/from JSON") {
+    val v    = BigInt(42)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[BigInt](json)
+    v2 shouldBe v
+  }
+
+  test("BigInt negative") {
+    val v       = BigInt("-99999999999999999999")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[BigInt](msgpack)
+    v2 shouldBe v
+  }
+
+  // ====== BigDecimal ======
+
+  test("roundtrip BigDecimal") {
+    val v       = BigDecimal("123.456789012345678901234567890")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[BigDecimal](msgpack)
+    v2 shouldBe v
+  }
+
+  test("BigDecimal to/from JSON") {
+    val v    = BigDecimal("3.14159")
+    val json = Weaver.toJson(v)
+    json shouldBe "\"3.14159\""
+    val v2 = Weaver.fromJson[BigDecimal](json)
+    v2 shouldBe v
+  }
+
+  test("BigDecimal from integer") {
+    val json = "42"
+    val v    = Weaver.fromJson[BigDecimal](json)
+    v shouldBe BigDecimal(42)
+  }
+
+  test("BigDecimal from float") {
+    val json = "3.14"
+    val v    = Weaver.fromJson[BigDecimal](json)
+    v shouldBe BigDecimal(3.14)
+  }
+
+  // ====== Either[A,B] ======
+
+  test("roundtrip Either Left") {
+    val v: Either[String, Int] = Left("error")
+    val msgpack                = Weaver.weave(v)
+    val v2                     = Weaver.unweave[Either[String, Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("roundtrip Either Right") {
+    val v: Either[String, Int] = Right(42)
+    val msgpack                = Weaver.weave(v)
+    val v2                     = Weaver.unweave[Either[String, Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Either Left to/from JSON") {
+    val v: Either[String, Int] = Left("fail")
+    val json                   = Weaver.toJson(v)
+    json shouldContain "\"fail\""
+    val v2 = Weaver.fromJson[Either[String, Int]](json)
+    v2 shouldBe v
+  }
+
+  test("Either Right to/from JSON") {
+    val v: Either[String, Int] = Right(100)
+    val json                   = Weaver.toJson(v)
+    val v2                     = Weaver.fromJson[Either[String, Int]](json)
+    v2 shouldBe v
+  }
+
+  test("Either wrong array size") {
+    val e = intercept[IllegalArgumentException] {
+      Weaver.fromJson[Either[String, Int]]("[1,2,3]")
+    }
+    e.getMessage shouldContain "size 2"
+  }
+
+  // ====== Instant ======
+
+  test("roundtrip Instant") {
+    val v       = Instant.parse("2024-01-15T10:30:00Z")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Instant](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Instant with nanoseconds") {
+    val v       = Instant.parse("2024-06-15T12:30:45.123456789Z")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Instant](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Instant from epoch millis JSON") {
+    val epochMillis = 1705312200000L
+    val json        = epochMillis.toString
+    val v           = Weaver.fromJson[Instant](json)
+    v shouldBe Instant.ofEpochMilli(epochMillis)
+  }
+
+  test("Instant from ISO string JSON") {
+    val json = "\"2024-01-15T10:30:00Z\""
+    val v    = Weaver.fromJson[Instant](json)
+    v shouldBe Instant.parse("2024-01-15T10:30:00Z")
+  }
+
+  // ====== UUID ======
+
+  test("roundtrip UUID") {
+    val v       = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[UUID](msgpack)
+    v2 shouldBe v
+  }
+
+  test("UUID to/from JSON") {
+    val v    = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    val json = Weaver.toJson(v)
+    json shouldBe "\"550e8400-e29b-41d4-a716-446655440000\""
+    val v2 = Weaver.fromJson[UUID](json)
+    v2 shouldBe v
+  }
+
+  test("UUID another roundtrip") {
+    val v       = UUID.fromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[UUID](msgpack)
+    v2 shouldBe v
+  }
+
+  test("UUID invalid string") {
+    val e = intercept[IllegalArgumentException] {
+      Weaver.fromJson[UUID]("\"not-a-uuid\"")
+    }
+    e.getMessage shouldContain "UUID"
+  }
+
+  // ====== Composite: case class with new types ======
+
+  case class Record(id: UUID, tags: Set[String], amount: BigDecimal, createdAt: Instant)
+      derives Weaver
+
+  test("case class with new types") {
+    val v = Record(
+      id = UUID.fromString("550e8400-e29b-41d4-a716-446655440000"),
+      tags = Set("a", "b"),
+      amount = BigDecimal("99.99"),
+      createdAt = Instant.parse("2024-01-15T10:30:00Z")
+    )
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Record](msgpack)
+    v2 shouldBe v
+  }
+
+  test("case class with new types JSON roundtrip") {
+    val v = Record(
+      id = UUID.fromString("550e8400-e29b-41d4-a716-446655440000"),
+      tags = Set("x"),
+      amount = BigDecimal("0.01"),
+      createdAt = Instant.parse("2024-06-01T00:00:00Z")
+    )
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Record](json)
+    v2 shouldBe v
+  }
+
+end AdditionalTypeWeaverTest
