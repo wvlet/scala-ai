@@ -6,6 +6,9 @@ import wvlet.uni.msgpack.spi.ValueType
 import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
+import java.io.File
+import java.net.URI
+import java.net.URL
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -69,5 +72,9 @@ object JvmWeaver:
     _.toString,
     OffsetDateTime.parse(_)
   )
+
+  given fileWeaver: Weaver[File] = stringBasedWeaver("File", _.getPath, File(_))
+
+  given urlWeaver: Weaver[URL] = stringBasedWeaver("URL", _.toString, s => URI(s).toURL)
 
 end JvmWeaver

@@ -3,9 +3,7 @@ package wvlet.uni.weaver.codec
 import wvlet.uni.test.UniTest
 import wvlet.uni.weaver.Weaver
 import scala.concurrent.duration.Duration as ScalaDuration
-import java.io.File
 import java.net.URI
-import java.net.URL
 import java.time.Instant
 import java.util.UUID
 
@@ -281,23 +279,6 @@ class AdditionalTypeWeaverTest extends UniTest:
     v2 shouldBe v
   }
 
-  // ====== File ======
-
-  test("roundtrip File") {
-    val v       = File("/tmp/test.txt")
-    val msgpack = Weaver.weave(v)
-    val v2      = Weaver.unweave[File](msgpack)
-    v2 shouldBe v
-  }
-
-  test("File to/from JSON") {
-    val v    = File("/home/user/docs")
-    val json = Weaver.toJson(v)
-    json shouldBe "\"/home/user/docs\""
-    val v2 = Weaver.fromJson[File](json)
-    v2 shouldBe v
-  }
-
   // ====== URI ======
 
   test("roundtrip URI") {
@@ -312,23 +293,6 @@ class AdditionalTypeWeaverTest extends UniTest:
     val json = Weaver.toJson(v)
     json shouldBe "\"file:///tmp/test.txt\""
     val v2 = Weaver.fromJson[URI](json)
-    v2 shouldBe v
-  }
-
-  // ====== URL ======
-
-  test("roundtrip URL") {
-    val v       = URI("https://example.com/path").toURL
-    val msgpack = Weaver.weave(v)
-    val v2      = Weaver.unweave[URL](msgpack)
-    v2 shouldBe v
-  }
-
-  test("URL to/from JSON") {
-    val v    = URI("https://example.com:8080/api").toURL
-    val json = Weaver.toJson(v)
-    json shouldBe "\"https://example.com:8080/api\""
-    val v2 = Weaver.fromJson[URL](json)
     v2 shouldBe v
   }
 

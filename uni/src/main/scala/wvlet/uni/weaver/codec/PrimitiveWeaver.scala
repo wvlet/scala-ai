@@ -10,9 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration as ScalaDuration
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
-import java.io.File
 import java.net.URI
-import java.net.URL
 import java.time.Instant
 import java.util.UUID
 
@@ -144,6 +142,44 @@ object PrimitiveWeaver:
       case e: Exception =>
         context.setError(e)
         None
+
+  private def collectionWeaver[A, C](
+      elementWeaver: Weaver[A],
+      typeName: String,
+      packElements: (Packer, C, WeaverConfig) => Unit,
+      factory: ListBuffer[A] => C
+  ): Weaver[C] =
+    new Weaver[C]:
+      override def pack(p: Packer, v: C, config: WeaverConfig): Unit = packElements(p, v, config)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
+                context.setObject(factory(buffer))
+              case None =>
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(
+              new IllegalArgumentException(s"Cannot convert ${other} to ${typeName}")
+            )
+
+  private def iterableCollectionWeaver[A, C <: Iterable[A]](
+      elementWeaver: Weaver[A],
+      typeName: String,
+      factory: ListBuffer[A] => C
+  ): Weaver[C] = collectionWeaver(
+    elementWeaver,
+    typeName,
+    (p, v, config) =>
+      p.packArrayHeader(v.size)
+      v.foreach(elementWeaver.pack(p, _, config))
+    ,
+    factory
+  )
 
   given intWeaver: Weaver[Int] =
     new Weaver[Int]:
@@ -493,24 +529,11 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Char"))
 
-  given listWeaver[A](using elementWeaver: Weaver[A]): Weaver[List[A]] =
-    new Weaver[List[A]]:
-      override def pack(p: Packer, v: List[A], config: WeaverConfig): Unit =
-        p.packArrayHeader(v.size)
-        v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toList)
-              case None => // Error already set in unpackArrayToBuffer
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to List"))
+  given listWeaver[A](using elementWeaver: Weaver[A]): Weaver[List[A]] = iterableCollectionWeaver(
+    elementWeaver,
+    "List",
+    _.toList
+  )
 
   given mapWeaver[K, V](using keyWeaver: Weaver[K], valueWeaver: Weaver[V]): Weaver[Map[K, V]] =
     new Weaver[Map[K, V]]:
@@ -534,64 +557,25 @@ object PrimitiveWeaver:
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Map"))
 
-  given seqWeaver[A](using elementWeaver: Weaver[A]): Weaver[Seq[A]] =
-    new Weaver[Seq[A]]:
-      override def pack(p: Packer, v: Seq[A], config: WeaverConfig): Unit =
-        p.packArrayHeader(v.size)
-        v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toSeq)
-              case None => // Error already set in unpackArrayToBuffer
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Seq"))
+  given seqWeaver[A](using elementWeaver: Weaver[A]): Weaver[Seq[A]] = iterableCollectionWeaver(
+    elementWeaver,
+    "Seq",
+    _.toSeq
+  )
 
   given indexedSeqWeaver[A](using elementWeaver: Weaver[A]): Weaver[IndexedSeq[A]] =
-    new Weaver[IndexedSeq[A]]:
-      override def pack(p: Packer, v: IndexedSeq[A], config: WeaverConfig): Unit =
-        p.packArrayHeader(v.size)
-        v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toIndexedSeq)
-              case None => // Error already set in unpackArrayToBuffer
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to IndexedSeq"))
+    iterableCollectionWeaver(elementWeaver, "IndexedSeq", _.toIndexedSeq)
 
   given javaListWeaver[A](using elementWeaver: Weaver[A]): Weaver[java.util.List[A]] =
-    new Weaver[java.util.List[A]]:
-      override def pack(p: Packer, v: java.util.List[A], config: WeaverConfig): Unit =
+    collectionWeaver(
+      elementWeaver,
+      "java.util.List",
+      (p, v, config) =>
         p.packArrayHeader(v.size)
         v.asScala.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.asJava)
-              case None => // Error already set in unpackArrayToBuffer
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(
-              new IllegalArgumentException(s"Cannot convert ${other} to java.util.List")
-            )
+      ,
+      _.asJava
+    )
 
   given listMapWeaver[K, V](using
       keyWeaver: Weaver[K],
@@ -646,24 +630,11 @@ object PrimitiveWeaver:
             else
               context.setObject(Some(elementContext.getLastValue))
 
-  given setWeaver[A](using elementWeaver: Weaver[A]): Weaver[Set[A]] =
-    new Weaver[Set[A]]:
-      override def pack(p: Packer, v: Set[A], config: WeaverConfig): Unit =
-        p.packArrayHeader(v.size)
-        v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toSet)
-              case None =>
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Set"))
+  given setWeaver[A](using elementWeaver: Weaver[A]): Weaver[Set[A]] = iterableCollectionWeaver(
+    elementWeaver,
+    "Set",
+    _.toSet
+  )
 
   given bigIntWeaver: Weaver[BigInt] =
     new Weaver[BigInt]:
@@ -799,42 +770,18 @@ object PrimitiveWeaver:
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to UUID"))
 
   given arrayWeaver[A](using elementWeaver: Weaver[A], ct: ClassTag[A]): Weaver[Array[A]] =
-    new Weaver[Array[A]]:
-      override def pack(p: Packer, v: Array[A], config: WeaverConfig): Unit =
+    collectionWeaver(
+      elementWeaver,
+      "Array",
+      (p, v, config) =>
         p.packArrayHeader(v.length)
         v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toArray)
-              case None =>
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Array"))
+      ,
+      _.toArray
+    )
 
   given vectorWeaver[A](using elementWeaver: Weaver[A]): Weaver[Vector[A]] =
-    new Weaver[Vector[A]]:
-      override def pack(p: Packer, v: Vector[A], config: WeaverConfig): Unit =
-        p.packArrayHeader(v.size)
-        v.foreach(elementWeaver.pack(p, _, config))
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.ARRAY =>
-            unpackArrayToBuffer(u, context, elementWeaver) match
-              case Some(buffer) =>
-                context.setObject(buffer.toVector)
-              case None =>
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Vector"))
+    iterableCollectionWeaver(elementWeaver, "Vector", _.toVector)
 
   given scalaDurationWeaver: Weaver[ScalaDuration] =
     new Weaver[ScalaDuration]:
@@ -862,20 +809,6 @@ object PrimitiveWeaver:
               )
             )
 
-  given fileWeaver: Weaver[File] =
-    new Weaver[File]:
-      override def pack(p: Packer, v: File, config: WeaverConfig): Unit = p.packString(v.getPath)
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.STRING =>
-            safeConvertFromString(context, u, File(_), context.setObject, "File")
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to File"))
-
   given uriWeaver: Weaver[URI] =
     new Weaver[URI]:
       override def pack(p: Packer, v: URI, config: WeaverConfig): Unit = p.packString(v.toString)
@@ -889,20 +822,6 @@ object PrimitiveWeaver:
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to URI"))
-
-  given urlWeaver: Weaver[URL] =
-    new Weaver[URL]:
-      override def pack(p: Packer, v: URL, config: WeaverConfig): Unit = p.packString(v.toString)
-
-      override def unpack(u: Unpacker, context: WeaverContext): Unit =
-        u.getNextValueType match
-          case ValueType.STRING =>
-            safeConvertFromString(context, u, s => URI(s).toURL, context.setObject, "URL")
-          case ValueType.NIL =>
-            safeUnpackNil(context, u)
-          case other =>
-            u.skipValue
-            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to URL"))
 
   given anyWeaver: Weaver[Any] = AnyWeaver.default
 
