@@ -8,6 +8,8 @@ import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
+import java.time.Instant
+import java.util.UUID
 
 object PrimitiveWeaver:
 
@@ -634,6 +636,158 @@ object PrimitiveWeaver:
               context.setObject(None)
             else
               context.setObject(Some(elementContext.getLastValue))
+
+  given setWeaver[A](using elementWeaver: Weaver[A]): Weaver[Set[A]] =
+    new Weaver[Set[A]]:
+      override def pack(p: Packer, v: Set[A], config: WeaverConfig): Unit =
+        p.packArrayHeader(v.size)
+        v.foreach(elementWeaver.pack(p, _, config))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            unpackArrayToBuffer(u, context, elementWeaver) match
+              case Some(buffer) =>
+                context.setObject(buffer.toSet)
+              case None =>
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Set"))
+
+  given bigIntWeaver: Weaver[BigInt] =
+    new Weaver[BigInt]:
+      override def pack(p: Packer, v: BigInt, config: WeaverConfig): Unit =
+        if v.isValidLong then
+          p.packLong(v.longValue)
+        else
+          p.packString(v.toString(10))
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.INTEGER =>
+            safeUnpack(context, BigInt(u.unpackLong), context.setObject)
+          case ValueType.STRING =>
+            safeConvertFromString(context, u, BigInt(_), context.setObject, "BigInt")
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to BigInt"))
+
+  given bigDecimalWeaver: Weaver[BigDecimal] =
+    new Weaver[BigDecimal]:
+      override def pack(p: Packer, v: BigDecimal, config: WeaverConfig): Unit = p.packString(
+        v.toString
+      )
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.STRING =>
+            safeConvertFromString(context, u, BigDecimal(_), context.setObject, "BigDecimal")
+          case ValueType.FLOAT =>
+            safeUnpack(context, BigDecimal(u.unpackDouble), context.setObject)
+          case ValueType.INTEGER =>
+            safeUnpack(context, BigDecimal(u.unpackLong), context.setObject)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to BigDecimal"))
+
+  given eitherWeaver[A, B](using
+      leftWeaver: Weaver[A],
+      rightWeaver: Weaver[B]
+  ): Weaver[Either[A, B]] =
+    new Weaver[Either[A, B]]:
+      override def pack(p: Packer, v: Either[A, B], config: WeaverConfig): Unit =
+        p.packArrayHeader(2)
+        v match
+          case Left(l) =>
+            leftWeaver.pack(p, l, config)
+            p.packNil
+          case Right(r) =>
+            p.packNil
+            rightWeaver.pack(p, r, config)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            try
+              val arraySize = u.unpackArrayHeader
+              if arraySize != 2 then
+                context.setError(
+                  IllegalArgumentException(
+                    s"Either requires ARRAY of size 2, got size ${arraySize}"
+                  )
+                )
+                var i = 0
+                while i < arraySize do
+                  u.skipValue
+                  i += 1
+              else
+                // Check first element
+                if u.getNextValueType == ValueType.NIL then
+                  // First is nil -> Right
+                  u.unpackNil
+                  val rightContext = WeaverContext(context.config)
+                  rightWeaver.unpack(u, rightContext)
+                  if rightContext.hasError then
+                    context.setError(rightContext.getError.get)
+                  else
+                    context.setObject(Right(rightContext.getLastValue))
+                else
+                  // First is non-nil -> Left
+                  val leftContext = WeaverContext(context.config)
+                  leftWeaver.unpack(u, leftContext)
+                  if leftContext.hasError then
+                    context.setError(leftContext.getError.get)
+                    u.skipValue // skip second element
+                  else
+                    u.unpackNil // skip the nil second element
+                    context.setObject(Left(leftContext.getLastValue))
+              end if
+            catch
+              case e: Exception =>
+                context.setError(e)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Either"))
+
+  given instantWeaver: Weaver[Instant] =
+    new Weaver[Instant]:
+      override def pack(p: Packer, v: Instant, config: WeaverConfig): Unit = p.packTimestamp(v)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.EXTENSION =>
+            safeUnpack(context, u.unpackTimestamp, context.setObject)
+          case ValueType.INTEGER =>
+            safeUnpack(context, Instant.ofEpochMilli(u.unpackLong), context.setObject)
+          case ValueType.STRING =>
+            safeConvertFromString(context, u, Instant.parse(_), context.setObject, "Instant")
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Instant"))
+
+  given uuidWeaver: Weaver[UUID] =
+    new Weaver[UUID]:
+      override def pack(p: Packer, v: UUID, config: WeaverConfig): Unit = p.packString(v.toString)
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.STRING =>
+            safeConvertFromString(context, u, UUID.fromString(_), context.setObject, "UUID")
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to UUID"))
 
   given anyWeaver: Weaver[Any] = AnyWeaver.default
 
