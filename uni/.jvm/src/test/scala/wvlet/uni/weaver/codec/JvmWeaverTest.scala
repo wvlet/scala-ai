@@ -6,6 +6,7 @@ import wvlet.uni.weaver.codec.JvmWeaver.given
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 
 class JvmWeaverTest extends UniTest:
@@ -116,6 +117,36 @@ class JvmWeaverTest extends UniTest:
     val msgpack = Weaver.weave(v)
     val v2      = Weaver.unweave[Event](msgpack)
     v2 shouldBe v
+  }
+
+  // ====== OffsetDateTime ======
+
+  test("roundtrip OffsetDateTime") {
+    val v       = OffsetDateTime.parse("2024-01-15T10:30:00+09:00")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[OffsetDateTime](msgpack)
+    v2 shouldBe v
+  }
+
+  test("OffsetDateTime to/from JSON") {
+    val v    = OffsetDateTime.parse("2024-06-15T12:00:00Z")
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[OffsetDateTime](json)
+    v2 shouldBe v
+  }
+
+  test("OffsetDateTime with nanoseconds") {
+    val v       = OffsetDateTime.parse("2024-01-15T10:30:00.123456789+05:30")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[OffsetDateTime](msgpack)
+    v2 shouldBe v
+  }
+
+  test("OffsetDateTime invalid string") {
+    val e = intercept[IllegalArgumentException] {
+      Weaver.fromJson[OffsetDateTime]("\"not-a-date\"")
+    }
+    e.getMessage shouldContain "OffsetDateTime"
   }
 
   // ====== Error handling ======
