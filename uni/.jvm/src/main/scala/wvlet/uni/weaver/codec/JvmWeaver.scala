@@ -6,9 +6,12 @@ import wvlet.uni.msgpack.spi.ValueType
 import wvlet.uni.weaver.Weaver
 import wvlet.uni.weaver.WeaverConfig
 import wvlet.uni.weaver.WeaverContext
+import java.io.File
+import java.net.URL
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 
 object JvmWeaver:
@@ -62,5 +65,15 @@ object JvmWeaver:
     _.toString,
     Duration.parse(_)
   )
+
+  given offsetDateTimeWeaver: Weaver[OffsetDateTime] = stringBasedWeaver(
+    "OffsetDateTime",
+    _.toString,
+    OffsetDateTime.parse(_)
+  )
+
+  given fileWeaver: Weaver[File] = stringBasedWeaver("File", _.getPath, File(_))
+
+  given urlWeaver: Weaver[URL] = stringBasedWeaver("URL", _.toString, s => URL(s))
 
 end JvmWeaver

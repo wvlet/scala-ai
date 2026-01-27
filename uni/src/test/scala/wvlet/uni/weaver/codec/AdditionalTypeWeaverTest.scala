@@ -2,6 +2,8 @@ package wvlet.uni.weaver.codec
 
 import wvlet.uni.test.UniTest
 import wvlet.uni.weaver.Weaver
+import scala.concurrent.duration.Duration as ScalaDuration
+import java.net.URI
 import java.time.Instant
 import java.util.UUID
 
@@ -192,6 +194,106 @@ class AdditionalTypeWeaverTest extends UniTest:
       Weaver.fromJson[UUID]("\"not-a-uuid\"")
     }
     e.getMessage shouldContain "UUID"
+  }
+
+  // ====== Array[A] ======
+
+  test("roundtrip Array[Int]") {
+    val v       = Array(1, 2, 3)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Array[Int]](msgpack)
+    v2.toList shouldBe v.toList
+  }
+
+  test("roundtrip Array[String]") {
+    val v       = Array("hello", "world")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Array[String]](msgpack)
+    v2.toList shouldBe v.toList
+  }
+
+  test("empty Array") {
+    val v       = Array.empty[Int]
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Array[Int]](msgpack)
+    v2.toList shouldBe v.toList
+  }
+
+  test("Array to/from JSON") {
+    val v    = Array(1, 2, 3)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Array[Int]](json)
+    v2.toList shouldBe v.toList
+  }
+
+  // ====== Vector[A] ======
+
+  test("roundtrip Vector[Int]") {
+    val v       = Vector(1, 2, 3)
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Vector[Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("roundtrip Vector[String]") {
+    val v       = Vector("a", "b", "c")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Vector[String]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("empty Vector") {
+    val v       = Vector.empty[Int]
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[Vector[Int]](msgpack)
+    v2 shouldBe v
+  }
+
+  test("Vector to/from JSON") {
+    val v    = Vector(10, 20, 30)
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[Vector[Int]](json)
+    v2 shouldBe v
+  }
+
+  // ====== scala.concurrent.duration.Duration ======
+
+  test("roundtrip scala Duration") {
+    val v       = ScalaDuration("5 seconds")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[ScalaDuration](msgpack)
+    v2 shouldBe v
+  }
+
+  test("scala Duration to/from JSON") {
+    val v    = ScalaDuration("10 minutes")
+    val json = Weaver.toJson(v)
+    val v2   = Weaver.fromJson[ScalaDuration](json)
+    v2 shouldBe v
+  }
+
+  test("scala Duration Inf") {
+    val v: ScalaDuration = ScalaDuration.Inf
+    val msgpack          = Weaver.weave(v)
+    val v2               = Weaver.unweave[ScalaDuration](msgpack)
+    v2 shouldBe v
+  }
+
+  // ====== URI ======
+
+  test("roundtrip URI") {
+    val v       = URI("https://example.com/path?query=1")
+    val msgpack = Weaver.weave(v)
+    val v2      = Weaver.unweave[URI](msgpack)
+    v2 shouldBe v
+  }
+
+  test("URI to/from JSON") {
+    val v    = URI("file:///tmp/test.txt")
+    val json = Weaver.toJson(v)
+    json shouldBe "\"file:///tmp/test.txt\""
+    val v2 = Weaver.fromJson[URI](json)
+    v2 shouldBe v
   }
 
   // ====== Composite: case class with new types ======
