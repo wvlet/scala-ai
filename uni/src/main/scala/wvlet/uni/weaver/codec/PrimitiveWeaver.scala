@@ -577,6 +577,45 @@ object PrimitiveWeaver:
       _.asJava
     )
 
+  given javaMapWeaver[K, V](using
+      keyWeaver: Weaver[K],
+      valueWeaver: Weaver[V]
+  ): Weaver[java.util.Map[K, V]] =
+    new Weaver[java.util.Map[K, V]]:
+      override def pack(p: Packer, v: java.util.Map[K, V], config: WeaverConfig): Unit =
+        p.packMapHeader(v.size)
+        v.asScala
+          .foreach { case (key, value) =>
+            keyWeaver.pack(p, key, config)
+            valueWeaver.pack(p, value, config)
+          }
+
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.MAP =>
+            unpackMapToBuffer(u, context, keyWeaver, valueWeaver) match
+              case Some(buffer) =>
+                context.setObject(buffer.toMap.asJava)
+              case None =>
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(
+              new IllegalArgumentException(s"Cannot convert ${other} to java.util.Map")
+            )
+
+  given javaSetWeaver[A](using elementWeaver: Weaver[A]): Weaver[java.util.Set[A]] =
+    collectionWeaver(
+      elementWeaver,
+      "java.util.Set",
+      (p, v, config) =>
+        p.packArrayHeader(v.size)
+        v.asScala.foreach(elementWeaver.pack(p, _, config))
+      ,
+      buf => buf.toSet.asJava
+    )
+
   given listMapWeaver[K, V](using
       keyWeaver: Weaver[K],
       valueWeaver: Weaver[V]
@@ -822,6 +861,91 @@ object PrimitiveWeaver:
           case other =>
             u.skipValue
             context.setError(new IllegalArgumentException(s"Cannot convert ${other} to URI"))
+
+  // Tuple support via recursive given resolution
+  trait TupleElementWeaver[T <: Tuple]:
+    def size: Int
+    def packElements(p: Packer, v: T, config: WeaverConfig): Unit
+    def unpackElements(u: Unpacker, context: WeaverContext): Option[T]
+
+  given emptyTupleElementWeaver: TupleElementWeaver[EmptyTuple] =
+    new TupleElementWeaver[EmptyTuple]:
+      def size: Int                                                               = 0
+      def packElements(p: Packer, v: EmptyTuple, config: WeaverConfig): Unit      = ()
+      def unpackElements(u: Unpacker, context: WeaverContext): Option[EmptyTuple] = Some(EmptyTuple)
+
+  given nonEmptyTupleElementWeaver[H, T <: Tuple](using
+      headWeaver: Weaver[H],
+      tailElementWeaver: TupleElementWeaver[T]
+  ): TupleElementWeaver[H *: T] =
+    new TupleElementWeaver[H *: T]:
+      def size: Int = 1 + tailElementWeaver.size
+      def packElements(p: Packer, v: H *: T, config: WeaverConfig): Unit =
+        headWeaver.pack(p, v.head, config)
+        tailElementWeaver.packElements(p, v.tail, config)
+      def unpackElements(u: Unpacker, context: WeaverContext): Option[H *: T] =
+        val headContext = WeaverContext(context.config)
+        headWeaver.unpack(u, headContext)
+        if headContext.hasError then
+          context.setError(headContext.getError.get)
+          None
+        else
+          val head = headContext.getLastValue.asInstanceOf[H]
+          tailElementWeaver.unpackElements(u, context) match
+            case Some(tail) =>
+              Some(head *: tail)
+            case None =>
+              None
+
+  given emptyTupleWeaver: Weaver[EmptyTuple] =
+    new Weaver[EmptyTuple]:
+      override def pack(p: Packer, v: EmptyTuple, config: WeaverConfig): Unit = p.packArrayHeader(0)
+      override def unpack(u: Unpacker, context: WeaverContext): Unit          =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            val arraySize = u.unpackArrayHeader
+            var i         = 0
+            while i < arraySize do
+              u.skipValue
+              i += 1
+            context.setObject(EmptyTuple)
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to EmptyTuple"))
+
+  given tupleWeaver[H, T <: Tuple](using
+      tupleElemWeaver: TupleElementWeaver[H *: T]
+  ): Weaver[H *: T] =
+    new Weaver[H *: T]:
+      override def pack(p: Packer, v: H *: T, config: WeaverConfig): Unit =
+        p.packArrayHeader(tupleElemWeaver.size)
+        tupleElemWeaver.packElements(p, v, config)
+      override def unpack(u: Unpacker, context: WeaverContext): Unit =
+        u.getNextValueType match
+          case ValueType.ARRAY =>
+            val arraySize = u.unpackArrayHeader
+            if arraySize != tupleElemWeaver.size then
+              context.setError(
+                IllegalArgumentException(
+                  s"Tuple requires ARRAY of size ${tupleElemWeaver.size}, got size ${arraySize}"
+                )
+              )
+              var i = 0
+              while i < arraySize do
+                u.skipValue
+                i += 1
+            else
+              tupleElemWeaver.unpackElements(u, context) match
+                case Some(tuple) =>
+                  context.setObject(tuple)
+                case None =>
+          case ValueType.NIL =>
+            safeUnpackNil(context, u)
+          case other =>
+            u.skipValue
+            context.setError(new IllegalArgumentException(s"Cannot convert ${other} to Tuple"))
 
   given anyWeaver: Weaver[Any] = AnyWeaver.default
 
