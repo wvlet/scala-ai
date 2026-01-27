@@ -103,6 +103,8 @@ object JvmWeaver:
             else if elementContext.isNull then
               context.setObject(java.util.Optional.empty[A]())
             else
-              context.setObject(java.util.Optional.of(elementContext.getLastValue.asInstanceOf[A]))
+              context.setObject(
+                java.util.Optional.ofNullable(elementContext.getLastValue.asInstanceOf[A])
+              )
 
 end JvmWeaver
