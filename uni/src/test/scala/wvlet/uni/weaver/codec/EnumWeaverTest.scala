@@ -13,6 +13,13 @@ enum Priority(val level: Int) derives Weaver:
   case Medium extends Priority(2)
   case High   extends Priority(3)
 
+// Enum with custom toString to verify productPrefix-based serialization
+enum StatusCode(val code: Int) derives Weaver:
+  case OK       extends StatusCode(200)
+  case NotFound extends StatusCode(404)
+  case Error    extends StatusCode(500)
+  override def toString: String = s"${productPrefix}(${code})"
+
 case class Task(name: String, priority: Priority, color: Color) derives Weaver
 
 class EnumWeaverTest extends UniTest:
@@ -90,6 +97,15 @@ class EnumWeaverTest extends UniTest:
     val msgpack = Weaver.weave(colors)
     val v2      = Weaver.unweave[List[Color]](msgpack)
     v2 shouldBe colors
+  }
+
+  test("roundtrip enum with custom toString") {
+    val v    = StatusCode.NotFound
+    val json = Weaver.toJson(v)
+    json shouldBe "\"NotFound\""
+    val v2 = Weaver.fromJson[StatusCode](json)
+    v2 shouldBe v
+    v2.code shouldBe 404
   }
 
   test("Option[Enum] in case class") {

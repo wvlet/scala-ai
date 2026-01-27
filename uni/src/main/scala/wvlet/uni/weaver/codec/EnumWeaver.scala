@@ -18,7 +18,8 @@ class EnumWeaver[A](enumSurface: EnumSurface) extends Weaver[A]:
     if v == null then
       p.packNil
     else
-      p.packString(v.toString)
+      // Use productPrefix to get the stable case name, avoiding issues with overridden toString
+      p.packString(v.asInstanceOf[Product].productPrefix)
 
   override def unpack(u: Unpacker, context: WeaverContext): Unit =
     u.getNextValueType match
