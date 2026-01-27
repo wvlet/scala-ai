@@ -1,8 +1,10 @@
 package wvlet.uni.weaver
 
 import scala.quoted.*
+import wvlet.uni.surface.EnumSurface
 import wvlet.uni.surface.Surface
 import wvlet.uni.weaver.codec.CaseClassWeaver
+import wvlet.uni.weaver.codec.EnumWeaver
 import wvlet.uni.weaver.codec.SealedTraitWeaver
 
 /**
@@ -25,14 +27,17 @@ object WeaverDerivation:
     val symbol = tpe.typeSymbol
     val flags  = symbol.flags
 
+    // Check for Scala 3 enum first (enums are also sealed, so check before sealed trait)
+    if tpe <:< TypeRepr.of[scala.reflect.Enum] then
+      deriveEnumWeaver[A]
     // Check if sealed trait or sealed abstract class
-    if flags.is(Flags.Sealed) && (flags.is(Flags.Trait) || flags.is(Flags.Abstract)) then
+    else if flags.is(Flags.Sealed) && (flags.is(Flags.Trait) || flags.is(Flags.Abstract)) then
       deriveSealedTraitWeaver[A]
     else if flags.is(Flags.Case) then
       deriveCaseClassWeaver[A]
     else
       report.errorAndAbort(
-        s"Weaver.derived can only be used with case classes or sealed traits, but ${symbol
+        s"Weaver.derived can only be used with case classes, sealed traits, or enums, but ${symbol
             .fullName} is neither"
       )
 
@@ -178,5 +183,16 @@ object WeaverDerivation:
     }
 
   end deriveSealedTraitWeaver
+
+  private def deriveEnumWeaver[A: Type](using Quotes): Expr[Weaver[A]] =
+    '{
+      Surface.of[A] match
+        case es: EnumSurface =>
+          EnumWeaver[A](es)
+        case other =>
+          throw IllegalArgumentException(
+            s"Expected EnumSurface for ${other.name}, but got ${other.getClass.getSimpleName}"
+          )
+    }
 
 end WeaverDerivation
