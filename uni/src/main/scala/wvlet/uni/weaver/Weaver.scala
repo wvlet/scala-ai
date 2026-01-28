@@ -4,8 +4,17 @@ import wvlet.uni.msgpack.spi.MessagePack
 import wvlet.uni.msgpack.spi.MsgPack
 import wvlet.uni.msgpack.spi.Packer
 import wvlet.uni.msgpack.spi.Unpacker
+import wvlet.uni.surface.*
+import wvlet.uni.weaver.codec.CaseClassWeaver
+import wvlet.uni.weaver.codec.EnumWeaver
 import wvlet.uni.weaver.codec.JSONWeaver
 import wvlet.uni.weaver.codec.PrimitiveWeaver
+import wvlet.uni.weaver.codec.RuntimeWeavers.*
+
+import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import scala.jdk.CollectionConverters.*
 
 trait Weaver[A]:
   def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack         = toMsgPack(v, config)
@@ -78,6 +87,87 @@ object Weaver:
 
   export PrimitiveWeaver.given
   export PrimitiveWeaver.TupleElementWeaver
+
+  // Cache for weavers created from Surface
+  private val surfaceWeaverCache = ConcurrentHashMap[String, Weaver[?]]().asScala
+
+  /**
+    * Create a Weaver from Surface at runtime. Uses Surface type information to look up or build
+    * appropriate Weaver by composing existing weavers.
+    *
+    * This is used by RPC framework to derive weavers for method parameters and return types without
+    * requiring compile-time type information.
+    */
+  def fromSurface(surface: Surface): Weaver[?] = surfaceWeaverCache.getOrElseUpdate(
+    surface.fullName,
+    buildWeaver(surface)
+  )
+
+  private def buildWeaver(surface: Surface): Weaver[?] =
+    import PrimitiveWeaver.given
+    surface match
+      // Primitives - return existing givens
+      case s if s.rawType == classOf[Int] =>
+        intWeaver
+      case s if s.rawType == classOf[Long] =>
+        longWeaver
+      case s if s.rawType == classOf[String] =>
+        stringWeaver
+      case s if s.rawType == classOf[Boolean] =>
+        booleanWeaver
+      case s if s.rawType == classOf[Double] =>
+        doubleWeaver
+      case s if s.rawType == classOf[Float] =>
+        floatWeaver
+      case s if s.rawType == classOf[Byte] =>
+        byteWeaver
+      case s if s.rawType == classOf[Short] =>
+        shortWeaver
+      case s if s.rawType == classOf[Char] =>
+        charWeaver
+      case s if s.rawType == classOf[BigInt] =>
+        bigIntWeaver
+      case s if s.rawType == classOf[BigDecimal] =>
+        bigDecimalWeaver
+      case s if s.rawType == classOf[UUID] =>
+        uuidWeaver
+      case s if s.rawType == classOf[Instant] =>
+        instantWeaver
+
+      // Option[A]
+      case s: OptionSurface =>
+        RuntimeOptionWeaver(fromSurface(s.elementSurface))
+
+      // Seq/List/Vector/IndexedSeq
+      case s if s.isSeq =>
+        RuntimeSeqWeaver(fromSurface(s.typeArgs.head), s.rawType)
+
+      // Set
+      case s if classOf[Set[?]].isAssignableFrom(s.rawType) && s.typeArgs.nonEmpty =>
+        RuntimeSetWeaver(fromSurface(s.typeArgs.head))
+
+      // Map
+      case s if s.isMap && s.typeArgs.size >= 2 =>
+        RuntimeMapWeaver(fromSurface(s.typeArgs(0)), fromSurface(s.typeArgs(1)))
+
+      // Array
+      case s: ArraySurface =>
+        RuntimeArrayWeaver(fromSurface(s.elementSurface), s.elementSurface.rawType)
+
+      // Enum
+      case s: EnumSurface =>
+        EnumWeaver(s)
+
+      // Case class (has objectFactory)
+      case s if s.objectFactory.isDefined =>
+        val fieldWeavers = s.params.map(p => fromSurface(p.surface)).toIndexedSeq
+        CaseClassWeaver(s, fieldWeavers)
+
+      case s =>
+        throw IllegalArgumentException(s"Cannot create Weaver for type: ${s.fullName}")
+    end match
+
+  end buildWeaver
 
 end Weaver
 
