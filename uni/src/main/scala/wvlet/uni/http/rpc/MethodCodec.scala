@@ -68,19 +68,25 @@ case class MethodCodec(
     if json == null || json.isBlank then
       decodeFromMap(Map.empty)
     else
-      JSON.parse(json) match
-        case obj: JSONObject =>
-          obj.get("request") match
-            case Some(req: JSONObject) =>
-              decodeFromMap(req.v.toMap)
-            case Some(_) =>
-              throw RPCStatus.INVALID_REQUEST_U1.newException("'request' field must be an object")
-            case None =>
-              throw RPCStatus
-                .INVALID_REQUEST_U1
-                .newException("Missing 'request' field in request body")
-        case _ =>
-          throw RPCStatus.INVALID_REQUEST_U1.newException("Request body must be a JSON object")
+      try
+        JSON.parse(json) match
+          case obj: JSONObject =>
+            obj.get("request") match
+              case Some(req: JSONObject) =>
+                decodeFromMap(req.v.toMap)
+              case Some(_) =>
+                throw RPCStatus.INVALID_REQUEST_U1.newException("'request' field must be an object")
+              case None =>
+                throw RPCStatus
+                  .INVALID_REQUEST_U1
+                  .newException("Missing 'request' field in request body")
+          case _ =>
+            throw RPCStatus.INVALID_REQUEST_U1.newException("Request body must be a JSON object")
+      catch
+        case e: RPCException =>
+          throw e
+        case e: Exception =>
+          throw RPCStatus.INVALID_REQUEST_U1.newException(s"Invalid JSON: ${e.getMessage}", e)
 
   /**
     * Encode method return value to JSON string.

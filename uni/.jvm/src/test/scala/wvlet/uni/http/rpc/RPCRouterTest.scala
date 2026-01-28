@@ -13,6 +13,7 @@
  */
 package wvlet.uni.http.rpc
 
+import wvlet.uni.rx.Rx
 import wvlet.uni.test.UniTest
 import wvlet.uni.weaver.Weaver
 
@@ -101,6 +102,55 @@ class RPCRouterTest extends UniTest:
     route.get.methodName shouldBe "getUser"
 
     router.findRoute("nonexistent") shouldBe None
+  }
+
+  test("RPCRouter should detect method overloading") {
+    // Service with overloaded methods
+    trait OverloadedService:
+      def process(id: Long): User
+      def process(name: String): User
+
+    class OverloadedServiceImpl extends OverloadedService:
+      def process(id: Long): User     = User(id, "test")
+      def process(name: String): User = User(1, name)
+
+    val ex = intercept[IllegalArgumentException] {
+      RPCRouter.of[OverloadedService](OverloadedServiceImpl())
+    }
+    ex.getMessage shouldContain "overloading"
+    ex.getMessage shouldContain "process"
+  }
+
+  test("RPCRouter should handle Rx return types") {
+    // Service with Rx return type
+    trait RxService:
+      def getUser(id: Long): Rx[User]
+
+    class RxServiceImpl extends RxService:
+      def getUser(id: Long): Rx[User] = Rx.single(User(id, "test"))
+
+    val router = RPCRouter.of[RxService](RxServiceImpl())
+    val codec  = router.codecs("getUser")
+
+    // The return weaver should be for User, not Rx[User]
+    val result = codec.encodeResult(User(1, "Alice"))
+    result shouldContain "\"id\":1"
+    result shouldContain "\"name\":\"Alice\""
+  }
+
+  test("RPCRouter should handle Unit return type") {
+    trait VoidService:
+      def doSomething(id: Long): Unit
+
+    class VoidServiceImpl extends VoidService:
+      def doSomething(id: Long): Unit = ()
+
+    val router = RPCRouter.of[VoidService](VoidServiceImpl())
+    val codec  = router.codecs("doSomething")
+
+    // Unit should encode as null
+    val result = codec.encodeResult(())
+    result shouldBe "null"
   }
 
 end RPCRouterTest
@@ -202,12 +252,14 @@ class MethodCodecTest extends UniTest:
     ex.message shouldContain "request"
   }
 
-  test("MethodCodec should throw on invalid JSON") {
+  test("MethodCodec should throw INVALID_REQUEST on invalid JSON") {
     val codec = router.codecs("getUser")
 
-    val ex = intercept[Exception] {
+    val ex = intercept[RPCException] {
       codec.decodeParams("""not valid json""")
     }
+    ex.status shouldBe RPCStatus.INVALID_REQUEST_U1
+    ex.message shouldContain "Invalid JSON"
   }
 
   test("MethodCodec should encode result to JSON") {

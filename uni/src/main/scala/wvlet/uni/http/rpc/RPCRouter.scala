@@ -13,6 +13,7 @@
  */
 package wvlet.uni.http.rpc
 
+import wvlet.uni.rx.Rx
 import wvlet.uni.surface.MethodSurface
 import wvlet.uni.surface.Surface
 import wvlet.uni.weaver.Weaver
@@ -53,11 +54,29 @@ class RPCRouter(methods: Seq[MethodSurface], val instance: Any, val serviceName:
     * type.
     */
   val codecs: Map[String, MethodCodec] =
-    methods
-      .filter(m => m.isPublic && !excludedOwners.contains(m.owner.rawType))
+    val filteredMethods = methods.filter(m =>
+      m.isPublic && !excludedOwners.contains(m.owner.rawType)
+    )
+
+    // Detect overloaded methods (same name, different signatures)
+    val methodsByName = filteredMethods.groupBy(_.name)
+    val overloaded    = methodsByName.filter(_._2.size > 1).keys
+    if overloaded.nonEmpty then
+      throw IllegalArgumentException(
+        s"RPC does not support method overloading. Overloaded methods: ${overloaded.mkString(", ")}"
+      )
+
+    filteredMethods
       .map { m =>
         val paramWeavers = m.args.map(p => Weaver.fromSurface(p.surface)).toIndexedSeq
-        val returnWeaver = Weaver.fromSurface(m.returnType)
+        // Unwrap Rx[T] return type to get the inner type for the weaver
+        val actualReturnType =
+          if classOf[Rx[?]].isAssignableFrom(m.returnType.rawType) && m.returnType.typeArgs.nonEmpty
+          then
+            m.returnType.typeArgs.head
+          else
+            m.returnType
+        val returnWeaver = Weaver.fromSurface(actualReturnType)
         m.name -> MethodCodec(m, paramWeavers, returnWeaver)
       }
       .toMap

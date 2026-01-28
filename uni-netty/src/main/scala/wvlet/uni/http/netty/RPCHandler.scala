@@ -45,9 +45,10 @@ class RPCHandler(router: RPCRouter) extends RxHttpHandler with LogSupport:
     // Only POST method is allowed for RPC
     if request.method != HttpMethod.POST then
       return Rx.single(
-        Response
-          .methodNotAllowed
-          .withTextContent(s"RPC requires POST method, got: ${request.method}")
+        RPCStatus
+          .INVALID_REQUEST_U1
+          .newException(s"RPC requires POST method, got: ${request.method}")
+          .toResponse
       )
 
     routeMap.get(request.path) match

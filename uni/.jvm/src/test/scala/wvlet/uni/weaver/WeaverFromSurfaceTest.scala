@@ -166,4 +166,63 @@ class WeaverFromSurfaceTest extends UniTest:
     (weaver1 eq weaver2) shouldBe true
   }
 
+  test("fromSurface for Unit") {
+    val surface = Surface.of[Unit]
+    val weaver  = Weaver.fromSurface(surface)
+    val json    = weaver.asInstanceOf[Weaver[Any]].toJson(())
+    json shouldBe "null"
+    val result = weaver.asInstanceOf[Weaver[Any]].fromJson("null")
+    result shouldBe ()
+  }
+
+  test("fromSurface for java.util.List") {
+    val surface = Surface.of[java.util.List[String]]
+    val weaver  = Weaver.fromSurface(surface)
+
+    val list = java.util.Arrays.asList("a", "b", "c")
+    val json = weaver.asInstanceOf[Weaver[Any]].toJson(list)
+    json shouldBe "[\"a\",\"b\",\"c\"]"
+
+    val result = weaver.asInstanceOf[Weaver[Any]].fromJson("[\"a\",\"b\",\"c\"]")
+    result shouldMatch { case l: java.util.List[?] =>
+      l.size() shouldBe 3
+      l.get(0) shouldBe "a"
+    }
+  }
+
+  test("fromSurface for java.util.Map") {
+    val surface = Surface.of[java.util.Map[String, Int]]
+    val weaver  = Weaver.fromSurface(surface)
+
+    val map = new java.util.HashMap[String, Int]()
+    map.put("a", 1)
+    map.put("b", 2)
+    val json   = weaver.asInstanceOf[Weaver[Any]].toJson(map)
+    val result = weaver.asInstanceOf[Weaver[Any]].fromJson(json)
+    result shouldMatch { case m: java.util.Map[?, ?] =>
+      m.size() shouldBe 2
+      m.get("a") shouldBe 1
+      m.get("b") shouldBe 2
+    }
+  }
+
+  test("fromSurface for java.util.Set") {
+    val surface = Surface.of[java.util.Set[String]]
+    val weaver  = Weaver.fromSurface(surface)
+
+    val set = new java.util.HashSet[String]()
+    set.add("a")
+    set.add("b")
+    val json = weaver.asInstanceOf[Weaver[Any]].toJson(set)
+    json shouldContain "\"a\""
+    json shouldContain "\"b\""
+
+    val result = weaver.asInstanceOf[Weaver[Any]].fromJson("[\"a\",\"b\"]")
+    result shouldMatch { case s: java.util.Set[?] =>
+      s.size() shouldBe 2
+      s.contains("a") shouldBe true
+      s.contains("b") shouldBe true
+    }
+  }
+
 end WeaverFromSurfaceTest

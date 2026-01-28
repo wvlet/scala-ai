@@ -17,6 +17,20 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.*
 
+/**
+  * Weaver for Unit type - packs/unpacks as nil
+  */
+private object UnitWeaver extends Weaver[Unit]:
+  override def pack(p: Packer, v: Unit, config: WeaverConfig): Unit = p.packNil
+  override def unpack(u: Unpacker, context: WeaverContext): Unit    =
+    u.getNextValueType match
+      case wvlet.uni.msgpack.spi.ValueType.NIL =>
+        u.unpackNil
+        context.setObject(())
+      case _ =>
+        u.skipValue
+        context.setObject(())
+
 trait Weaver[A]:
   def weave(v: A, config: WeaverConfig = WeaverConfig()): MsgPack         = toMsgPack(v, config)
   def unweave(msgpack: MsgPack, config: WeaverConfig = WeaverConfig()): A =
@@ -116,6 +130,10 @@ object Weaver:
   private def buildWeaver(surface: Surface): Weaver[?] =
     import PrimitiveWeaver.given
     surface match
+      // Unit type
+      case s if s.rawType == classOf[Unit] || s.fullName == "Unit" =>
+        UnitWeaver
+
       // Primitives - return existing givens
       case s if s.rawType == classOf[Int] =>
         intWeaver
@@ -152,13 +170,25 @@ object Weaver:
       case s if s.isSeq =>
         RuntimeSeqWeaver(fromSurface(s.typeArgs.head), s.rawType)
 
-      // Set
+      // Set (Scala)
       case s if classOf[Set[?]].isAssignableFrom(s.rawType) && s.typeArgs.nonEmpty =>
         RuntimeSetWeaver(fromSurface(s.typeArgs.head))
 
-      // Map
+      // java.util.Set
+      case s if classOf[java.util.Set[?]].isAssignableFrom(s.rawType) && s.typeArgs.nonEmpty =>
+        RuntimeJavaSetWeaver(fromSurface(s.typeArgs.head))
+
+      // Map (Scala)
       case s if s.isMap && s.typeArgs.size >= 2 =>
         RuntimeMapWeaver(fromSurface(s.typeArgs(0)), fromSurface(s.typeArgs(1)))
+
+      // java.util.Map
+      case s if classOf[java.util.Map[?, ?]].isAssignableFrom(s.rawType) && s.typeArgs.size >= 2 =>
+        RuntimeJavaMapWeaver(fromSurface(s.typeArgs(0)), fromSurface(s.typeArgs(1)))
+
+      // java.util.List
+      case s if classOf[java.util.List[?]].isAssignableFrom(s.rawType) && s.typeArgs.nonEmpty =>
+        RuntimeJavaListWeaver(fromSurface(s.typeArgs.head))
 
       // Array
       case s: ArraySurface =>

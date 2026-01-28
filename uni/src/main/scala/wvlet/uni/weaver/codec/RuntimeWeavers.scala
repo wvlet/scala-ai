@@ -163,6 +163,84 @@ object RuntimeWeavers:
           u.skipValue
           context.setError(IllegalArgumentException(s"Cannot convert ${other} to Array"))
 
+  /**
+    * java.util.List weaver that can be instantiated with a runtime-resolved element weaver.
+    */
+  class RuntimeJavaListWeaver(elem: Weaver[?]) extends Weaver[java.util.List[?]]:
+    override def pack(p: Packer, v: java.util.List[?], config: WeaverConfig): Unit =
+      p.packArrayHeader(v.size)
+      v.forEach(e => elem.asInstanceOf[Weaver[Any]].pack(p, e, config))
+
+    override def unpack(u: Unpacker, context: WeaverContext): Unit =
+      u.getNextValueType match
+        case ValueType.ARRAY =>
+          unpackArrayToBuffer(u, context, elem) match
+            case Some(buffer) =>
+              val list = new java.util.ArrayList[Any](buffer.size)
+              buffer.foreach(e => list.add(e))
+              context.setObject(list)
+            case None => // Error already set
+        case ValueType.NIL =>
+          u.unpackNil
+          context.setNull
+        case other =>
+          u.skipValue
+          context.setError(IllegalArgumentException(s"Cannot convert ${other} to java.util.List"))
+
+  /**
+    * java.util.Set weaver that can be instantiated with a runtime-resolved element weaver.
+    */
+  class RuntimeJavaSetWeaver(elem: Weaver[?]) extends Weaver[java.util.Set[?]]:
+    override def pack(p: Packer, v: java.util.Set[?], config: WeaverConfig): Unit =
+      p.packArrayHeader(v.size)
+      v.forEach(e => elem.asInstanceOf[Weaver[Any]].pack(p, e, config))
+
+    override def unpack(u: Unpacker, context: WeaverContext): Unit =
+      u.getNextValueType match
+        case ValueType.ARRAY =>
+          unpackArrayToBuffer(u, context, elem) match
+            case Some(buffer) =>
+              val set = new java.util.HashSet[Any](buffer.size)
+              buffer.foreach(e => set.add(e))
+              context.setObject(set)
+            case None => // Error already set
+        case ValueType.NIL =>
+          u.unpackNil
+          context.setNull
+        case other =>
+          u.skipValue
+          context.setError(IllegalArgumentException(s"Cannot convert ${other} to java.util.Set"))
+
+  /**
+    * java.util.Map weaver that can be instantiated with runtime-resolved key/value weavers.
+    */
+  class RuntimeJavaMapWeaver(keyWeaver: Weaver[?], valueWeaver: Weaver[?])
+      extends Weaver[java.util.Map[?, ?]]:
+    override def pack(p: Packer, v: java.util.Map[?, ?], config: WeaverConfig): Unit =
+      p.packMapHeader(v.size)
+      v.forEach { (key, value) =>
+        keyWeaver.asInstanceOf[Weaver[Any]].pack(p, key, config)
+        valueWeaver.asInstanceOf[Weaver[Any]].pack(p, value, config)
+      }
+
+    override def unpack(u: Unpacker, context: WeaverContext): Unit =
+      u.getNextValueType match
+        case ValueType.MAP =>
+          unpackMapToBuffer(u, context, keyWeaver, valueWeaver) match
+            case Some(buffer) =>
+              val map = new java.util.HashMap[Any, Any](buffer.size)
+              buffer.foreach { case (k, v) =>
+                map.put(k, v)
+              }
+              context.setObject(map)
+            case None => // Error already set
+        case ValueType.NIL =>
+          u.unpackNil
+          context.setNull
+        case other =>
+          u.skipValue
+          context.setError(IllegalArgumentException(s"Cannot convert ${other} to java.util.Map"))
+
   // Helper methods
 
   private def unpackArrayToBuffer(
