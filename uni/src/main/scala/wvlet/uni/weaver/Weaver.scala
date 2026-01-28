@@ -1,5 +1,6 @@
 package wvlet.uni.weaver
 
+import wvlet.uni.json.JSON.JSONValue
 import wvlet.uni.msgpack.spi.MessagePack
 import wvlet.uni.msgpack.spi.MsgPack
 import wvlet.uni.msgpack.spi.Packer
@@ -30,6 +31,15 @@ trait Weaver[A]:
   def fromJson(json: String, config: WeaverConfig = WeaverConfig()): A =
     val msgpack = JSONWeaver.weave(json, config)
     unweave(msgpack, config)
+
+  /**
+    * Decode directly from a JSONValue without going through a string roundtrip. This is more
+    * efficient when you already have a parsed JSONValue.
+    */
+  def fromJSONValue(v: JSONValue, config: WeaverConfig = WeaverConfig()): A =
+    val packer = MessagePack.newPacker()
+    JSONWeaver.packJsonValue(packer, v, config)
+    unweave(packer.toByteArray, config)
 
   def toJson(v: A, config: WeaverConfig = WeaverConfig()): String =
     val msgpack = toMsgPack(v, config)

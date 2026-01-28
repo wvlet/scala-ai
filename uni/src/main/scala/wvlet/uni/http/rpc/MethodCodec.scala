@@ -104,7 +104,7 @@ case class MethodCodec(
       paramsByCanonicalName.get(CName.toCanonicalName(key)) match
         case Some((i, param, weaver)) =>
           try
-            results(i) = weaver.asInstanceOf[Weaver[Any]].fromJson(value.toJSON)
+            results(i) = weaver.asInstanceOf[Weaver[Any]].fromJSONValue(value)
             found(i) = true
           catch
             case e: Exception =>
