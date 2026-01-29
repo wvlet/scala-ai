@@ -60,8 +60,8 @@ class RPCHandler(router: RPCRouter) extends RxHttpHandler with LogSupport:
             RPCStatus.NOT_FOUND_U5.newException(s"RPC method not found: ${request.path}").toResponse
           )
 
-  private def handleRPC(request: Request, route: RPCRoute): Rx[Response] = Rx
-    .defer {
+  private def handleRPC(request: Request, route: RPCRoute): Rx[Response] =
+    try
       // Decode parameters from request body
       val json = request.content.asString.getOrElse("")
       val args = route.codec.decodeParams(json)
@@ -73,17 +73,18 @@ class RPCHandler(router: RPCRouter) extends RxHttpHandler with LogSupport:
       result match
         case rx: Rx[?] =>
           rx.map(v => successResponse(v, route))
+            .recover { case e =>
+              errorResponse(e)
+            }
         case value =>
           Rx.single(successResponse(value, route))
-    }
-    .recover {
+    catch
       case e: RPCException =>
         debug(s"RPC error: ${e.status} - ${e.message}")
-        e.toResponse
+        Rx.single(e.toResponse)
       case e: Exception =>
         warn(s"Unexpected error in RPC handler: ${e.getMessage}", e)
-        errorResponse(e)
-    }
+        Rx.single(errorResponse(e))
 
   private def successResponse(value: Any, route: RPCRoute): Response =
     val json = route.codec.encodeResult(value)
