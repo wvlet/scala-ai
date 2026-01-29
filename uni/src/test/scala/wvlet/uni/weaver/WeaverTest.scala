@@ -3,6 +3,7 @@ package wvlet.uni.weaver
 import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
+import wvlet.uni.weaver.codec.PrimitiveWeaver.{javaListWeaver, javaMapWeaver, javaSetWeaver}
 import scala.jdk.CollectionConverters.*
 
 class WeaverTest extends UniTest:
