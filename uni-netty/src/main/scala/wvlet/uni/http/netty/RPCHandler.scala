@@ -44,24 +44,24 @@ class RPCHandler(router: RPCRouter) extends RxHttpHandler with LogSupport:
   override def handle(request: Request): Rx[Response] =
     // Only POST method is allowed for RPC
     if request.method != HttpMethod.POST then
-      return Rx.single(
+      Rx.single(
         RPCStatus
           .INVALID_REQUEST_U1
           .newException(s"RPC requires POST method, got: ${request.method}")
           .toResponse
       )
+    else
+      routeMap.get(request.path) match
+        case Some(route) =>
+          handleRPC(request, route)
+        case None =>
+          debug(s"RPC method not found: ${request.path}")
+          Rx.single(
+            RPCStatus.NOT_FOUND_U5.newException(s"RPC method not found: ${request.path}").toResponse
+          )
 
-    routeMap.get(request.path) match
-      case Some(route) =>
-        handleRPC(request, route)
-      case None =>
-        debug(s"RPC method not found: ${request.path}")
-        Rx.single(
-          RPCStatus.NOT_FOUND_U5.newException(s"RPC method not found: ${request.path}").toResponse
-        )
-
-  private def handleRPC(request: Request, route: RPCRoute): Rx[Response] =
-    try
+  private def handleRPC(request: Request, route: RPCRoute): Rx[Response] = Rx
+    .defer {
       // Decode parameters from request body
       val json = request.content.asString.getOrElse("")
       val args = route.codec.decodeParams(json)
@@ -73,18 +73,17 @@ class RPCHandler(router: RPCRouter) extends RxHttpHandler with LogSupport:
       result match
         case rx: Rx[?] =>
           rx.map(v => successResponse(v, route))
-            .recover { case e =>
-              errorResponse(e)
-            }
         case value =>
           Rx.single(successResponse(value, route))
-    catch
+    }
+    .recover {
       case e: RPCException =>
         debug(s"RPC error: ${e.status} - ${e.message}")
-        Rx.single(e.toResponse)
+        e.toResponse
       case e: Exception =>
         warn(s"Unexpected error in RPC handler: ${e.getMessage}", e)
-        Rx.single(errorResponse(e))
+        errorResponse(e)
+    }
 
   private def successResponse(value: Any, route: RPCRoute): Response =
     val json = route.codec.encodeResult(value)
