@@ -139,9 +139,7 @@ class JavaListWeaver(elem: Weaver[?]) extends Weaver[java.util.List[?]]:
       case ValueType.ARRAY =>
         CollectionWeaver.unpackArrayToBuffer(u, context, elem) match
           case Some(buffer) =>
-            val list = java.util.ArrayList[Any](buffer.size)
-            buffer.foreach(e => list.add(e))
-            context.setObject(list)
+            context.setObject(java.util.ArrayList[Any](buffer.asJava))
           case None => // Error already set
       case ValueType.NIL =>
         u.unpackNil
@@ -160,9 +158,7 @@ class JavaSetWeaver(elem: Weaver[?]) extends Weaver[java.util.Set[?]]:
       case ValueType.ARRAY =>
         CollectionWeaver.unpackArrayToBuffer(u, context, elem) match
           case Some(buffer) =>
-            val set = java.util.HashSet[Any](buffer.size)
-            buffer.foreach(e => set.add(e))
-            context.setObject(set)
+            context.setObject(java.util.HashSet[Any](buffer.asJava))
           case None => // Error already set
       case ValueType.NIL =>
         u.unpackNil
