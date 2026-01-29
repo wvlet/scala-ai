@@ -97,7 +97,8 @@ object Weaver:
     weaver.fromJson(json, config)
 
   // Export primitive weavers for compile-time resolution
-  // Java collection weavers use @targetName to avoid type erasure conflicts
+  // Java collection weavers are not exported to avoid type erasure conflicts.
+  // Import them explicitly from PrimitiveWeaver if needed.
   export PrimitiveWeaver.{
     intWeaver,
     stringWeaver,
@@ -126,10 +127,7 @@ object Weaver:
     eitherWeaver,
     emptyTupleWeaver,
     tupleWeaver,
-    anyWeaver,
-    javaListWeaver,
-    javaMapWeaver,
-    javaSetWeaver
+    anyWeaver
   }
   export PrimitiveWeaver.TupleElementWeaver
   export PrimitiveWeaver.{emptyTupleElementWeaver, nonEmptyTupleElementWeaver}
