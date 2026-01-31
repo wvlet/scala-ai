@@ -26,6 +26,10 @@ object DomNode:
 
 /**
   * Represents raw HTML content that will be inserted directly into the DOM.
+  *
+  * @note
+  *   Using this with untrusted input can lead to Cross-Site Scripting (XSS) vulnerabilities. Ensure
+  *   that the HTML content is properly sanitized or comes from a trusted source.
   */
 case class RawHtml(html: String) extends DomNode
 

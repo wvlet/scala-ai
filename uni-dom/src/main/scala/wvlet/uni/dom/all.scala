@@ -64,18 +64,18 @@ object all extends HtmlTags with HtmlAttrs:
   import scala.language.implicitConversions
   import wvlet.uni.rx.{Rx, RxOption}
 
-  given stringToDomNode: Conversion[String, DomNode]           = s => Embedded(s)
-  given intToDomNode: Conversion[Int, DomNode]                 = i => Embedded(i)
-  given longToDomNode: Conversion[Long, DomNode]               = l => Embedded(l)
-  given floatToDomNode: Conversion[Float, DomNode]             = f => Embedded(f)
-  given doubleToDomNode: Conversion[Double, DomNode]           = d => Embedded(d)
-  given booleanToDomNode: Conversion[Boolean, DomNode]         = b => Embedded(b)
-  given charToDomNode: Conversion[Char, DomNode]               = c => Embedded(c)
-  given rxToDomNode[A]: Conversion[Rx[A], DomNode]             = rx => Embedded(rx)
-  given rxOptionToDomNode[A]: Conversion[RxOption[A], DomNode] = rx => Embedded(rx)
-  given optionToDomNode[A]: Conversion[Option[A], DomNode]     = opt => Embedded(opt)
-  given seqToDomNode[A]: Conversion[Seq[A], DomNode]           = seq => Embedded(seq)
-  given listToDomNode[A]: Conversion[List[A], DomNode]         = lst => Embedded(lst)
+  given stringToDomNode: Conversion[String, DomNode]                           = s => Embedded(s)
+  given intToDomNode: Conversion[Int, DomNode]                                 = i => Embedded(i)
+  given longToDomNode: Conversion[Long, DomNode]                               = l => Embedded(l)
+  given floatToDomNode: Conversion[Float, DomNode]                             = f => Embedded(f)
+  given doubleToDomNode: Conversion[Double, DomNode]                           = d => Embedded(d)
+  given booleanToDomNode: Conversion[Boolean, DomNode]                         = b => Embedded(b)
+  given charToDomNode: Conversion[Char, DomNode]                               = c => Embedded(c)
+  given rxToDomNode[A: EmbeddableNode]: Conversion[Rx[A], DomNode]             = rx => Embedded(rx)
+  given rxOptionToDomNode[A: EmbeddableNode]: Conversion[RxOption[A], DomNode] = rx => Embedded(rx)
+  given optionToDomNode[A: EmbeddableNode]: Conversion[Option[A], DomNode] = opt => Embedded(opt)
+  given seqToDomNode[A: EmbeddableNode]: Conversion[Seq[A], DomNode]       = seq => Embedded(seq)
+  given listToDomNode[A: EmbeddableNode]: Conversion[List[A], DomNode]     = lst => Embedded(lst)
 
   /**
     * Extension method to render an RxElement to the DOM.

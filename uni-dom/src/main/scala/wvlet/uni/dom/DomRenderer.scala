@@ -197,29 +197,25 @@ object DomRenderer extends LogSupport:
                     m.addedNodes
                       .find(_ eq elem)
                       .foreach { n =>
-                        val hasId =
-                          elem match
-                            case htmlElement: dom.HTMLElement =>
-                              Option(htmlElement.id).filter(_.nonEmpty).isDefined
-                            case _ =>
-                              false
-
-                        if hasId then
-                          val elementId = elem.asInstanceOf[dom.HTMLElement].id
-                          Option(dom.document.getElementById(elementId)) match
-                            case Some(_) =>
-                              rx.onMount(elem)
-                            case None =>
-                              dom
-                                .window
-                                .setTimeout(
-                                  () =>
-                                    if Option(dom.document.getElementById(elementId)).isDefined then
-                                      rx.onMount(elem),
-                                  0
-                                )
-                        else
-                          rx.onMount(elem)
+                        elem match
+                          case e: dom.Element if Option(e.id).exists(_.nonEmpty) =>
+                            val elementId = e.id
+                            Option(dom.document.getElementById(elementId)) match
+                              case Some(_) =>
+                                rx.onMount(elem)
+                              case None =>
+                                dom
+                                  .window
+                                  .setTimeout(
+                                    () =>
+                                      if Option(dom.document.getElementById(elementId)).isDefined
+                                      then
+                                        rx.onMount(elem),
+                                    0
+                                  )
+                          case _ =>
+                            // No ID or not an element, call onMount directly
+                            rx.onMount(elem)
                       }
                   }
                   obs.disconnect()
