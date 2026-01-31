@@ -33,7 +33,9 @@ val jsBuildSettings = Seq[Setting[?]](
   // Use Node.js environment for tests (required for FileSystem tests)
   Test / jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
   // Enable ES modules for Node.js module imports
-  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+  scalaJSLinkerConfig ~= {
+    _.withModuleKind(ModuleKind.ESModule)
+  },
   libraryDependencies ++=
     Seq(
       // For using java.util.UUID.randomUUID() in Scala.js
