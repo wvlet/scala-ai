@@ -13,6 +13,8 @@
  */
 package wvlet.uni.dom
 
+import org.scalajs.dom
+
 /**
   * Represents an HTML/SVG attribute.
   *
@@ -102,4 +104,4 @@ class DomEventHandlerOf[E](name: String, namespace: DomNamespace = DomNamespace.
   /**
     * Create a no-op event handler that prevents default behavior.
     */
-  def noValue: DomNode = DomAttribute(name, false, namespace)
+  def noValue: DomNode = DomAttribute(name, (e: dom.Event) => e.preventDefault(), namespace)
