@@ -50,10 +50,10 @@ class SvgRenderTest extends UniTest:
         div(cls -> "html-content", p("HTML inside SVG"))
       )
     )
-    val (_, c)        = DomRenderer.renderToNode("test-foreignobject", mixed)
-    val foreignObj    = container.querySelector("foreignObject")
-    val divElem       = container.querySelector("div.html-content")
-    val pElem         = container.querySelector("p")
+    val (_, c)     = DomRenderer.renderToNode("test-foreignobject", mixed)
+    val foreignObj = container.querySelector("foreignObject")
+    val divElem    = container.querySelector("div.html-content")
+    val pElem      = container.querySelector("p")
 
     // foreignObject should be SVG namespace
     foreignObj.namespaceURI shouldBe DomNamespace.svg.uri
@@ -87,10 +87,7 @@ class SvgRenderTest extends UniTest:
     dom.document.body.appendChild(container)
 
     val nested = svg(
-      g(
-        rect(x -> 0, y -> 0, width -> 50, height -> 50),
-        g(circle(cx -> 25, cy -> 25, r -> 10))
-      )
+      g(rect(x -> 0, y -> 0, width -> 50, height -> 50), g(circle(cx -> 25, cy -> 25, r -> 10)))
     )
     val (_, c)   = DomRenderer.renderToNode("test-nested-svg", nested)
     val gElems   = container.querySelectorAll("g")
