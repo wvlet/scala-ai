@@ -96,7 +96,7 @@ lazy val jvmProjects: Seq[ProjectReference] = Seq(
   test.jvm
 )
 
-lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, test.js)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, dom, test.js)
 lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, uni.native, test.native)
 
 lazy val projectJVM = project
@@ -236,6 +236,18 @@ lazy val netty = project
       )
   )
   .dependsOn(uni.jvm, test.jvm % Test)
+
+// uni-dom - Reactive DOM library for Scala.js
+lazy val dom = project
+  .in(file("uni-dom"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    buildSettings,
+    jsBuildSettings,
+    name        := "uni-dom",
+    description := "Reactive DOM library for Scala.js"
+  )
+  .dependsOn(uni.js, test.js % Test)
 
 lazy val integrationTest = project
   .in(file("uni-integration-test"))
