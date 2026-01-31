@@ -79,8 +79,8 @@ object DomRenderer extends LogSupport:
       case "svg" =>
         // SVG element always uses SVG namespace
         DomNamespace.svg
-      case _ if parentName == "foreignObject" =>
-        // Children of foreignObject use XHTML namespace
+      case _ if parentName == "foreignobject" =>
+        // Children of foreignObject use XHTML namespace (lowercased to match getNodeName)
         DomNamespace.xhtml
       case _ if elem.namespace == DomNamespace.xhtml && parentNs == DomNamespace.svg =>
         // Inherit SVG namespace from parent
