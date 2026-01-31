@@ -90,7 +90,8 @@ object DomRenderer extends LogSupport:
           val cancelable = h.traverseModifiers(m => renderTo(node, m))
           (node, cancelable)
         case l: LazyRxElement[?] =>
-          render(l)
+          // Evaluate the lazy value and traverse it directly
+          traverse(l.value)
         case Embedded(v) =>
           traverse(v)
         case r: RxElement =>
@@ -243,7 +244,8 @@ object DomRenderer extends LogSupport:
         case r: RawHtml =>
           val domNode = dom.document.createElement("span")
           domNode.innerHTML = r.html
-          domNode.childNodes.headOption.foreach(n => node.mountHere(n, anchor))
+          // Mount all child nodes, not just the first one
+          domNode.childNodes.foreach(n => node.mountHere(n, anchor))
           Cancelable.empty
         case EntityRef(entityName) =>
           val domNode = dom.document.createElement("span")
@@ -314,12 +316,16 @@ object DomRenderer extends LogSupport:
         )
 
   private def addAttribute(node: dom.Node, a: DomAttribute): Cancelable =
-    val htmlNode = node.asInstanceOf[dom.html.Html]
+    val htmlNode = node.asInstanceOf[dom.HTMLElement]
 
     def traverse(v: Any): Cancelable =
       v match
         case null | None | false =>
-          htmlNode.removeAttribute(a.name)
+          a.ns match
+            case DomNamespace.xhtml =>
+              htmlNode.removeAttribute(a.name)
+            case ns =>
+              htmlNode.removeAttributeNS(ns.uri, a.name)
           Cancelable.empty
         case Some(x) =>
           traverse(x)

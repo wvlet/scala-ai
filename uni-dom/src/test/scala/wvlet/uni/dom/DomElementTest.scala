@@ -61,8 +61,8 @@ class DomElementTest extends UniTest:
     val f = form(
       action -> "/submit",
       method -> "POST",
-      input(tpe -> "text", name -> "username", placeholder -> "Username"),
-      input(tpe -> "password", name -> "password"),
+      input(tpe  -> "text", name     -> "username", placeholder -> "Username"),
+      input(tpe  -> "password", name -> "password"),
       button(tpe -> "submit", "Login")
     )
     f.modifiers.flatten.size shouldBe 5
