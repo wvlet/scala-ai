@@ -169,10 +169,17 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def readLines(path: IOPath): Seq[String] = readString(path).split("\n").toSeq
 
+  private def withEEXISTHandler[A](path: IOPath)(body: => A): A =
+    try
+      body
+    catch
+      case e: js.JavaScriptException if isEEXIST(e) =>
+        throw FileAlreadyExistsException(path.path)
+
   override def writeString(path: IOPath, content: String, mode: WriteMode): Unit =
     if isNodeEnv then
       ensureParentDirectory(path)
-      try
+      withEEXISTHandler(path) {
         mode match
           case WriteMode.CreateNew =>
             val options = js.Dynamic.literal(flag = "wx", encoding = "utf8")
@@ -182,9 +189,7 @@ private[io] object FileSystemJS extends FileSystemBase:
             NodeFSModule.writeFileSync(path.path, content, options.asInstanceOf[js.Object])
           case WriteMode.Append =>
             NodeFSModule.appendFileSync(path.path, content)
-      catch
-        case e: js.JavaScriptException if isEEXIST(e) =>
-          throw FileAlreadyExistsException(path.path)
+      }
     else if isBrowserEnv then
       BrowserFileSystem.writeString(path, content, mode)
     else
@@ -194,7 +199,7 @@ private[io] object FileSystemJS extends FileSystemBase:
     if isNodeEnv then
       ensureParentDirectory(path)
       val buffer = byteArrayToUint8Array(content)
-      try
+      withEEXISTHandler(path) {
         mode match
           case WriteMode.CreateNew =>
             val options = js.Dynamic.literal(flag = "wx")
@@ -204,9 +209,7 @@ private[io] object FileSystemJS extends FileSystemBase:
             NodeFSModule.writeFileSync(path.path, buffer, options.asInstanceOf[js.Object])
           case WriteMode.Append =>
             NodeFSModule.appendFileSync(path.path, buffer)
-      catch
-        case e: js.JavaScriptException if isEEXIST(e) =>
-          throw FileAlreadyExistsException(path.path)
+      }
     else if isBrowserEnv then
       BrowserFileSystem.writeBytes(path, content, mode)
     else
