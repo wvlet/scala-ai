@@ -98,7 +98,7 @@ lazy val jvmProjects: Seq[ProjectReference] = Seq(
   test.jvm
 )
 
-lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, dom, test.js)
+lazy val jsProjects: Seq[ProjectReference]     = Seq(core.js, uni.js, domTest, test.js)
 lazy val nativeProjects: Seq[ProjectReference] = Seq(core.native, uni.native, test.native)
 
 lazy val projectJVM = project
@@ -239,15 +239,16 @@ lazy val netty = project
   )
   .dependsOn(uni.jvm, test.jvm % Test)
 
-// uni-dom - Reactive DOM library for Scala.js
-lazy val dom = project
-  .in(file("uni-dom"))
+// uni-dom-test - Tests for uni-dom using JSDOM environment
+lazy val domTest = project
+  .in(file("uni-dom-test"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     buildSettings,
     jsBuildSettings,
-    name        := "uni-dom",
-    description := "Reactive DOM library for Scala.js",
+    noPublish,
+    name        := "uni-dom-test",
+    description := "Tests for uni-dom using JSDOM",
     // Use JSDOM for testing (provides DOM APIs in Node.js)
     Test / jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
     // JSDOM only supports plain scripts (no modules)
