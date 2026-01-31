@@ -32,31 +32,26 @@ class RxElementTest extends UniTest:
       override def beforeUnmount: Unit      = beforeUnmountCalled = true
 
     val elem = TestElement()
-    elem.shouldMatch { case _: RxElement =>
-    }
+    elem shouldMatch { case _: RxElement => }
 
   test("RxElement.apply with element"):
     val wrapped = RxElement(div("test"))
-    wrapped.shouldMatch { case _: RxElement =>
-    }
-    wrapped
-      .render
-      .shouldMatch { case _: DomElement =>
-      }
+    wrapped shouldMatch { case _: RxElement => }
+    wrapped.render shouldMatch { case _: DomElement => }
 
   test("LazyRxElement defers evaluation"):
     var evaluated = false
-    val lazyElem  = LazyRxElement { () =>
+    val lazyElem = LazyRxElement { () =>
       evaluated = true
       div("lazy")
     }
-    evaluated.shouldBe(false)
+    evaluated shouldBe false
     lazyElem.value
-    evaluated.shouldBe(true)
+    evaluated shouldBe true
 
   test("Embedded wraps values"):
     val embedded = Embedded("test")
-    embedded.v.shouldBe("test")
+    embedded.v shouldBe "test"
 
   test("traverseModifiers processes all modifiers"):
     val elem  = div(cls -> "a", id -> "b", span("text"))
@@ -65,7 +60,7 @@ class RxElementTest extends UniTest:
       count += 1
       Cancelable.empty
     }
-    count.shouldBe(3)
+    count shouldBe 3
 
   test("nested RxElement"):
     class Inner extends RxElement:
@@ -75,8 +70,7 @@ class RxElementTest extends UniTest:
       override def render: RxElement = div(Inner())
 
     val outer = Outer()
-    outer.shouldMatch { case _: RxElement =>
-    }
+    outer shouldMatch { case _: RxElement => }
 
   test("RxElement with reactive content"):
     val counter = Rx.variable(0)
@@ -85,7 +79,6 @@ class RxElementTest extends UniTest:
       override def render: RxElement = div(cls -> "counter", counter.map(c => span(s"Count: ${c}")))
 
     val elem = Counter()
-    elem.shouldMatch { case _: RxElement =>
-    }
+    elem shouldMatch { case _: RxElement => }
 
 end RxElementTest
