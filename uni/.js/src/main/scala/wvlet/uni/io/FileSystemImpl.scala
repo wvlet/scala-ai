@@ -169,18 +169,27 @@ private[io] object FileSystemJS extends FileSystemBase:
 
   override def readLines(path: IOPath): Seq[String] = readString(path).split("\n").toSeq
 
+  private def withEEXISTHandler[A](path: IOPath)(body: => A): A =
+    try
+      body
+    catch
+      case e: js.JavaScriptException if isEEXIST(e) =>
+        throw FileAlreadyExistsException(path.path)
+
   override def writeString(path: IOPath, content: String, mode: WriteMode): Unit =
     if isNodeEnv then
       ensureParentDirectory(path)
-      mode match
-        case WriteMode.CreateNew =>
-          val options = js.Dynamic.literal(flag = "wx", encoding = "utf8")
-          NodeFSModule.writeFileSync(path.path, content, options.asInstanceOf[js.Object])
-        case WriteMode.Create =>
-          val options = js.Dynamic.literal(flag = "w", encoding = "utf8")
-          NodeFSModule.writeFileSync(path.path, content, options.asInstanceOf[js.Object])
-        case WriteMode.Append =>
-          NodeFSModule.appendFileSync(path.path, content)
+      withEEXISTHandler(path) {
+        mode match
+          case WriteMode.CreateNew =>
+            val options = js.Dynamic.literal(flag = "wx", encoding = "utf8")
+            NodeFSModule.writeFileSync(path.path, content, options.asInstanceOf[js.Object])
+          case WriteMode.Create =>
+            val options = js.Dynamic.literal(flag = "w", encoding = "utf8")
+            NodeFSModule.writeFileSync(path.path, content, options.asInstanceOf[js.Object])
+          case WriteMode.Append =>
+            NodeFSModule.appendFileSync(path.path, content)
+      }
     else if isBrowserEnv then
       BrowserFileSystem.writeString(path, content, mode)
     else
@@ -190,15 +199,17 @@ private[io] object FileSystemJS extends FileSystemBase:
     if isNodeEnv then
       ensureParentDirectory(path)
       val buffer = byteArrayToUint8Array(content)
-      mode match
-        case WriteMode.CreateNew =>
-          val options = js.Dynamic.literal(flag = "wx")
-          NodeFSModule.writeFileSync(path.path, buffer, options.asInstanceOf[js.Object])
-        case WriteMode.Create =>
-          val options = js.Dynamic.literal(flag = "w")
-          NodeFSModule.writeFileSync(path.path, buffer, options.asInstanceOf[js.Object])
-        case WriteMode.Append =>
-          NodeFSModule.appendFileSync(path.path, buffer)
+      withEEXISTHandler(path) {
+        mode match
+          case WriteMode.CreateNew =>
+            val options = js.Dynamic.literal(flag = "wx")
+            NodeFSModule.writeFileSync(path.path, buffer, options.asInstanceOf[js.Object])
+          case WriteMode.Create =>
+            val options = js.Dynamic.literal(flag = "w")
+            NodeFSModule.writeFileSync(path.path, buffer, options.asInstanceOf[js.Object])
+          case WriteMode.Append =>
+            NodeFSModule.appendFileSync(path.path, buffer)
+      }
     else if isBrowserEnv then
       BrowserFileSystem.writeBytes(path, content, mode)
     else
@@ -370,7 +381,7 @@ private[io] object FileSystemJS extends FileSystemBase:
   override def move(source: IOPath, target: IOPath, overwrite: Boolean): Unit =
     if isNodeEnv then
       if !overwrite && exists(target) then
-        throw java.nio.file.FileAlreadyExistsException(target.path)
+        throw FileAlreadyExistsException(target.path)
       ensureParentDirectory(target)
       NodeFSModule.renameSync(source.path, target.path)
     else if isBrowserEnv then
@@ -390,7 +401,7 @@ private[io] object FileSystemJS extends FileSystemBase:
           writeString(tempPath, "", WriteMode.CreateNew)
           return tempPath
         catch
-          case _: java.nio.file.FileAlreadyExistsException =>
+          case _: FileAlreadyExistsException =>
           // File exists, try again with different random name
         attempts += 1
       throw IOOperationException("Failed to create temporary file after 100 attempts")
@@ -565,6 +576,14 @@ private[io] object FileSystemJS extends FileSystemBase:
   // ============================================================
   // Utility methods
   // ============================================================
+
+  private def isEEXIST(e: js.JavaScriptException): Boolean =
+    try
+      val error = e.exception.asInstanceOf[js.Dynamic]
+      error.code.asInstanceOf[String] == "EEXIST"
+    catch
+      case _: Throwable =>
+        false
 
   private def promiseToFuture[T](promise: js.Promise[T]): Future[T] =
     val p = Promise[T]()

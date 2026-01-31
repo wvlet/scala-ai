@@ -26,6 +26,11 @@ class NoSuchFileException(message: String) extends Exception(message)
 class IOOperationException(message: String) extends Exception(message)
 
 /**
+  * Cross-platform exception for file already exists errors.
+  */
+class FileAlreadyExistsException(message: String) extends Exception(message)
+
+/**
   * Write mode for file operations.
   */
 enum WriteMode:

@@ -108,6 +108,13 @@ private[io] object FileSystemJvm extends FileSystemBase:
   override def readLines(path: IOPath): Seq[String] =
     Files.readAllLines(toNioPath(path), StandardCharsets.UTF_8).asScala.toSeq
 
+  private def withFileAlreadyExistsHandler[A](body: => A): A =
+    try
+      body
+    catch
+      case e: java.nio.file.FileAlreadyExistsException =>
+        throw FileAlreadyExistsException(e.getMessage)
+
   override def writeString(path: IOPath, content: String, mode: WriteMode): Unit =
     val nioPath = toNioPath(path)
     // Create parent directories if needed
@@ -128,7 +135,9 @@ private[io] object FileSystemJvm extends FileSystemBase:
         case WriteMode.Append =>
           Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
-    Files.writeString(nioPath, content, StandardCharsets.UTF_8, options*)
+    withFileAlreadyExistsHandler {
+      Files.writeString(nioPath, content, StandardCharsets.UTF_8, options*)
+    }
 
   override def writeBytes(path: IOPath, content: Array[Byte], mode: WriteMode): Unit =
     val nioPath = toNioPath(path)
@@ -150,7 +159,9 @@ private[io] object FileSystemJvm extends FileSystemBase:
         case WriteMode.Append =>
           Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
-    Files.write(nioPath, content, options*)
+    withFileAlreadyExistsHandler {
+      Files.write(nioPath, content, options*)
+    }
 
   override def list(path: IOPath, options: ListOptions): Seq[IOPath] =
     val nioPath = toNioPath(path)
