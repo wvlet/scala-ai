@@ -128,7 +128,11 @@ private[io] object FileSystemJvm extends FileSystemBase:
         case WriteMode.Append =>
           Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
-    Files.writeString(nioPath, content, StandardCharsets.UTF_8, options*)
+    try
+      Files.writeString(nioPath, content, StandardCharsets.UTF_8, options*)
+    catch
+      case e: java.nio.file.FileAlreadyExistsException =>
+        throw FileAlreadyExistsException(e.getMessage)
 
   override def writeBytes(path: IOPath, content: Array[Byte], mode: WriteMode): Unit =
     val nioPath = toNioPath(path)
@@ -150,7 +154,11 @@ private[io] object FileSystemJvm extends FileSystemBase:
         case WriteMode.Append =>
           Array(StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)
 
-    Files.write(nioPath, content, options*)
+    try
+      Files.write(nioPath, content, options*)
+    catch
+      case e: java.nio.file.FileAlreadyExistsException =>
+        throw FileAlreadyExistsException(e.getMessage)
 
   override def list(path: IOPath, options: ListOptions): Seq[IOPath] =
     val nioPath = toNioPath(path)

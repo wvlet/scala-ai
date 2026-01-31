@@ -148,7 +148,7 @@ private[io] object BrowserFileSystem:
     mode match
       case WriteMode.CreateNew =>
         if storage.contains(key) then
-          throw java.nio.file.FileAlreadyExistsException(path.path)
+          throw FileAlreadyExistsException(path.path)
         storage(key) = MemoryFile(content.clone(), isDirectory = false, now, now)
 
       case WriteMode.Create =>
@@ -320,7 +320,7 @@ private[io] object BrowserFileSystem:
                   MemoryFile(file.content.clone(), file.isDirectory, now, now)
 
               if !options.overwrite && storage.contains(newKey) then
-                throw java.nio.file.FileAlreadyExistsException(newKey)
+                throw FileAlreadyExistsException(newKey)
               storage(newKey) = newFile
           }
       case Some(sourceFile) =>
@@ -328,7 +328,7 @@ private[io] object BrowserFileSystem:
         target.parent.foreach(createDirectory)
 
         if !options.overwrite && storage.contains(targetKey) then
-          throw java.nio.file.FileAlreadyExistsException(target.path)
+          throw FileAlreadyExistsException(target.path)
 
         val newFile =
           if options.preserveAttributes then
@@ -348,7 +348,7 @@ private[io] object BrowserFileSystem:
     if !exists(source) then
       throw NoSuchFileException(s"Source not found: ${source}")
     if !overwrite && exists(target) then
-      throw java.nio.file.FileAlreadyExistsException(target.path)
+      throw FileAlreadyExistsException(target.path)
 
     // Create target parent directory
     target.parent.foreach(createDirectory)

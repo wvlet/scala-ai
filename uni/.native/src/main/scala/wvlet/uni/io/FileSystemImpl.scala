@@ -113,7 +113,7 @@ private[io] object FileSystemNative extends FileSystemBase:
       case WriteMode.CreateNew =>
         // Use createNewFile() for atomic check-and-create
         if !file.createNewFile() then
-          throw java.nio.file.FileAlreadyExistsException(path.path)
+          throw FileAlreadyExistsException(path.path)
         val fos = FileOutputStream(file, false)
         try fos.write(content)
         finally fos.close()
@@ -223,7 +223,7 @@ private[io] object FileSystemNative extends FileSystemBase:
       copyDirectoryRecursive(sourceFile, targetFile, options)
     else
       if !options.overwrite && targetFile.exists() then
-        throw java.nio.file.FileAlreadyExistsException(target.path)
+        throw FileAlreadyExistsException(target.path)
       copyFile(sourceFile, targetFile)
 
   private def copyFile(source: File, target: File): Unit =
@@ -254,7 +254,7 @@ private[io] object FileSystemNative extends FileSystemBase:
           copyDirectoryRecursive(file, targetChild, options)
         else
           if !options.overwrite && targetChild.exists() then
-            throw java.nio.file.FileAlreadyExistsException(targetChild.getPath)
+            throw FileAlreadyExistsException(targetChild.getPath)
           copyFile(file, targetChild)
       }
     }
@@ -264,7 +264,7 @@ private[io] object FileSystemNative extends FileSystemBase:
     val targetFile = toJavaFile(target)
 
     if !overwrite && targetFile.exists() then
-      throw java.nio.file.FileAlreadyExistsException(target.path)
+      throw FileAlreadyExistsException(target.path)
 
     // Create parent directories
     val targetParent = targetFile.getParentFile

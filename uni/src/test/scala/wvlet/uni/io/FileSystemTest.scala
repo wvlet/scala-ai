@@ -89,7 +89,7 @@ class FileSystemTest extends UniTest:
 
     FileSystem.writeString(file, "original")
 
-    intercept[java.nio.file.FileAlreadyExistsException] {
+    intercept[FileAlreadyExistsException] {
       FileSystem.writeString(file, "new content", WriteMode.CreateNew)
     }
 

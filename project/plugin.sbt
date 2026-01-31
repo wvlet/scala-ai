@@ -20,6 +20,9 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 val SCALAJS_VERSION = sys.env.getOrElse("SCALAJS_VERSION", "1.20.2")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % SCALAJS_VERSION)
 
+// For running Scala.js tests in Node.js
+libraryDependencies += "org.scala-js" %% "scalajs-env-nodejs" % "1.5.0"
+
 // For Scala native
 addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % "1.3.2")
 addSbtPlugin("org.scala-native"   % "sbt-scala-native"              % "0.5.10")
