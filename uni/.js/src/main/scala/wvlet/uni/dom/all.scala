@@ -57,6 +57,7 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.EntityRef
   export wvlet.uni.dom.Embedded
   export wvlet.uni.dom.DomRenderer
+  export wvlet.uni.dom.ClassToggle
 
   /**
     * Re-export helper functions.
