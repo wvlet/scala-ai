@@ -40,10 +40,13 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
 
   // Resolve conflicts between HtmlTags and HtmlAttrs by preferring tags
   // Use styleAttr and titleAttr for the attribute versions
-  override lazy val style: DomElement = HtmlTags.tag("style")
   override lazy val title: DomElement = HtmlTags.tag("title")
   override lazy val form: DomElement  = HtmlTags.tag("form")
   override lazy val span: DomElement  = HtmlTags.tag("span")
+
+  // Override style from HtmlTags with our CSS style object (which extends DomElement)
+  // This allows: style(display := "flex") for CSS, and style("...") for <style> tag
+  override lazy val style: wvlet.uni.dom.style.type = wvlet.uni.dom.style
 
   /**
     * Re-export core types for convenience.
@@ -57,6 +60,9 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.EntityRef
   export wvlet.uni.dom.Embedded
   export wvlet.uni.dom.DomRenderer
+  export wvlet.uni.dom.ClassToggle
+  export wvlet.uni.dom.StyleValue
+  export wvlet.uni.dom.StyleProperty
 
   /**
     * Re-export helper functions.

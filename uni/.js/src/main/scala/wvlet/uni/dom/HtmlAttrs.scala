@@ -20,10 +20,30 @@ trait GlobalAttrs:
   import HtmlTags.attr
 
   // Core attributes
-  lazy val id: DomAttributeOf              = attr("id")
-  lazy val `class`: DomAttributeOf         = attr("class")
-  lazy val cls: DomAttributeOf             = `class`
-  lazy val className: DomAttributeOf       = `class`
+  lazy val id: DomAttributeOf        = attr("id")
+  lazy val `class`: DomAttributeOf   = attr("class")
+  lazy val className: DomAttributeOf = `class`
+
+  /**
+    * CSS class attribute with toggle support.
+    *
+    * Usage:
+    * {{{
+    *   div(cls := "base-class")
+    *   div(cls.toggle("active") when isActive)
+    * }}}
+    */
+  object cls extends DomAttributeOf("class"):
+    /**
+      * Alias for apply. Allows `cls := "value"` syntax.
+      */
+    def :=[V: EmbeddableAttribute](v: V): DomNode = apply(v)
+
+    /**
+      * Create a class toggle for conditional class application.
+      */
+    def toggle(className: String): ClassToggle = ClassToggle(className)
+
   lazy val styleAttr: DomAttributeOf       = attr("style")
   lazy val titleAttr: DomAttributeOf       = attr("title")
   lazy val lang: DomAttributeOf            = attr("lang")
