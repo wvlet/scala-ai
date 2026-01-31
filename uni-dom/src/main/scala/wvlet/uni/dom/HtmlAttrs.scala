@@ -1,0 +1,225 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package wvlet.uni.dom
+
+/**
+  * Global HTML attributes that can be used on any element.
+  */
+trait GlobalAttrs:
+  import HtmlTags.attr
+
+  // Core attributes
+  lazy val id: DomAttributeOf              = attr("id")
+  lazy val `class`: DomAttributeOf         = attr("class")
+  lazy val cls: DomAttributeOf             = `class`
+  lazy val className: DomAttributeOf       = `class`
+  lazy val styleAttr: DomAttributeOf       = attr("style")
+  lazy val titleAttr: DomAttributeOf       = attr("title")
+  lazy val lang: DomAttributeOf            = attr("lang")
+  lazy val dir: DomAttributeOf             = attr("dir")
+  lazy val tabindex: DomAttributeOf        = attr("tabindex")
+  lazy val accesskey: DomAttributeOf       = attr("accesskey")
+  lazy val contenteditable: DomAttributeOf = attr("contenteditable")
+  lazy val draggable: DomAttributeOf       = attr("draggable")
+  lazy val spellcheck: DomAttributeOf      = attr("spellcheck")
+  lazy val translate: DomAttributeOf       = attr("translate")
+
+  // Boolean attributes
+  lazy val hidden: DomNode = attr("hidden").noValue
+  lazy val inert: DomNode  = attr("inert").noValue
+
+  // Data attributes
+  def data(suffix: String): DomAttributeOf = attr(s"data-${suffix}")
+
+  // ARIA attributes
+  lazy val role: DomAttributeOf            = attr("role")
+  def aria(suffix: String): DomAttributeOf = attr(s"aria-${suffix}")
+
+end GlobalAttrs
+
+/**
+  * Input-related HTML attributes.
+  */
+trait InputAttrs extends GlobalAttrs:
+  import HtmlTags.attr
+
+  // Type attributes
+  lazy val `type`: DomAttributeOf = attr("type")
+  lazy val tpe: DomAttributeOf    = `type`
+
+  // Value attributes
+  lazy val name: DomAttributeOf         = attr("name")
+  lazy val value: DomAttributeOf        = attr("value")
+  lazy val placeholder: DomAttributeOf  = attr("placeholder")
+  lazy val defaultValue: DomAttributeOf = attr("defaultValue")
+
+  // Validation attributes
+  lazy val min: DomAttributeOf       = attr("min")
+  lazy val max: DomAttributeOf       = attr("max")
+  lazy val step: DomAttributeOf      = attr("step")
+  lazy val minlength: DomAttributeOf = attr("minlength")
+  lazy val maxlength: DomAttributeOf = attr("maxlength")
+  lazy val pattern: DomAttributeOf   = attr("pattern")
+
+  // Boolean input attributes
+  lazy val disabled: DomNode  = attr("disabled").noValue
+  lazy val readonly: DomNode  = attr("readonly").noValue
+  lazy val required: DomNode  = attr("required").noValue
+  lazy val checked: DomNode   = attr("checked").noValue
+  lazy val autofocus: DomNode = attr("autofocus").noValue
+  lazy val multiple: DomNode  = attr("multiple").noValue
+
+  // Other input attributes
+  lazy val autocomplete: DomAttributeOf   = attr("autocomplete")
+  lazy val autocapitalize: DomAttributeOf = attr("autocapitalize")
+  lazy val inputmode: DomAttributeOf      = attr("inputmode")
+  lazy val list: DomAttributeOf           = attr("list")
+  lazy val accept: DomAttributeOf         = attr("accept")
+  lazy val size: DomAttributeOf           = attr("size")
+  lazy val rows: DomAttributeOf           = attr("rows")
+  lazy val cols: DomAttributeOf           = attr("cols")
+  lazy val wrap: DomAttributeOf           = attr("wrap")
+
+end InputAttrs
+
+/**
+  * Link and media-related HTML attributes.
+  */
+trait LinkAttrs:
+  import HtmlTags.attr
+
+  lazy val href: DomAttributeOf           = attr("href")
+  lazy val src: DomAttributeOf            = attr("src")
+  lazy val alt: DomAttributeOf            = attr("alt")
+  lazy val rel: DomAttributeOf            = attr("rel")
+  lazy val target: DomAttributeOf         = attr("target")
+  lazy val download: DomAttributeOf       = attr("download")
+  lazy val hreflang: DomAttributeOf       = attr("hreflang")
+  lazy val media: DomAttributeOf          = attr("media")
+  lazy val ping: DomAttributeOf           = attr("ping")
+  lazy val referrerpolicy: DomAttributeOf = attr("referrerpolicy")
+
+  // Image attributes
+  lazy val width: DomAttributeOf       = attr("width")
+  lazy val height: DomAttributeOf      = attr("height")
+  lazy val loading: DomAttributeOf     = attr("loading")
+  lazy val decoding: DomAttributeOf    = attr("decoding")
+  lazy val srcset: DomAttributeOf      = attr("srcset")
+  lazy val sizes: DomAttributeOf       = attr("sizes")
+  lazy val crossorigin: DomAttributeOf = attr("crossorigin")
+  lazy val usemap: DomAttributeOf      = attr("usemap")
+  lazy val ismap: DomNode              = attr("ismap").noValue
+
+  // Media attributes
+  lazy val autoplay: DomNode       = attr("autoplay").noValue
+  lazy val controls: DomNode       = attr("controls").noValue
+  lazy val loop: DomNode           = attr("loop").noValue
+  lazy val muted: DomNode          = attr("muted").noValue
+  lazy val poster: DomAttributeOf  = attr("poster")
+  lazy val preload: DomAttributeOf = attr("preload")
+
+end LinkAttrs
+
+/**
+  * Form-related HTML attributes.
+  */
+trait FormAttrs:
+  import HtmlTags.attr
+
+  lazy val action: DomAttributeOf   = attr("action")
+  lazy val method: DomAttributeOf   = attr("method")
+  lazy val enctype: DomAttributeOf  = attr("enctype")
+  lazy val `for`: DomAttributeOf    = attr("for")
+  lazy val forId: DomAttributeOf    = `for`
+  lazy val formAttr: DomAttributeOf = attr(
+    "form"
+  ) // HTML form attribute (for associating with a form)
+  lazy val formaction: DomAttributeOf  = attr("formaction")
+  lazy val formmethod: DomAttributeOf  = attr("formmethod")
+  lazy val formenctype: DomAttributeOf = attr("formenctype")
+  lazy val formtarget: DomAttributeOf  = attr("formtarget")
+  lazy val formnovalidate: DomNode     = attr("formnovalidate").noValue
+  lazy val novalidate: DomNode         = attr("novalidate").noValue
+
+end FormAttrs
+
+/**
+  * Table-related HTML attributes.
+  */
+trait TableAttrs:
+  import HtmlTags.attr
+
+  lazy val colspan: DomAttributeOf = attr("colspan")
+  lazy val rowspan: DomAttributeOf = attr("rowspan")
+  lazy val headers: DomAttributeOf = attr("headers")
+  lazy val scope: DomAttributeOf   = attr("scope")
+  lazy val colSpan: DomAttributeOf = attr("span") // HTML span attribute for col/colgroup
+
+end TableAttrs
+
+/**
+  * Script and style HTML attributes.
+  */
+trait ScriptAttrs:
+  import HtmlTags.attr
+
+  lazy val async: DomNode            = attr("async").noValue
+  lazy val defer: DomNode            = attr("defer").noValue
+  lazy val integrity: DomAttributeOf = attr("integrity")
+  lazy val nomodule: DomNode         = attr("nomodule").noValue
+  lazy val nonce: DomAttributeOf     = attr("nonce")
+  lazy val charset: DomAttributeOf   = attr("charset")
+
+end ScriptAttrs
+
+/**
+  * Meta and link HTML attributes.
+  */
+trait MetaAttrs:
+  import HtmlTags.attr
+
+  lazy val content: DomAttributeOf   = attr("content")
+  lazy val httpEquiv: DomAttributeOf = attr("http-equiv")
+
+end MetaAttrs
+
+/**
+  * Other miscellaneous HTML attributes.
+  */
+trait MiscAttrs:
+  import HtmlTags.attr
+
+  lazy val open: DomNode            = attr("open").noValue
+  lazy val selected: DomNode        = attr("selected").noValue
+  lazy val `default`: DomNode       = attr("default").noValue
+  lazy val datetime: DomAttributeOf = attr("datetime")
+  lazy val cite: DomAttributeOf     = attr("cite")
+  lazy val sandbox: DomAttributeOf  = attr("sandbox")
+  lazy val srcdoc: DomAttributeOf   = attr("srcdoc")
+  lazy val allow: DomAttributeOf    = attr("allow")
+
+end MiscAttrs
+
+/**
+  * Combined HTML attributes trait.
+  */
+trait HtmlAttrs
+    extends InputAttrs
+    with LinkAttrs
+    with FormAttrs
+    with TableAttrs
+    with ScriptAttrs
+    with MetaAttrs
+    with MiscAttrs
+    with HtmlEvents
