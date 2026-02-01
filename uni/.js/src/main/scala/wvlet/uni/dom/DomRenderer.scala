@@ -241,6 +241,10 @@ object DomRenderer extends LogSupport:
           Cancelable.merge(c1, c2)
         case a: DomAttribute =>
           addAttribute(node, a)
+        case s: TwStyle =>
+          // Convert TwStyle to a class attribute with append=true
+          if s.nonEmpty then addAttribute(node, DomAttribute("class", s.classes, append = true))
+          else Cancelable.empty
         case n: dom.Node =>
           node.mountHere(n, anchor)
           Cancelable.empty

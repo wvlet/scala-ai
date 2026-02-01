@@ -78,6 +78,7 @@ private[dom] object EmbeddableNode:
   // DOM types
   inline given embedDomNode[A <: DomNode]: EN[A]         = null
   inline given embedHtmlElement[A <: dom.Element]: EN[A] = null
+  inline given embedTwStyle: EN[TwStyle]                 = null
 
   // Container types
   inline given embedOption[C[x] <: Option[x], A: EN]: EN[C[A]]     = null

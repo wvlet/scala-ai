@@ -57,6 +57,8 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.EntityRef
   export wvlet.uni.dom.Embedded
   export wvlet.uni.dom.DomRenderer
+  export wvlet.uni.dom.TwStyle
+  export wvlet.uni.dom.TwClasses
 
   /**
     * Re-export helper functions.
@@ -64,6 +66,7 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.when
   export wvlet.uni.dom.unless
   export wvlet.uni.dom.embedAsNode
+  export wvlet.uni.dom.tw
 
   /**
     * Implicit conversions for embedding common types as DomNodes.
@@ -83,6 +86,10 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   given optionToDomNode[A: EmbeddableNode]: Conversion[Option[A], DomNode] = opt => Embedded(opt)
   given seqToDomNode[A: EmbeddableNode]: Conversion[Seq[A], DomNode]       = seq => Embedded(seq)
   given listToDomNode[A: EmbeddableNode]: Conversion[List[A], DomNode]     = lst => Embedded(lst)
+
+  // TwStyle conversions
+  given twStyleToDomNode: Conversion[TwStyle, DomNode]         = s => s
+  given rxTwStyleToDomNode: Conversion[Rx[TwStyle], DomNode]   = rx => Embedded(rx)
 
   /**
     * Extension method to render an RxElement to the DOM.
