@@ -75,7 +75,7 @@ class DomElementTest extends UniTest:
     t.modifiers.flatten.size shouldBe 2
 
   test("create element with boolean attributes"):
-    val i = input(tpe -> "checkbox", checked, disabled)
+    val i = input(tpe -> "checkbox", checked -> true, disabled)
     i.modifiers.flatten.size shouldBe 3
 
   test("create link element"):

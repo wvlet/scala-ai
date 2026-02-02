@@ -241,6 +241,10 @@ object DomRenderer extends LogSupport:
           Cancelable.merge(c1, c2)
         case a: DomAttribute =>
           addAttribute(node, a)
+        case vb: ValueBinding =>
+          handleValueBinding(node, vb)
+        case cb: CheckedBinding =>
+          handleCheckedBinding(node, cb)
         case n: dom.Node =>
           node.mountHere(n, anchor)
           Cancelable.empty
@@ -425,6 +429,13 @@ object DomRenderer extends LogSupport:
                   val newAttributeValue = removeStyleValue(htmlNode.style.cssText, value)
                   htmlNode.style.cssText = newAttributeValue
               }
+            // DOM properties that need direct property assignment
+            case "value" =>
+              setDomProperty(node, "value", v)
+              Cancelable.empty
+            case "checked" | "disabled" | "selected" =>
+              setDomProperty(node, a.name, v)
+              Cancelable.empty
             case _ =>
               def removeAttribute(): Unit =
                 a.ns match
@@ -459,6 +470,117 @@ object DomRenderer extends LogSupport:
 
     traverse(a.v)
   end addAttribute
+
+  /**
+    * Set a DOM property directly on an element. Properties are different from attributes - they
+    * reflect the current state of the element (e.g., input.value, checkbox.checked).
+    */
+  private def setDomProperty(node: dom.Node, name: String, value: Any): Unit =
+    val dyn = node.asInstanceOf[js.Dynamic]
+    value match
+      case null | None | false =>
+        name match
+          case "value" =>
+            dyn.updateDynamic("value")("")
+          case "checked" | "disabled" =>
+            dyn.updateDynamic(name)(false)
+          case "selected" =>
+            dyn.updateDynamic(name)(false)
+          case _ =>
+            ()
+      case true =>
+        name match
+          case "checked" | "disabled" | "selected" =>
+            dyn.updateDynamic(name)(true)
+          case _ =>
+            dyn.updateDynamic(name)(true)
+      case Some(v) =>
+        setDomProperty(node, name, v)
+      case s: String =>
+        dyn.updateDynamic(name)(s)
+      case other =>
+        dyn.updateDynamic(name)(other.toString)
+
+  /**
+    * Handle two-way binding for string values (text inputs, textareas, selects).
+    */
+  private def handleValueBinding(node: dom.Node, binding: ValueBinding): Cancelable =
+    val htmlNode = node.asInstanceOf[dom.html.Input]
+    val variable = binding.variable
+
+    // Guard flag to prevent infinite loops
+    var isUpdating = false
+
+    // 1. Subscribe to RxVar changes -> update DOM property
+    val rxCancelable =
+      RxRunner.runContinuously(variable) { ev =>
+        ev match
+          case OnNext(newValue: String @unchecked) =>
+            if !isUpdating then
+              isUpdating = true
+              htmlNode.value = newValue
+              isUpdating = false
+          case _ =>
+            ()
+      }
+
+    // 2. Listen to DOM events -> update RxVar
+    val eventName =
+      if binding.useChangeEvent then
+        "onchange"
+      else
+        "oninput"
+    val dyn      = node.asInstanceOf[js.Dynamic]
+    val listener =
+      (e: dom.Event) =>
+        if !isUpdating then
+          isUpdating = true
+          val domValue = htmlNode.value
+          if domValue != variable.get then
+            variable := domValue
+          isUpdating = false
+    dyn.updateDynamic(eventName)(listener)
+
+    Cancelable.merge(rxCancelable, Cancelable(() => dyn.updateDynamic(eventName)(null)))
+  end handleValueBinding
+
+  /**
+    * Handle two-way binding for boolean values (checkboxes).
+    */
+  private def handleCheckedBinding(node: dom.Node, binding: CheckedBinding): Cancelable =
+    val htmlNode = node.asInstanceOf[dom.html.Input]
+    val variable = binding.variable
+
+    // Guard flag to prevent infinite loops
+    var isUpdating = false
+
+    // 1. Subscribe to RxVar changes -> update DOM property
+    val rxCancelable =
+      RxRunner.runContinuously(variable) { ev =>
+        ev match
+          case OnNext(newValue: Boolean @unchecked) =>
+            if !isUpdating then
+              isUpdating = true
+              htmlNode.checked = newValue
+              isUpdating = false
+          case _ =>
+            ()
+      }
+
+    // 2. Listen to DOM change event -> update RxVar
+    val dyn      = node.asInstanceOf[js.Dynamic]
+    val listener =
+      (e: dom.Event) =>
+        if !isUpdating then
+          isUpdating = true
+          val domValue = htmlNode.checked
+          if domValue != variable.get then
+            variable := domValue
+          isUpdating = false
+    dyn.updateDynamic("onchange")(listener)
+
+    Cancelable.merge(rxCancelable, Cancelable(() => dyn.updateDynamic("onchange")(null)))
+  end handleCheckedBinding
 
   extension (node: dom.Node)
     private def eval(v: Any): Cancelable =
