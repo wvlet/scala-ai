@@ -51,10 +51,14 @@ object style extends DomElement("style", DomNamespace.xhtml, Nil):
   /**
     * Create a style attribute from grouped CSS properties (React/Vue style). When called with
     * StyleValue arguments, returns a DomAttribute for inline styles.
+    *
+    * Note: Requires at least one StyleValue to avoid ambiguity with the inherited `apply(DomNode*)`
+    * from DomElement. For empty `<style>` tags, use `style` directly or `style("...")` with string
+    * content.
     */
-  def apply(values: StyleValue*): DomAttribute = DomAttribute(
+  def apply(first: StyleValue, rest: StyleValue*): DomAttribute = DomAttribute(
     "style",
-    values.map(v => s"${v.name}: ${v.value};").mkString(" "),
+    (first +: rest).map(v => s"${v.name}: ${v.value};").mkString(" "),
     append = true
   )
 

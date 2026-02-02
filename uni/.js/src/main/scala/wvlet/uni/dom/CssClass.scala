@@ -40,8 +40,18 @@ case class ClassToggle(className: String):
       DomNode.empty
 
   /**
-    * Apply the class reactively based on an Rx[Boolean] stream.
+    * Apply the class reactively based on an Rx[Boolean] stream. Uses reactive attribute binding to
+    * avoid inserting text node markers.
     */
-  infix def when(rx: Rx[Boolean]): DomNode = Embedded(rx.map(cond => when(cond)))
+  infix def when(rx: Rx[Boolean]): DomNode = DomAttribute(
+    "class",
+    rx.map(cond =>
+      if cond then
+        className
+      else
+        ""
+    ),
+    append = true
+  )
 
 end ClassToggle
