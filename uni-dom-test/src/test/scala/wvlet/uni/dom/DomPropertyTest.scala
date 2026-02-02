@@ -73,6 +73,11 @@ class DomPropertyTest extends UniTest:
     text := "from-rx"
     inputNode.value shouldBe "from-rx"
 
+    // Update DOM -> Rx should update
+    inputNode.value = "from-dom"
+    inputNode.dispatchEvent(new org.scalajs.dom.Event("input"))
+    text.get shouldBe "from-dom"
+
   test("checked.bind creates two-way binding"):
     val isChecked = Rx.variable(false)
     val elem      = input(tpe -> "checkbox", checked.bind(isChecked))
@@ -85,6 +90,11 @@ class DomPropertyTest extends UniTest:
     // Update Rx -> DOM should update
     isChecked := true
     inputNode.checked shouldBe true
+
+    // Update DOM -> Rx should update
+    inputNode.checked = false
+    inputNode.dispatchEvent(new org.scalajs.dom.Event("change"))
+    isChecked.get shouldBe false
 
   test("reactive checked toggles correctly from true to false"):
     val isChecked = Rx.variable(true)

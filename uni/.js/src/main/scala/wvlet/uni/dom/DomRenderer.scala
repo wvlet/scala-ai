@@ -555,7 +555,7 @@ object DomRenderer extends LogSupport:
     * Handle two-way binding for boolean values (checkboxes).
     */
   private def handleCheckedBinding(node: dom.Node, binding: CheckedBinding): Cancelable =
-    val htmlNode = node.asInstanceOf[dom.html.Input]
+    val dyn      = node.asInstanceOf[js.Dynamic]
     val variable = binding.variable
 
     // Guard flag to prevent infinite loops
@@ -568,19 +568,18 @@ object DomRenderer extends LogSupport:
           case OnNext(newValue: Boolean @unchecked) =>
             if !isUpdating then
               isUpdating = true
-              htmlNode.checked = newValue
+              dyn.checked = newValue
               isUpdating = false
           case _ =>
             ()
       }
 
     // 2. Listen to DOM change event -> update RxVar
-    val dyn      = node.asInstanceOf[js.Dynamic]
     val listener =
       (e: dom.Event) =>
         if !isUpdating then
           isUpdating = true
-          val domValue = htmlNode.checked
+          val domValue = dyn.checked.asInstanceOf[Boolean]
           if domValue != variable.get then
             variable := domValue
           isUpdating = false
