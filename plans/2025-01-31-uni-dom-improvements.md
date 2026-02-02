@@ -41,8 +41,9 @@ case class StyleProperty(name: String):
 // Extends DomElement so it can override HtmlTags.style
 object style extends DomElement("style", DomNamespace.xhtml, Nil):
   // Grouped CSS properties (React/Vue style)
-  def apply(values: StyleValue*): DomAttribute =
-    DomAttribute("style", values.map(v => s"${v.name}: ${v.value};").mkString(" "), append = true)
+  // Requires at least one StyleValue to avoid ambiguity with inherited apply(DomNode*)
+  def apply(first: StyleValue, rest: StyleValue*): DomAttribute =
+    DomAttribute("style", (first +: rest).map(v => s"${v.name}: ${v.value};").mkString(" "), append = true)
 
   // Raw string (Tailwind-friendly)
   def :=(value: String): DomAttribute = DomAttribute("style", value, append = true)
@@ -81,8 +82,9 @@ case class ClassToggle(className: String):
     if condition then DomAttribute("class", className, append = true)
     else DomNode.empty
 
+  // Uses reactive attribute binding to avoid text node markers
   infix def when(rx: Rx[Boolean]): DomNode =
-    Embedded(rx.map(cond => when(cond)))
+    DomAttribute("class", rx.map(cond => if cond then className else ""), append = true)
 ```
 
 **Modify HtmlAttrs.scala**:
@@ -173,3 +175,17 @@ test("reactive class toggle"):
 - Keyed collections / split operator
 - Two-way binding
 - ARIA attributes
+
+## Review Learnings
+
+### Codex Review Findings (Fixed)
+
+1. **Reactive class toggle text node markers** - Original implementation using `Embedded(rx.map(...))` inserted placeholder text nodes that could break CSS `:empty` selectors. Fixed by using direct reactive attribute binding: `DomAttribute("class", rx.map(...), append = true)`.
+
+2. **`style()` overload ambiguity** - The `apply(values: StyleValue*)` signature conflicted with inherited `apply(nodes: DomNode*)` for zero-argument calls. Fixed by requiring at least one StyleValue: `apply(first: StyleValue, rest: StyleValue*)`.
+
+### Design Evolution
+
+- Started with top-level CSS properties (like Laminar) but user feedback led to namespacing under `style` object
+- Originally used `css` for raw styles but changed to `style := "..."` for React/Vue familiarity
+- The `style` object extending `DomElement` allows dual use as both CSS attribute builder and `<style>` tag
