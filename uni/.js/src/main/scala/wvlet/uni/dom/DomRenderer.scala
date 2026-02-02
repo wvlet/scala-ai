@@ -383,6 +383,14 @@ object DomRenderer extends LogSupport:
     def traverse(v: Any): Cancelable =
       v match
         case null | None | false =>
+          // For property-backed boolean attributes, also set the property to false
+          a.name match
+            case "checked" | "disabled" | "selected" =>
+              setDomProperty(node, a.name, false)
+            case "value" =>
+              setDomProperty(node, "value", "")
+            case _ =>
+              ()
           a.ns match
             case DomNamespace.xhtml =>
               htmlNode.removeAttribute(a.name)
@@ -505,7 +513,7 @@ object DomRenderer extends LogSupport:
     * Handle two-way binding for string values (text inputs, textareas, selects).
     */
   private def handleValueBinding(node: dom.Node, binding: ValueBinding): Cancelable =
-    val htmlNode = node.asInstanceOf[dom.html.Input]
+    val dyn      = node.asInstanceOf[js.Dynamic]
     val variable = binding.variable
 
     // Guard flag to prevent infinite loops
@@ -518,7 +526,7 @@ object DomRenderer extends LogSupport:
           case OnNext(newValue: String @unchecked) =>
             if !isUpdating then
               isUpdating = true
-              htmlNode.value = newValue
+              dyn.value = newValue
               isUpdating = false
           case _ =>
             ()
@@ -530,12 +538,11 @@ object DomRenderer extends LogSupport:
         "onchange"
       else
         "oninput"
-    val dyn      = node.asInstanceOf[js.Dynamic]
     val listener =
       (e: dom.Event) =>
         if !isUpdating then
           isUpdating = true
-          val domValue = htmlNode.value
+          val domValue = dyn.value.asInstanceOf[String]
           if domValue != variable.get then
             variable := domValue
           isUpdating = false

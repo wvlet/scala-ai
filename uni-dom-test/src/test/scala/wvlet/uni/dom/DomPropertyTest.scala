@@ -86,4 +86,54 @@ class DomPropertyTest extends UniTest:
     isChecked := true
     inputNode.checked shouldBe true
 
+  test("reactive checked toggles correctly from true to false"):
+    val isChecked = Rx.variable(true)
+    val elem      = input(tpe -> "checkbox", checked -> isChecked)
+    val (node, _) = DomRenderer.createNode(elem)
+    val inputNode = node.asInstanceOf[org.scalajs.dom.html.Input]
+    inputNode.checked shouldBe true
+
+    // Toggle to false - property should be updated, not just attribute removed
+    isChecked := false
+    inputNode.checked shouldBe false
+
+    // Toggle back to true
+    isChecked := true
+    inputNode.checked shouldBe true
+
+  test("value.bind works with textarea"):
+    val text         = Rx.variable("initial text")
+    val elem         = textarea(value.bind(text))
+    val (node, _)    = DomRenderer.createNode(elem)
+    val textareaNode = node.asInstanceOf[org.scalajs.dom.html.TextArea]
+
+    // Initial value should be set
+    textareaNode.value shouldBe "initial text"
+
+    // Update Rx -> DOM should update
+    text := "updated text"
+    textareaNode.value shouldBe "updated text"
+
+  test("value.bind works with select"):
+    val selected = Rx.variable("a")
+    val elem     = select(
+      option(value -> "a", "Option A"),
+      option(value -> "b", "Option B"),
+      option(value -> "c", "Option C"),
+      value.bind(selected)
+    )
+    val (node, _)  = DomRenderer.createNode(elem)
+    val selectNode = node.asInstanceOf[org.scalajs.dom.html.Select]
+
+    // Initial value should be set (default is first option)
+    selectNode.value shouldBe "a"
+
+    // Update Rx -> DOM should update
+    selected := "c"
+    selectNode.value shouldBe "c"
+
+    // Update back
+    selected := "b"
+    selectNode.value shouldBe "b"
+
 end DomPropertyTest
