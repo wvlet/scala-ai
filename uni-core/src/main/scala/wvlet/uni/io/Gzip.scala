@@ -50,27 +50,27 @@ trait GzipApi:
   /**
     * Compresses a file using gzip.
     *
+    * Platform implementations use streaming where possible to avoid loading entire files into
+    * memory.
+    *
     * @param source
     *   The source file path
     * @param target
     *   The target file path (typically with .gz extension)
     */
-  def compressFile(source: IOPath, target: IOPath): Unit =
-    val data       = FileSystem.readBytes(source)
-    val compressed = compress(data)
-    FileSystem.writeBytes(target, compressed)
+  def compressFile(source: IOPath, target: IOPath): Unit
 
   /**
     * Decompresses a gzip file.
+    *
+    * Platform implementations use streaming where possible to avoid loading entire files into
+    * memory.
     *
     * @param source
     *   The compressed file path
     * @param target
     *   The target file path for decompressed content
     */
-  def decompressFile(source: IOPath, target: IOPath): Unit =
-    val compressed   = FileSystem.readBytes(source)
-    val decompressed = decompress(compressed)
-    FileSystem.writeBytes(target, decompressed)
+  def decompressFile(source: IOPath, target: IOPath): Unit
 
 end GzipApi

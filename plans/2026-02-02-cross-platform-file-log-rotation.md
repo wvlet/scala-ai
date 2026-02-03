@@ -46,9 +46,21 @@ object Gzip:
 
 ### Platform Implementations
 
-- **JVM**: `java.util.zip.GZIPOutputStream`, `GZIPInputStream`
-- **Node.js**: `require('zlib').gzipSync()`, `gunzipSync()`
-- **Native**: `java.util.zip` (requires zlib linking in build)
+- **JVM**: `java.util.zip.GZIPOutputStream`, `GZIPInputStream` with file streams (streaming, memory-efficient)
+- **Node.js**: `require('zlib').gzipSync()`, `gunzipSync()` (loads file into memory)
+- **Native**: `java.util.zip` with file streams (streaming, memory-efficient, requires zlib linking)
+
+### Future: Async Streaming for Scala.js
+
+The current Node.js implementation uses synchronous zlib APIs which load files into memory. For true streaming compression without memory overhead, a future async API could use the [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API) which is available in both browsers and Node.js (18+):
+
+```scala
+// Future async API (not implemented)
+def compressFileAsync(source: IOPath, target: IOPath): Future[Unit]
+def decompressFileAsync(source: IOPath, target: IOPath): Future[Unit]
+```
+
+This would allow streaming compression using web-standard `CompressionStream` and `DecompressionStream` without loading entire files into memory.
 
 ### Build Configuration
 

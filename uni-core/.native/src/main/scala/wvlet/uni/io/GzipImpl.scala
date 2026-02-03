@@ -15,6 +15,8 @@ package wvlet.uni.io
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -47,6 +49,35 @@ trait GzipCompat extends GzipApi:
         len = gzip.read(buffer)
       baos.toByteArray
     finally
+      gzip.close()
+
+  override def compressFile(source: IOPath, target: IOPath): Unit =
+    val fis  = FileInputStream(source.toString)
+    val fos  = FileOutputStream(target.toString)
+    val gzip = GZIPOutputStream(fos)
+    try
+      val buffer = Array.ofDim[Byte](BufferSize)
+      var len    = fis.read(buffer)
+      while len > 0 do
+        gzip.write(buffer, 0, len)
+        len = fis.read(buffer)
+      gzip.finish()
+    finally
+      gzip.close()
+      fis.close()
+
+  override def decompressFile(source: IOPath, target: IOPath): Unit =
+    val fis  = FileInputStream(source.toString)
+    val gzip = GZIPInputStream(fis)
+    val fos  = FileOutputStream(target.toString)
+    try
+      val buffer = Array.ofDim[Byte](BufferSize)
+      var len    = gzip.read(buffer)
+      while len > 0 do
+        fos.write(buffer, 0, len)
+        len = gzip.read(buffer)
+    finally
+      fos.close()
       gzip.close()
 
 end GzipCompat

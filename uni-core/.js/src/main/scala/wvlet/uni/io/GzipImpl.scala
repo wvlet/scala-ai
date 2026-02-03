@@ -28,6 +28,9 @@ private[io] object NodeZlibModule extends js.Object:
 
 /**
   * Scala.js (Node.js) implementation of gzip compression using zlib module.
+  *
+  * Note: Node.js sync zlib APIs load files into memory. For streaming compression, async APIs would
+  * be required. The default 100MB max log size should be acceptable for typical Node.js servers.
   */
 trait GzipCompat extends GzipApi:
 
@@ -48,6 +51,24 @@ trait GzipCompat extends GzipApi:
     val input        = byteArrayToUint8Array(data)
     val decompressed = NodeZlibModule.gunzipSync(input)
     uint8ArrayToByteArray(decompressed)
+
+  override def compressFile(source: IOPath, target: IOPath): Unit =
+    if FileSystem.isBrowser then
+      throw UnsupportedOperationException(
+        "Gzip file compression is not supported in browser environments"
+      )
+    val data       = FileSystem.readBytes(source)
+    val compressed = compress(data)
+    FileSystem.writeBytes(target, compressed)
+
+  override def decompressFile(source: IOPath, target: IOPath): Unit =
+    if FileSystem.isBrowser then
+      throw UnsupportedOperationException(
+        "Gzip file decompression is not supported in browser environments"
+      )
+    val compressed   = FileSystem.readBytes(source)
+    val decompressed = decompress(compressed)
+    FileSystem.writeBytes(target, decompressed)
 
   private def byteArrayToUint8Array(bytes: Array[Byte]): Uint8Array =
     val uint8 = Uint8Array(bytes.length)
