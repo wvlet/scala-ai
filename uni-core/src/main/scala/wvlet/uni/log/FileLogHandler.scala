@@ -217,9 +217,18 @@ class FileLogHandler(config: FileLogHandlerConfig)
 
       val rotationResult = Try {
         if config.compressRotated then
-          // Compress directly to the target
-          Gzip.compressFile(logPath, rotatedPath)
-          FileSystem.delete(logPath)
+          // Move first for atomicity, then compress
+          // This ensures we don't lose data if compression fails
+          val tempPath = logDir.resolve(s".${logPath.fileName}.rotating")
+          FileSystem.move(logPath, tempPath)
+          try
+            Gzip.compressFile(tempPath, rotatedPath)
+            FileSystem.delete(tempPath)
+          catch
+            case e: Throwable =>
+              // Compression failed - restore original file
+              FileSystem.move(tempPath, logPath)
+              throw e
         else
           // Just move without compression
           FileSystem.move(logPath, rotatedPath)

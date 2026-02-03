@@ -58,11 +58,7 @@ trait GzipCompat extends GzipApi:
     uint8
 
   private def uint8ArrayToByteArray(uint8: Uint8Array): Array[Byte] =
-    val bytes = Array.ofDim[Byte](uint8.length)
-    var i     = 0
-    while i < uint8.length do
-      bytes(i) = uint8(i).toByte
-      i += 1
-    bytes
+    import scala.scalajs.js.typedarray.Int8Array
+    Int8Array(uint8.buffer, uint8.byteOffset, uint8.length).toArray
 
 end GzipCompat
