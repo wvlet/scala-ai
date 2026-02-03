@@ -57,9 +57,15 @@ class StorageVar[A](key: String, default: A, storage: dom.Storage, codec: Storag
 
   private val storageListener: js.Function1[dom.StorageEvent, Unit] =
     (e: dom.StorageEvent) =>
-      if e.key == key && e.storageArea == storage then
-        val newValue = Option(e.newValue).flatMap(codec.decode).getOrElse(default)
-        super.update(_ => newValue, force = true)
+      if e.storageArea == storage then
+        if e.key == key then
+          // Key was updated or removed
+          val newValue = Option(e.newValue).flatMap(codec.decode).getOrElse(default)
+          super.update(_ => newValue, force = true)
+        else if e.key == null then
+          // Storage was cleared (localStorage.clear() from another tab)
+          val newValue = Option(storage.getItem(key)).flatMap(codec.decode).getOrElse(default)
+          super.update(_ => newValue, force = true)
 
   // Listen for storage events from other tabs
   dom.window.addEventListener("storage", storageListener)
