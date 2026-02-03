@@ -94,7 +94,7 @@ object ElapsedTime:
         1000 * 60 * 60
       case DAYS =>
         1000 * 60 * 60 * 24
-      case null =>
+      case _ =>
         throw new IllegalArgumentException("Unsupported time unit " + timeUnit)
 
   def timeUnitToString(timeUnit: TimeUnit): String =
@@ -113,7 +113,7 @@ object ElapsedTime:
         "h"
       case DAYS =>
         "d"
-      case null =>
+      case _ =>
         throw new IllegalArgumentException("Unsupported time unit " + timeUnit)
 
   def valueOfTimeUnit(timeUnitString: String): TimeUnit =

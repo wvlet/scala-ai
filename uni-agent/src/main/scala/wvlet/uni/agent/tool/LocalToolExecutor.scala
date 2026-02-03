@@ -77,7 +77,7 @@ class LocalToolExecutor(
               )
         }
       case None =>
-        warn(s"Tool not found: ${toolCall.name}")
+        debug(s"Tool not found: ${toolCall.name}")
         Rx.single(
           ToolResultMessage(
             id = toolCall.id,

@@ -28,11 +28,11 @@ class RetryTest extends UniTest:
   test("support backoff retry") {
     var count = 0
 
-    val r = Retry.withBackOff(maxRetry = 3)
+    val r = Retry.withBackOff(maxRetry = 3).noRetryLogging
 
     val e = r.run {
       count += 1
-      logger.info("hello retry")
+      trace("hello retry")
       if count < 3 then
         throw new IllegalStateException("retry test")
       else
@@ -63,9 +63,10 @@ class RetryTest extends UniTest:
 
     val r = Retry
       .withJitter(maxRetry = 3)
+      .noRetryLogging
       .run {
         count += 1
-        logger.info("hello retry")
+        trace("hello retry")
         if count < 2 then
           throw new IllegalStateException("retry test")
         else
@@ -80,12 +81,13 @@ class RetryTest extends UniTest:
     val e = intercept[MaxRetryException] {
       Retry
         .withBackOff(maxRetry = 3)
+        .noRetryLogging
         .retryOn { case e: IllegalStateException =>
-          warn(e.getMessage)
+          trace(e.getMessage)
           ResultClass.retryableFailure(e)
         }
         .run {
-          logger.info("hello retry")
+          trace("hello retry")
           throw new IllegalStateException("retry test")
         }
     }

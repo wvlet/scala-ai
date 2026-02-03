@@ -100,9 +100,12 @@ class UniTestSelfTest extends UniTest:
   }
 
   test("logging works") {
-    debug("This is a debug message")
-    trace("This is a trace message")
-    info("This is an info message")
+    // Suppress log output during this test to keep test output clean
+    logger.suppressLogs {
+      debug("This is a debug message")
+      trace("This is a trace message")
+      info("This is an info message")
+    }
     1 shouldBe 1
   }
 
@@ -198,7 +201,7 @@ class UniTestSelfTest extends UniTest:
     }
     // Verify the source location is captured
     e.source.fileName shouldBe "UniTestSelfTest.scala"
-    e.source.line shouldBe 197
+    e.source.line shouldBe 200
     // Verify the source line content is captured
     e.source.sourceLine shouldContain "shouldBe"
     // Verify formatSnippet works

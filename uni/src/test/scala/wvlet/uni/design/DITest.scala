@@ -1,6 +1,5 @@
 package wvlet.uni.design
 
-import wvlet.uni.surface.Primitive
 import wvlet.uni.surface.Surface
 import DesignErrorCode.CYCLIC_DEPENDENCY
 import DesignErrorCode.MISSING_DEPENDENCY
@@ -8,6 +7,7 @@ import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
 import wvlet.uni.log.LogSupport
+import wvlet.uni.log.Logger
 
 import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
@@ -79,28 +79,36 @@ object DITest extends UniTest:
   }
 
   test("forbid binding to the same type") {
-    warn("Running self-cycle binding test")
-    val ex = intercept[DesignException] {
-      val d = Design.newDesign.bindImpl[Printer, Printer]
+    // Suppress expected warning from Binder
+    Logger("wvlet.uni.design.Binder").suppressWarnings {
+      trace("Running self-cycle binding test")
+      val ex = intercept[DesignException] {
+        val d = Design.newDesign.bindImpl[Printer, Printer]
+      }
+      ex.code shouldBe CYCLIC_DEPENDENCY
+      ex.toString.contains("CYCLIC_DEPENDENCY") shouldBe true
     }
-    ex.code shouldBe CYCLIC_DEPENDENCY
-    ex.toString.contains("CYCLIC_DEPENDENCY") shouldBe true
   }
 
   class CycleB(a: CycleA)
   class CycleA(b: CycleB)
 
   test("found cyclic dependencies") {
-    warn("Running cyclic dependency test: A->B->A")
-    val caught = intercept[DesignException] {
-      Design
-        .newSilentDesign
-        .build[CycleA] { c =>
+    // Suppress expected error from SessionImpl
+    Logger
+      .of[SessionImpl]
+      .suppressLogs {
+        trace("Running cyclic dependency test: A->B->A")
+        val caught = intercept[DesignException] {
+          Design
+            .newSilentDesign
+            .build[CycleA] { c =>
+            }
         }
-    }
-    warn(s"${caught}")
-    caught.code shouldBe CYCLIC_DEPENDENCY
-    caught.message shouldContain "CycleA -> CycleB"
+        trace(s"${caught}")
+        caught.code shouldBe CYCLIC_DEPENDENCY
+        caught.message shouldContain "CycleA -> CycleB"
+      }
   }
 
   class HeavyObject()
@@ -133,15 +141,20 @@ object DITest extends UniTest:
   class MissingDep(obj: String)
 
   test("detect missing dependencies") {
-    warn("Running missing dependency check")
-    val caught = intercept[DesignException] {
-      Design
-        .newSilentDesign
-        .build[MissingDep] { m =>
+    // Suppress expected warning from SessionImpl
+    Logger
+      .of[SessionImpl]
+      .suppressWarnings {
+        trace("Running missing dependency check")
+        val caught = intercept[DesignException] {
+          Design
+            .newSilentDesign
+            .build[MissingDep] { m =>
+            }
         }
-    }
-    warn(s"${caught}")
-    caught.code shouldBe MISSING_DEPENDENCY
+        trace(s"${caught}")
+        caught.code shouldBe MISSING_DEPENDENCY
+      }
   }
 
   class SessionParam(val session: Session)

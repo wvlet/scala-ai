@@ -17,7 +17,12 @@ import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
 
+import java.io.PrintStream
+import java.io.OutputStream
+
 class SpinnerTest extends UniTest:
+  // Suppress spinner output during tests
+  private val nullStream = PrintStream(OutputStream.nullOutputStream())
 
   test("create spinner with default settings") {
     val spinner = Spinner()
@@ -53,27 +58,27 @@ class SpinnerTest extends UniTest:
 
   test("start with text override") {
     // This test just verifies the API works; actual animation is not tested
-    val spinner = Spinner().withText("Original").withEnabled(false)
+    val spinner = Spinner().withText("Original").withEnabled(false).withStream(nullStream)
     val running = spinner.start("Override")
     running.text shouldBe "Override"
     running.stop()
   }
 
   test("disabled spinner can start and stop") {
-    val spinner = Spinner().noSpinner.start("Test")
+    val spinner = Spinner().noSpinner.withStream(nullStream).start("Test")
     spinner.isSpinning shouldBe true
     spinner.stop()
     spinner.isSpinning shouldBe false
   }
 
   test("disabled spinner succeed works") {
-    val spinner = Spinner().noSpinner.start("Test")
+    val spinner = Spinner().noSpinner.withStream(nullStream).start("Test")
     spinner.succeed("Done")
     spinner.isSpinning shouldBe false
   }
 
   test("disabled spinner fail works") {
-    val spinner = Spinner().noSpinner.start("Test")
+    val spinner = Spinner().noSpinner.withStream(nullStream).start("Test")
     spinner.fail("Error")
     spinner.isSpinning shouldBe false
   }

@@ -7,6 +7,7 @@ import wvlet.uni.agent.chat.ChatMessage.ToolCallRequest
 import wvlet.uni.agent.chat.ChatMessage.ToolResultMessage
 import wvlet.uni.agent.core.DataType
 import wvlet.uni.test.UniTest
+import wvlet.uni.log.Logger
 import wvlet.airframe.rx.Rx
 
 class LocalToolExecutorTest extends UniTest:
@@ -141,24 +142,29 @@ class LocalToolExecutorTest extends UniTest:
   }
 
   test("handle tool execution error") {
-    val executor = LocalToolExecutor().registerTool(
-      mathTool,
-      args => throw new RuntimeException("Division by zero")
-    )
+    // Suppress expected error log during this test
+    Logger
+      .of[LocalToolExecutor]
+      .suppressLogs {
+        val executor = LocalToolExecutor().registerTool(
+          mathTool,
+          args => throw new RuntimeException("Division by zero")
+        )
 
-    val toolCall = ToolCallRequest(
-      "err",
-      "calculate",
-      Map("operation" -> "divide", "a" -> 1, "b" -> 0)
-    )
-    val result = executor.executeToolCall(toolCall).toSeq.head
+        val toolCall = ToolCallRequest(
+          "err",
+          "calculate",
+          Map("operation" -> "divide", "a" -> 1, "b" -> 0)
+        )
+        val result = executor.executeToolCall(toolCall).toSeq.head
 
-    result shouldMatch { case ToolResultMessage(id, toolName, text) =>
-      id shouldBe "err"
-      toolName shouldBe "calculate"
-      text shouldContain "error"
-      text shouldContain "Division by zero"
-    }
+        result shouldMatch { case ToolResultMessage(id, toolName, text) =>
+          id shouldBe "err"
+          toolName shouldBe "calculate"
+          text shouldContain "error"
+          text shouldContain "Division by zero"
+        }
+      }
   }
 
   test("clear registered tools") {

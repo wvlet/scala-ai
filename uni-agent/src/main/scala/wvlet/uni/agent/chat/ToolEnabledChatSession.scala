@@ -111,7 +111,7 @@ trait ToolEnabledChatSession extends ChatSession with LogSupport:
         debug(s"Executing ${toolCalls.size} tool calls: ${toolCalls.map(_.name).mkString(", ")}")
         executor.executeToolCalls(toolCalls)
       case None =>
-        warn("No tool executor configured, returning error results")
+        debug("No tool executor configured, returning error results")
         Rx.single(
           toolCalls.map { toolCall =>
             ToolResultMessage(

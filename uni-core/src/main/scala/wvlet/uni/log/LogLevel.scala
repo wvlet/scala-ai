@@ -63,6 +63,9 @@ object LogLevel:
             INFO
           case Level.FINEST =>
             TRACE
+          case _ =>
+            // Default to INFO for unknown log levels
+            INFO
 
   def unapply(name: String): Option[LogLevel] = index.get(name.toLowerCase)
 
