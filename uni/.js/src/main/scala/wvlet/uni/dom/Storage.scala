@@ -76,9 +76,16 @@ class StorageVar[A](key: String, default: A, storage: dom.Storage, codec: Storag
     super.update(_ => default, force = true)
 
   /**
-    * Stop listening for storage events.
+    * Stop listening for storage events. Called automatically when this RxVar is cancelled.
     */
   def dispose(): Unit = dom.window.removeEventListener("storage", storageListener)
+
+  /**
+    * Override stop to also dispose the storage listener.
+    */
+  override def stop(): Unit =
+    dispose()
+    super.stop()
 
 end StorageVar
 

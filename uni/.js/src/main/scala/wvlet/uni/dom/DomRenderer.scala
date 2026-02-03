@@ -261,11 +261,11 @@ object DomRenderer extends LogSupport:
           handleResizeBindingDebounced(node, rbd)
         // Portal nodes
         case pn: PortalNode =>
-          handlePortal(pn.targetId, pn.children, localContext)
+          handlePortal(pn.targetId, pn.children)
         case pb: PortalToBody =>
-          handlePortalToBody(pb.children, localContext)
+          handlePortalToBody(pb.children)
         case pe: PortalToElement =>
-          handlePortalToElement(pe.target, pe.children, localContext)
+          handlePortalToElement(pe.target, pe.children)
         case n: dom.Node =>
           node.mountHere(n, anchor)
           Cancelable.empty
@@ -676,8 +676,7 @@ object DomRenderer extends LogSupport:
     val callback = binding.callback
     val config   = binding.config
 
-    var observer: IntersectionObserver = null
-    observer = IntersectionObserver(
+    lazy val observer: IntersectionObserver = IntersectionObserver(
       { (entries, _) =>
         entries
           .headOption
@@ -769,11 +768,7 @@ object DomRenderer extends LogSupport:
   /**
     * Handle Portal rendering to a target element by ID.
     */
-  private def handlePortal(
-      targetId: String,
-      children: Seq[DomNode],
-      localContext: RenderingContext
-  ): Cancelable =
+  private def handlePortal(targetId: String, children: Seq[DomNode]): Cancelable =
     val target =
       dom.document.getElementById(targetId) match
         case null =>
@@ -797,10 +792,7 @@ object DomRenderer extends LogSupport:
   /**
     * Handle Portal rendering to document.body.
     */
-  private def handlePortalToBody(
-      children: Seq[DomNode],
-      localContext: RenderingContext
-  ): Cancelable =
+  private def handlePortalToBody(children: Seq[DomNode]): Cancelable =
     // Create a container for this portal instance
     val container = dom.document.createElement("div")
     dom.document.body.appendChild(container)
@@ -817,11 +809,7 @@ object DomRenderer extends LogSupport:
   /**
     * Handle Portal rendering to a specific element.
     */
-  private def handlePortalToElement(
-      target: dom.Element,
-      children: Seq[DomNode],
-      localContext: RenderingContext
-  ): Cancelable =
+  private def handlePortalToElement(target: dom.Element, children: Seq[DomNode]): Cancelable =
     // Create a container for this portal instance
     val container = dom.document.createElement("div")
     target.appendChild(container)

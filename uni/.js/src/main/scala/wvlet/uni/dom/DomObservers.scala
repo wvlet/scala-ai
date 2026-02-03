@@ -216,7 +216,7 @@ trait IntersectionObserverEntry extends js.Object:
   def isIntersecting: Boolean         = js.native
   def intersectionRatio: Double       = js.native
   def boundingClientRect: dom.DOMRect = js.native
-  def rootBounds: dom.DOMRect         = js.native
+  def rootBounds: dom.DOMRect | Null  = js.native
   def target: dom.Element             = js.native
 
 trait IntersectionObserverInit extends js.Object:
