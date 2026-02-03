@@ -173,7 +173,15 @@ class FileLogHandler(config: FileLogHandlerConfig)
     FileSystem.appendString(logPath, message)
     currentFileSize += message.getBytes(StandardCharsets.UTF_8).length
 
+  // Check if rotation is disabled (both size and file count at max)
+  private def isRotationDisabled: Boolean =
+    config.maxSizeInBytes == Long.MaxValue && config.maxNumberOfFiles == Int.MaxValue
+
   private def checkRotation(): Unit =
+    // Skip rotation check entirely if rotation is disabled
+    if isRotationDisabled then
+      return
+
     val today         = todayUtc()
     val needsRotation =
       initialized && (

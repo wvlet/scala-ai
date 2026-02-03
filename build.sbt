@@ -58,9 +58,9 @@ val nativeBuildSettings = Seq[Setting[?]](
       // For using java.time libraries
       "org.ekrich" %%% "sjavatime" % "1.5.0"
     ),
-  // Link against libcurl for HTTP client support
+  // Link against libcurl for HTTP client support, and zlib for gzip compression
   nativeConfig ~= {
-    _.withLinkingOptions(_ :+ "-lcurl")
+    _.withLinkingOptions(_ ++ Seq("-lcurl", "-lz"))
   }
 )
 
