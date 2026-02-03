@@ -204,3 +204,15 @@ Follow existing binding pattern in `DomProperty.scala` and `DomRenderer.scala`:
 4. **ResizeObserver** - Similar pattern to IntersectionObserver
 5. Update `all.scala` exports
 6. Add tests for all features
+
+## Implementation Notes
+
+### Learnings from PR Review
+
+1. **StorageVar lifecycle**: Override `stop()` to dispose the storage listener when the RxVar is cancelled, ensuring proper cleanup when components unmount.
+
+2. **JS facade type accuracy**: Browser APIs like `IntersectionObserver` can return `null` for certain properties (e.g., `rootBounds` when root is viewport). Use `Type | Null` in Scala.js facades for accuracy.
+
+3. **Avoiding null variables**: Use `lazy val` instead of `var x = null` followed by immediate assignment when the value references itself (like recursive observer callbacks).
+
+4. **Unused parameters**: Remove unused parameters like `localContext` in Portal handlers to keep code clean.
