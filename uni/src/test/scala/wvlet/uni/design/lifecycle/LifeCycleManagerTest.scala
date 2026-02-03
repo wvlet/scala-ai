@@ -196,15 +196,15 @@ object LifeCycleManagerTest extends UniTest:
     shutdown shouldBe 4
   }
 
-  test("show life cycle log") {
-    // Suppress lifecycle log output during this test
+  test("life cycle log code coverage") {
+    // This test exercises the lifecycle logging code paths for coverage
     Logger
       .of[LifeCycleManager]
       .suppressLogs {
         Design
           .newDesign
           .withSession { session =>
-            // Just show debug logs
+            // Exercise lifecycle with logging enabled
           }
 
         val l       = Logger("wvlet.airframe")
@@ -214,7 +214,7 @@ object LifeCycleManagerTest extends UniTest:
           Design
             .newSilentDesign
             .withSession { session =>
-              // Show debug level session life cycle log
+              // Exercise lifecycle with debug level logging
             }
         finally
           l.setLogLevel(current)
