@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val SCALA_3                             = "3.8.1"
 val AIRFRAME_VERSION                    = "2025.1.27"
-val AWS_SDK_VERSION                     = "2.41.15"
+val AWS_SDK_VERSION                     = "2.41.20"
 val JS_JAVA_LOGGING_VERSION             = "1.0.0"
 val JUNIT_PLATFORM_VERSION              = "6.0.2"
 val SCALA_NATIVE_TEST_INTERFACE_VERSION = "0.5.8"
@@ -252,7 +252,9 @@ lazy val domTest = project
     // Use JSDOM for testing (provides DOM APIs in Node.js)
     Test / jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
     // JSDOM only supports plain scripts (no modules)
-    Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.NoModule) }
+    Test / scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.NoModule)
+    }
   )
   .dependsOn(uni.js, test.js % Test)
 
