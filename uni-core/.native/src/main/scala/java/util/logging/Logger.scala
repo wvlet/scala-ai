@@ -17,8 +17,26 @@ package java.util.logging
   * Stub implementation of java.util.logging.Handler for Scala Native
   */
 abstract class Handler extends AutoCloseable:
+  private var formatter: Formatter = null
+  private var level: Level         = Level.ALL
+
   def publish(record: LogRecord): Unit
   def flush(): Unit
+
+  def setFormatter(newFormatter: Formatter): Unit = formatter = newFormatter
+  def getFormatter(): Formatter                   = formatter
+
+  def setLevel(newLevel: Level): Unit = level = newLevel
+  def getLevel(): Level               = level
+
+  def isLoggable(record: LogRecord): Boolean =
+    record != null && record.getLevel().intValue() >= level.intValue()
+
+  def reportError(msg: String, ex: Exception, code: Int): Unit =
+    // Error reporting is a no-op in the stub
+    if ex != null then
+      System.err.println(s"Handler error: ${msg}")
+      ex.printStackTrace(System.err)
 
 /**
   * Stub implementation of java.util.logging.Logger for Scala Native
@@ -119,3 +137,14 @@ class LogRecord(_level: Level, msg: String) extends Serializable:
   def setLoggerName(name: String): Unit = this.loggerName = name
 
   def setThrown(e: Throwable): Unit = thrown = e
+
+/**
+  * Stub implementation of java.util.logging.ErrorManager for Scala Native
+  */
+object ErrorManager:
+  val GENERIC_FAILURE = 0
+  val WRITE_FAILURE   = 1
+  val FLUSH_FAILURE   = 2
+  val CLOSE_FAILURE   = 3
+  val OPEN_FAILURE    = 4
+  val FORMAT_FAILURE  = 5
