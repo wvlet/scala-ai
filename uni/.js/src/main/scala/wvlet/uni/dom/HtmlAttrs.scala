@@ -13,6 +13,8 @@
  */
 package wvlet.uni.dom
 
+import wvlet.uni.rx.RxVar
+
 /**
   * Global HTML attributes that can be used on any element.
   */
@@ -62,10 +64,6 @@ trait GlobalAttrs:
   // Data attributes
   def data(suffix: String): DomAttributeOf = attr(s"data-${suffix}")
 
-  // ARIA attributes
-  lazy val role: DomAttributeOf            = attr("role")
-  def aria(suffix: String): DomAttributeOf = attr(s"aria-${suffix}")
-
 end GlobalAttrs
 
 /**
@@ -80,9 +78,41 @@ trait InputAttrs extends GlobalAttrs:
 
   // Value attributes
   lazy val name: DomAttributeOf         = attr("name")
-  lazy val value: DomAttributeOf        = attr("value")
   lazy val placeholder: DomAttributeOf  = attr("placeholder")
   lazy val defaultValue: DomAttributeOf = attr("defaultValue")
+
+  /**
+    * Value attribute/property with two-way binding support.
+    *
+    * Usage:
+    * {{{
+    *   // One-way binding (Rx -> DOM)
+    *   input(value -> "initial")
+    *   input(value -> someRx)
+    *
+    *   // Two-way binding (Rx <-> DOM)
+    *   val username = Rx.variable("")
+    *   input(value.bind(username))
+    * }}}
+    */
+  object value extends DomAttributeOf("value"):
+    /**
+      * Create a two-way binding between an RxVar and the input's value property. Updates flow
+      * bidirectionally: changes to the RxVar update the DOM, and user input updates the RxVar.
+      *
+      * @param variable
+      *   The RxVar to sync with the input value
+      */
+    def bind(variable: RxVar[String]): DomNode = ValueBinding(variable)
+
+    /**
+      * Create a two-way binding that uses the "change" event instead of "input" event. Useful for
+      * select elements where you want updates only on selection change.
+      */
+    def bindOnChange(variable: RxVar[String]): DomNode = ValueBinding(
+      variable,
+      useChangeEvent = true
+    )
 
   // Validation attributes
   lazy val min: DomAttributeOf       = attr("min")
@@ -96,9 +126,34 @@ trait InputAttrs extends GlobalAttrs:
   lazy val disabled: DomNode  = attr("disabled").noValue
   lazy val readonly: DomNode  = attr("readonly").noValue
   lazy val required: DomNode  = attr("required").noValue
-  lazy val checked: DomNode   = attr("checked").noValue
   lazy val autofocus: DomNode = attr("autofocus").noValue
   lazy val multiple: DomNode  = attr("multiple").noValue
+
+  // For backward compatibility: checked without arguments sets the boolean attribute
+  lazy val checkedAttr: DomNode = attr("checked").noValue
+
+  /**
+    * Checked attribute/property with two-way binding support.
+    *
+    * Usage:
+    * {{{
+    *   // Boolean attribute (no value) - use checkedAttr or checked -> true
+    *   input(tpe -> "checkbox", checkedAttr)
+    *   input(tpe -> "checkbox", checked -> true)
+    *
+    *   // Two-way binding (Rx <-> DOM)
+    *   val isChecked = Rx.variable(false)
+    *   input(tpe -> "checkbox", checked.bind(isChecked))
+    * }}}
+    */
+  object checked extends DomAttributeOf("checked"):
+    /**
+      * Create a two-way binding between an RxVar and the checkbox's checked property.
+      *
+      * @param variable
+      *   The RxVar[Boolean] to sync with the checkbox state
+      */
+    def bind(variable: RxVar[Boolean]): DomNode = CheckedBinding(variable)
 
   // Other input attributes
   lazy val autocomplete: DomAttributeOf   = attr("autocomplete")
@@ -243,3 +298,4 @@ trait HtmlAttrs
     with MetaAttrs
     with MiscAttrs
     with HtmlEvents
+    with AriaAttrs

@@ -63,6 +63,8 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.ClassToggle
   export wvlet.uni.dom.StyleValue
   export wvlet.uni.dom.StyleProperty
+  export wvlet.uni.dom.ValueBinding
+  export wvlet.uni.dom.CheckedBinding
 
   /**
     * Re-export helper functions.
