@@ -138,4 +138,50 @@ class FileLogHandlerTest extends UniTest:
     config.maxNumberOfFiles shouldBe Int.MaxValue
   }
 
+  test("rotate by date change") {
+    val logPath = tempDir / "test5.log"
+
+    // Start with a specific date (2026-01-15 12:00:00 UTC)
+    val day1Millis = 1768478400000L                    // 2026-01-15 00:00:00 UTC
+    val day2Millis = day1Millis + 24L * 60 * 60 * 1000 // Next day
+
+    var currentTime = day1Millis
+    val mockClock   = () => currentTime
+
+    val config  = FileLogHandlerConfig(logPath).noCompression.withClock(mockClock)
+    val handler = FileLogHandler(config)
+
+    val logger = Logger("test5")
+    logger.resetHandler(handler)
+    logger.setLogLevel(LogLevel.INFO)
+
+    // Write logs on day 1
+    logger.info("Day 1 message 1")
+    logger.info("Day 1 message 2")
+
+    // Advance to day 2
+    currentTime = day2Millis
+
+    // Write logs on day 2 - should trigger rotation
+    logger.info("Day 2 message 1")
+
+    handler.close()
+
+    // Check that a rotated file exists with day 1 date
+    val rotatedFiles = FileSystem
+      .list(tempDir)
+      .filter { p =>
+        p.fileName.startsWith("test5-") && p.fileName.contains("2026-01-15")
+      }
+    (rotatedFiles.size >= 1) shouldBe true
+
+    // Verify the rotated file contains day 1 messages
+    val rotatedContent = FileSystem.readString(rotatedFiles.head)
+    rotatedContent shouldContain "Day 1 message"
+
+    // Verify current log contains day 2 message
+    val currentContent = FileSystem.readString(logPath)
+    currentContent shouldContain "Day 2 message"
+  }
+
 end FileLogHandlerTest

@@ -44,6 +44,9 @@ import scala.util.Try
   *   Log file extension (default: ".log")
   * @param compressRotated
   *   Whether to compress rotated files with gzip (default: true)
+  * @param clock
+  *   Clock function returning current time in milliseconds (default: System.currentTimeMillis). Can
+  *   be overridden for testing.
   */
 case class FileLogHandlerConfig(
     path: IOPath,
@@ -51,7 +54,8 @@ case class FileLogHandlerConfig(
     maxNumberOfFiles: Int = 100,
     formatter: LogFormatter = AppLogFormatter,
     logFileExt: String = ".log",
-    compressRotated: Boolean = true
+    compressRotated: Boolean = true,
+    clock: () => Long = () => System.currentTimeMillis()
 ):
   def withPath(p: IOPath): FileLogHandlerConfig                    = copy(path = p)
   def withMaxSizeInBytes(size: Long): FileLogHandlerConfig         = copy(maxSizeInBytes = size)
@@ -61,6 +65,8 @@ case class FileLogHandlerConfig(
   def withCompressRotated(compress: Boolean): FileLogHandlerConfig = copy(compressRotated =
     compress
   )
+
+  def withClock(c: () => Long): FileLogHandlerConfig = copy(clock = c)
 
   def noCompression: FileLogHandlerConfig = copy(compressRotated = false)
   def noRotation: FileLogHandlerConfig    = copy(
@@ -116,7 +122,7 @@ class FileLogHandler(config: FileLogHandlerConfig)
 
   // Get today's date in UTC for consistent cross-platform rotation
   private def todayUtc(): LocalDate =
-    val nowMs    = System.currentTimeMillis()
+    val nowMs    = config.clock()
     val epochDay = nowMs / (24L * 60 * 60 * 1000)
     LocalDate.ofEpochDay(epochDay)
 
