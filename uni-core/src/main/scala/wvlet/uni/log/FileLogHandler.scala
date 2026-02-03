@@ -109,10 +109,15 @@ class FileLogHandler(config: FileLogHandlerConfig)
   private def formatDate(date: LocalDate): String =
     f"${date.getYear}%04d-${date.getMonthValue}%02d-${date.getDayOfMonth}%02d"
 
-  // Cross-platform conversion from Instant to LocalDate
+  // Cross-platform conversion from Instant to LocalDate (UTC-based for consistency)
   private def instantToLocalDate(instant: Instant): LocalDate =
-    // Convert milliseconds to days since epoch
     val epochDay = instant.toEpochMilli / (24L * 60 * 60 * 1000)
+    LocalDate.ofEpochDay(epochDay)
+
+  // Get today's date in UTC for consistent cross-platform rotation
+  private def todayUtc(): LocalDate =
+    val nowMs    = System.currentTimeMillis()
+    val epochDay = nowMs / (24L * 60 * 60 * 1000)
     LocalDate.ofEpochDay(epochDay)
 
   @volatile
@@ -136,10 +141,10 @@ class FileLogHandler(config: FileLogHandlerConfig)
         val info = FileSystem.info(logPath)
         currentFileSize = info.size
         // Use file's last modified date to ensure proper rotation after restart
-        currentDate = info.lastModified.map(instantToLocalDate).getOrElse(LocalDate.now())
+        currentDate = info.lastModified.map(instantToLocalDate).getOrElse(todayUtc())
       else
         currentFileSize = 0L
-        currentDate = LocalDate.now()
+        currentDate = todayUtc()
 
       initialized = true
 
@@ -169,7 +174,7 @@ class FileLogHandler(config: FileLogHandlerConfig)
     currentFileSize += message.getBytes(StandardCharsets.UTF_8).length
 
   private def checkRotation(): Unit =
-    val today         = LocalDate.now()
+    val today         = todayUtc()
     val needsRotation =
       initialized && (
         (currentDate != null && !currentDate.equals(today)) ||
@@ -177,18 +182,20 @@ class FileLogHandler(config: FileLogHandlerConfig)
       )
 
     if needsRotation then
-      rotate()
-      currentDate = today
-      currentFileSize = 0L
+      val rotationSucceeded = rotate()
+      if rotationSucceeded then
+        currentDate = today
+        currentFileSize = 0L
 
-  private def rotate(): Unit =
+  /** Returns true if rotation was successful */
+  private def rotate(): Boolean =
     if FileSystem.exists(logPath) && FileSystem.info(logPath).size > 0 then
       // Find the next available index for the current date
       val dateStr =
         if currentDate != null then
           formatDate(currentDate)
         else
-          formatDate(LocalDate.now())
+          formatDate(todayUtc())
       val index = findNextIndex(dateStr)
 
       val rotatedExt =
@@ -200,7 +207,7 @@ class FileLogHandler(config: FileLogHandlerConfig)
       val rotatedFileName = s"${fileNameStem}-${dateStr}.${index}${rotatedExt}"
       val rotatedPath     = logDir.resolve(rotatedFileName)
 
-      Try {
+      val rotationResult = Try {
         if config.compressRotated then
           // Compress directly to the target
           Gzip.compressFile(logPath, rotatedPath)
@@ -208,18 +215,23 @@ class FileLogHandler(config: FileLogHandlerConfig)
         else
           // Just move without compression
           FileSystem.move(logPath, rotatedPath)
-      } match
+      }
+
+      rotationResult match
         case Failure(e) =>
           reportError(
             s"Failed to rotate ${logPath} to ${rotatedPath}",
             toException(e),
             ErrorManager.GENERIC_FAILURE
           )
+          false
         case Success(_) =>
-        // Rotation successful
-
-      // Clean up old files
-      cleanupOldFiles()
+          // Clean up old files only on successful rotation
+          cleanupOldFiles()
+          true
+    else
+      // No file to rotate or file is empty
+      true
 
   end rotate
 
