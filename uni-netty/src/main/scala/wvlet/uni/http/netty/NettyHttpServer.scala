@@ -97,12 +97,12 @@ class NettyHttpServer(config: NettyServerConfig) extends LogSupport:
     channel = bindFuture.channel()
     running = true
 
-    info(s"Netty server started at ${localAddress}")
+    debug(s"Netty server started at ${localAddress}")
   }
 
   def stop(): Unit = synchronized {
     if running then
-      info(s"Stopping Netty server at ${localAddress}")
+      debug(s"Stopping Netty server at ${localAddress}")
       try
         if channel != null then
           channel.close().sync()

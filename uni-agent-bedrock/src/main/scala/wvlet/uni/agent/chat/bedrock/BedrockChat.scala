@@ -125,7 +125,7 @@ class BedrockChat(agent: LLMAgent, bedrockClient: BedrockClient) extends ChatMod
         builder.topP(topP.toFloat)
       }
       .ifDefined(effectiveConfig.topK) { (builder, topK) =>
-        warn(s"Ignoring top-k parameter ${topK}, which is not supported in Bedrock")
+        debug(s"Ignoring top-k parameter ${topK}, which is not supported in Bedrock")
         builder
       }
       .ifDefined(effectiveConfig.stopSequences) { (builder, stopSequences) =>

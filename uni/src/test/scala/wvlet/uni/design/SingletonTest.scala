@@ -81,7 +81,7 @@ class SingletonTest extends UniTest:
   test("support overriding non-abstract singleton trait") {
     val d = Design.newDesign.bindSingleton[E].bindImpl[NonAbstract, C]
 
-    info(Surface.of[C].getClass)
+    debug(Surface.of[C].getClass)
     val session = d.newSession
     val e       = session.build[E]
     e.m.hello shouldBe "nice"

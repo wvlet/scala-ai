@@ -20,6 +20,7 @@ class HttpMaxRetryExceptionTest extends UniTest:
 
   private val retryContext = Retry
     .withBackOff(maxRetry = 3)
+    .noRetryLogging
     .init()
     .nextRetry(RuntimeException("First failure"))
     .nextRetry(RuntimeException("Second failure"))

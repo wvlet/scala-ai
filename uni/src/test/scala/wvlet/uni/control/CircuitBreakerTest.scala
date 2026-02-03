@@ -6,7 +6,7 @@ import java.util.concurrent.TimeoutException
 class CircuitBreakerTest extends UniTest:
 
   test("support changing states") {
-    val cb = CircuitBreaker.default
+    val cb = CircuitBreaker.default.onStateChange(_ => ())
     cb.state shouldBe CircuitBreaker.CLOSED
     cb.isConnected shouldBe true
 
@@ -24,7 +24,7 @@ class CircuitBreakerTest extends UniTest:
   }
 
   test("support standalone usage") {
-    val cb = CircuitBreaker.default
+    val cb = CircuitBreaker.default.onStateChange(_ => ())
 
     cb.verifyConnection()
     try
@@ -41,7 +41,7 @@ class CircuitBreakerTest extends UniTest:
   }
 
   test("support failure threshold") {
-    val cb = CircuitBreaker.withFailureThreshold(2, 5)
+    val cb = CircuitBreaker.withFailureThreshold(2, 5).onStateChange(_ => ())
     val e  = new TimeoutException()
     cb.isConnected shouldBe true
 
@@ -83,7 +83,7 @@ class CircuitBreakerTest extends UniTest:
   }
 
   test("support consecutive failure health checker") {
-    val cb = CircuitBreaker.withConsecutiveFailures(2)
+    val cb = CircuitBreaker.withConsecutiveFailures(2).onStateChange(_ => ())
     val e  = new TimeoutException()
     cb.isConnected shouldBe true
 
@@ -108,7 +108,7 @@ class CircuitBreakerTest extends UniTest:
   }
 
   test("run code with circuit") {
-    val cb = CircuitBreaker.withFailureThreshold(1, 2)
+    val cb = CircuitBreaker.withFailureThreshold(1, 2).onStateChange(_ => ())
 
     cb.run {}
 

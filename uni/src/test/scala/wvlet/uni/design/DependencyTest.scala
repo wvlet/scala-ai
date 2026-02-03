@@ -3,6 +3,7 @@ package wvlet.uni.design
 import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
+import wvlet.uni.log.Logger
 
 /**
   */
@@ -17,15 +18,20 @@ object DependencyTest1:
 class DependencyTest extends UniTest:
 
   test("show missing dependencies") {
-    val d = Design.newSilentDesign
-    d.withSession { session =>
-      val m = intercept[DesignException] {
-        val a = session.build[DependencyTest1.A]
+    // Suppress expected warning from SessionImpl
+    Logger
+      .of[SessionImpl]
+      .suppressWarnings {
+        val d = Design.newSilentDesign
+        d.withSession { session =>
+          val m = intercept[DesignException] {
+            val a = session.build[DependencyTest1.A]
+          }
+          m.code shouldBe DesignErrorCode.MISSING_DEPENDENCY
+          val msg = m.getMessage
+          msg.contains("D <- C") shouldBe true
+        }
       }
-      m.code shouldBe DesignErrorCode.MISSING_DEPENDENCY
-      val msg = m.getMessage
-      msg.contains("D <- C") shouldBe true
-    }
   }
 
   test("resolve concrete dependencies") {

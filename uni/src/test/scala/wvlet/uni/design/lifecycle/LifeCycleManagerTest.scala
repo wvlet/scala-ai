@@ -17,6 +17,7 @@ import wvlet.uni.design.DesignErrorCode.MISSING_DEPENDENCY
 import wvlet.uni.design.DesignErrorCode.SHUTDOWN_FAILURE
 import wvlet.uni.design.Design
 import wvlet.uni.design.DesignException
+import wvlet.uni.design.LifeCycleManager
 import wvlet.uni.test.UniTest
 import wvlet.uni.test.empty
 import wvlet.uni.test.defined
@@ -195,24 +196,29 @@ object LifeCycleManagerTest extends UniTest:
     shutdown shouldBe 4
   }
 
-  test("show life cycle log") {
-    Design
-      .newDesign
-      .withSession { session =>
-        // Just show debug logs
-      }
+  test("life cycle log code coverage") {
+    // This test exercises the lifecycle logging code paths for coverage
+    Logger
+      .of[LifeCycleManager]
+      .suppressLogs {
+        Design
+          .newDesign
+          .withSession { session =>
+            // Exercise lifecycle with logging enabled
+          }
 
-    val l       = Logger("wvlet.airframe")
-    val current = l.getLogLevel
-    try
-      l.setLogLevel(LogLevel.DEBUG)
-      Design
-        .newSilentDesign
-        .withSession { session =>
-          // Show debug level session life cycle log
-        }
-    finally
-      l.setLogLevel(current)
+        val l       = Logger("wvlet.airframe")
+        val current = l.getLogLevel
+        try
+          l.setLogLevel(LogLevel.DEBUG)
+          Design
+            .newSilentDesign
+            .withSession { session =>
+              // Exercise lifecycle with debug level logging
+            }
+        finally
+          l.setLogLevel(current)
+      }
   }
 
   class CloseExceptionTest extends AutoCloseable:
