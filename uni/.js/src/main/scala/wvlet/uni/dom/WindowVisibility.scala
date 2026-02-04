@@ -43,10 +43,10 @@ import scala.scalajs.js
 object WindowVisibility:
 
   private class VisibilityVar extends Cancelable:
-    private val underlying = Rx.variable(dom.document.visibilityState.asInstanceOf[String])
+    private val underlying = Rx.variable(dom.document.visibilityState)
 
     private val handler: js.Function1[dom.Event, Unit] =
-      _ => underlying := dom.document.visibilityState.asInstanceOf[String]
+      _ => underlying := dom.document.visibilityState
 
     dom.document.addEventListener("visibilitychange", handler)
 

@@ -19,9 +19,10 @@ import wvlet.uni.rx.{Cancelable, Rx}
 import scala.scalajs.js
 
 /**
-  * Reactive window dimensions tracking.
+  * Reactive window dimensions tracking with built-in throttling.
   *
-  * Tracks viewport and window sizes, updating on resize events.
+  * Tracks viewport and window sizes, updating on resize events. Uses 100ms throttle with leading +
+  * trailing edge updates for smooth performance.
   *
   * Usage:
   * {{{
@@ -41,18 +42,43 @@ import scala.scalajs.js
   */
 object WindowDimensions:
 
+  private val throttleMs = 100 // Suitable interval for resize events
+
   private class DimensionsVar extends Cancelable:
     private val innerWidthVar  = Rx.variable(dom.window.innerWidth.toInt)
     private val innerHeightVar = Rx.variable(dom.window.innerHeight.toInt)
     private val outerWidthVar  = Rx.variable(dom.window.outerWidth.toInt)
     private val outerHeightVar = Rx.variable(dom.window.outerHeight.toInt)
 
+    private var lastUpdateTime: Double           = 0
+    private var scheduledUpdate: js.UndefOr[Int] = js.undefined
+
+    private def updateValues(): Unit =
+      innerWidthVar  := dom.window.innerWidth.toInt
+      innerHeightVar := dom.window.innerHeight.toInt
+      outerWidthVar  := dom.window.outerWidth.toInt
+      outerHeightVar := dom.window.outerHeight.toInt
+
     private val handler: js.Function1[dom.Event, Unit] =
       _ =>
-        innerWidthVar  := dom.window.innerWidth.toInt
-        innerHeightVar := dom.window.innerHeight.toInt
-        outerWidthVar  := dom.window.outerWidth.toInt
-        outerHeightVar := dom.window.outerHeight.toInt
+        val now = js.Date.now()
+        if now - lastUpdateTime >= throttleMs then
+          // Leading edge: update immediately
+          lastUpdateTime = now
+          updateValues()
+        else if scheduledUpdate.isEmpty then
+          // Trailing edge: schedule final update
+          val delay = throttleMs - (now - lastUpdateTime).toInt
+          scheduledUpdate = dom
+            .window
+            .setTimeout(
+              () =>
+                scheduledUpdate = js.undefined
+                lastUpdateTime = js.Date.now()
+                updateValues()
+              ,
+              delay
+            )
 
     dom.window.addEventListener("resize", handler)
 
@@ -66,7 +92,10 @@ object WindowDimensions:
     def rxOuterWidth: Rx[Int]  = outerWidthVar
     def rxOuterHeight: Rx[Int] = outerHeightVar
 
-    override def cancel: Unit = dom.window.removeEventListener("resize", handler)
+    override def cancel: Unit =
+      dom.window.removeEventListener("resize", handler)
+      scheduledUpdate.foreach(dom.window.clearTimeout)
+      scheduledUpdate = js.undefined
 
   end DimensionsVar
 
