@@ -113,9 +113,9 @@ object WindowScroll:
   def scrollY: Rx[Double] = instance.rxY
 
   /**
-    * Reactive stream of combined scroll position (x, y).
+    * Reactive stream of combined scroll position (x, y). Emits when either x or y changes.
     */
-  def scroll: Rx[(Double, Double)] = instance.rxX.zip(instance.rxY)
+  def scroll: Rx[(Double, Double)] = instance.rxX.join(instance.rxY)
 
   /**
     * Stop listening to scroll events. Call this when the application is shutting down to clean up

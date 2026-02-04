@@ -113,9 +113,10 @@ object WindowDimensions:
   def rxOuterHeight: Rx[Int] = instance.rxOuterHeight
 
   /**
-    * Reactive stream of combined viewport dimensions (width, height).
+    * Reactive stream of combined viewport dimensions (width, height). Emits when either dimension
+    * changes.
     */
-  def dimensions: Rx[(Int, Int)] = instance.rxInnerWidth.zip(instance.rxInnerHeight)
+  def dimensions: Rx[(Int, Int)] = instance.rxInnerWidth.join(instance.rxInnerHeight)
 
   /**
     * Stop listening to resize events. Call this when the application is shutting down to clean up
