@@ -86,6 +86,20 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.ResizeEntryBinding
   export wvlet.uni.dom.ResizeBindingDebounced
 
+  // Ref system for direct DOM access
+  export wvlet.uni.dom.DomRef
+  export wvlet.uni.dom.RefBinding
+  export wvlet.uni.dom.ref
+
+  // Responsive design
+  export wvlet.uni.dom.MediaQuery
+
+  // Animation
+  export wvlet.uni.dom.AnimationFrame
+
+  // Network status
+  export wvlet.uni.dom.NetworkStatus
+
   /**
     * Re-export helper functions.
     */

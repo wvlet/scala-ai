@@ -259,6 +259,14 @@ object DomRenderer extends LogSupport:
           handleResizeEntryBinding(node, reb)
         case rbd: ResizeBindingDebounced =>
           handleResizeBindingDebounced(node, rbd)
+        // Ref bindings
+        case rb: RefBinding[?] =>
+          node match
+            case elem: dom.Element =>
+              rb.ref.asInstanceOf[DomRef[dom.Element]].set(elem)
+              Cancelable(() => rb.ref.asInstanceOf[DomRef[dom.Element]].clear())
+            case _ =>
+              Cancelable.empty
         // Portal nodes
         case pn: PortalNode =>
           handlePortal(pn.targetId, pn.children)
