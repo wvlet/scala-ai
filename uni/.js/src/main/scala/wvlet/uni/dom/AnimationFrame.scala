@@ -160,9 +160,8 @@ object AnimationFrame:
       callback: (Double, Double) => Unit,
       onComplete: () => Unit = () => ()
   ): Cancelable =
-    var elapsed             = 0.0
-    var loopRef: Cancelable = Cancelable.empty
-    loopRef = loop { dt =>
+    var elapsed                  = 0.0
+    lazy val loopRef: Cancelable = loop { dt =>
       elapsed += dt
       val progress = Math.min(elapsed / durationMs, 1.0)
       callback(dt, progress)

@@ -86,14 +86,16 @@ class DomRef[E <: dom.Element]:
   def map[A](f: E => A): Option[A] = current.map(f)
 
   /**
-    * Focus the element. Only works for focusable elements (input, textarea, button, etc.).
+    * Focus the element. Only works for focusable elements (input, textarea, button, etc.). The
+    * implicit evidence ensures this method can only be called on DomRef[HTMLElement] subtypes.
     */
-  def focus(): Unit = foreach(_.asInstanceOf[dom.HTMLElement].focus())
+  def focus()(implicit ev: E <:< dom.HTMLElement): Unit = foreach(ev(_).focus())
 
   /**
-    * Remove focus from the element.
+    * Remove focus from the element. The implicit evidence ensures this method can only be called on
+    * DomRef[HTMLElement] subtypes.
     */
-  def blur(): Unit = foreach(_.asInstanceOf[dom.HTMLElement].blur())
+  def blur()(implicit ev: E <:< dom.HTMLElement): Unit = foreach(ev(_).blur())
 
   /**
     * Scroll the element into view.
