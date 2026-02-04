@@ -105,6 +105,13 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.WindowVisibility
   export wvlet.uni.dom.WindowDimensions
 
+  // Routing
+  export wvlet.uni.dom.Router
+  export wvlet.uni.dom.RouterInstance
+  export wvlet.uni.dom.Route
+  export wvlet.uni.dom.RouteParams
+  export wvlet.uni.dom.Location
+
   /**
     * Re-export helper functions.
     */
