@@ -100,6 +100,11 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   // Network status
   export wvlet.uni.dom.NetworkStatus
 
+  // Window events
+  export wvlet.uni.dom.WindowScroll
+  export wvlet.uni.dom.WindowVisibility
+  export wvlet.uni.dom.WindowDimensions
+
   /**
     * Re-export helper functions.
     */
