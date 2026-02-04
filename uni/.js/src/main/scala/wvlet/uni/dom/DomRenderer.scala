@@ -245,6 +245,27 @@ object DomRenderer extends LogSupport:
           handleValueBinding(node, vb)
         case cb: CheckedBinding =>
           handleCheckedBinding(node, cb)
+        // IntersectionObserver bindings
+        case ib: IntersectionBinding =>
+          handleIntersectionBinding(node, ib)
+        case ieb: IntersectionEntryBinding =>
+          handleIntersectionEntryBinding(node, ieb)
+        case iob: IntersectionOnceBinding =>
+          handleIntersectionOnceBinding(node, iob)
+        // ResizeObserver bindings
+        case rb: ResizeBinding =>
+          handleResizeBinding(node, rb)
+        case reb: ResizeEntryBinding =>
+          handleResizeEntryBinding(node, reb)
+        case rbd: ResizeBindingDebounced =>
+          handleResizeBindingDebounced(node, rbd)
+        // Portal nodes
+        case pn: PortalNode =>
+          handlePortal(pn.targetId, pn.children)
+        case pb: PortalToBody =>
+          handlePortalToBody(pb.children)
+        case pe: PortalToElement =>
+          handlePortalToElement(pe.target, pe.children)
         case n: dom.Node =>
           node.mountHere(n, anchor)
           Cancelable.empty
@@ -587,6 +608,217 @@ object DomRenderer extends LogSupport:
 
     Cancelable.merge(rxCancelable, Cancelable(() => dyn.updateDynamic("onchange")(null)))
   end handleCheckedBinding
+
+  /**
+    * Handle IntersectionObserver binding that updates a boolean RxVar.
+    */
+  private def handleIntersectionBinding(node: dom.Node, binding: IntersectionBinding): Cancelable =
+    val elem     = node.asInstanceOf[dom.Element]
+    val variable = binding.target
+    val config   = binding.config
+
+    val observer = IntersectionObserver(
+      { (entries, _) =>
+        entries
+          .headOption
+          .foreach { entry =>
+            variable := entry.isIntersecting
+          }
+      },
+      IntersectionObserverInit(config)
+    )
+    observer.observe(elem)
+    Cancelable(() => observer.disconnect())
+  end handleIntersectionBinding
+
+  /**
+    * Handle IntersectionObserver binding that updates an RxVar with full entry details.
+    */
+  private def handleIntersectionEntryBinding(
+      node: dom.Node,
+      binding: IntersectionEntryBinding
+  ): Cancelable =
+    val elem     = node.asInstanceOf[dom.Element]
+    val variable = binding.target
+    val config   = binding.config
+
+    val observer = IntersectionObserver(
+      { (entries, _) =>
+        entries
+          .headOption
+          .foreach { entry =>
+            variable :=
+              Some(
+                IntersectionEntry(
+                  isIntersecting = entry.isIntersecting,
+                  intersectionRatio = entry.intersectionRatio,
+                  boundingClientRect = entry.boundingClientRect,
+                  rootBounds = Option(entry.rootBounds),
+                  target = entry.target
+                )
+              )
+          }
+      },
+      IntersectionObserverInit(config)
+    )
+    observer.observe(elem)
+    Cancelable(() => observer.disconnect())
+  end handleIntersectionEntryBinding
+
+  /**
+    * Handle IntersectionObserver binding that calls a callback once when visible.
+    */
+  private def handleIntersectionOnceBinding(
+      node: dom.Node,
+      binding: IntersectionOnceBinding
+  ): Cancelable =
+    val elem     = node.asInstanceOf[dom.Element]
+    val callback = binding.callback
+    val config   = binding.config
+
+    lazy val observer: IntersectionObserver = IntersectionObserver(
+      { (entries, _) =>
+        entries
+          .headOption
+          .foreach { entry =>
+            if entry.isIntersecting then
+              callback()
+              observer.disconnect()
+          }
+      },
+      IntersectionObserverInit(config)
+    )
+    observer.observe(elem)
+    Cancelable(() => observer.disconnect())
+  end handleIntersectionOnceBinding
+
+  /**
+    * Handle ResizeObserver binding that updates an RxVar with (width, height).
+    */
+  private def handleResizeBinding(node: dom.Node, binding: ResizeBinding): Cancelable =
+    val elem     = node.asInstanceOf[dom.Element]
+    val variable = binding.target
+
+    val observer = ResizeObserver { (entries, _) =>
+      entries
+        .headOption
+        .foreach { entry =>
+          val rect = entry.contentRect
+          variable := (rect.width, rect.height)
+        }
+    }
+    observer.observe(elem)
+    Cancelable(() => observer.disconnect())
+  end handleResizeBinding
+
+  /**
+    * Handle ResizeObserver binding that updates an RxVar with full entry details.
+    */
+  private def handleResizeEntryBinding(node: dom.Node, binding: ResizeEntryBinding): Cancelable =
+    val elem     = node.asInstanceOf[dom.Element]
+    val variable = binding.target
+
+    val observer = ResizeObserver { (entries, _) =>
+      entries
+        .headOption
+        .foreach { entry =>
+          variable := Some(ResizeEntry(contentRect = entry.contentRect, target = entry.target))
+        }
+    }
+    observer.observe(elem)
+    Cancelable(() => observer.disconnect())
+  end handleResizeEntryBinding
+
+  /**
+    * Handle ResizeObserver binding with debouncing.
+    */
+  private def handleResizeBindingDebounced(
+      node: dom.Node,
+      binding: ResizeBindingDebounced
+  ): Cancelable =
+    val elem       = node.asInstanceOf[dom.Element]
+    val variable   = binding.target
+    val debounceMs = binding.debounceMs
+
+    var timeoutId: js.UndefOr[Int] = js.undefined
+
+    val observer = ResizeObserver { (entries, _) =>
+      entries
+        .headOption
+        .foreach { entry =>
+          timeoutId.foreach(id => dom.window.clearTimeout(id))
+          timeoutId = dom
+            .window
+            .setTimeout(
+              () =>
+                val rect = entry.contentRect
+                variable := (rect.width, rect.height)
+              ,
+              debounceMs
+            )
+        }
+    }
+    observer.observe(elem)
+    Cancelable { () =>
+      timeoutId.foreach(id => dom.window.clearTimeout(id))
+      observer.disconnect()
+    }
+  end handleResizeBindingDebounced
+
+  /**
+    * Handle Portal rendering to a target element by ID.
+    */
+  private def handlePortal(targetId: String, children: Seq[DomNode]): Cancelable =
+    val target =
+      dom.document.getElementById(targetId) match
+        case null =>
+          val elem = dom.document.createElement("div")
+          elem.setAttribute("id", targetId)
+          dom.document.body.appendChild(elem)
+          elem
+        case existing =>
+          existing
+
+    // Create a container for this portal instance
+    val container = dom.document.createElement("div")
+    target.appendChild(container)
+
+    // Render children into container
+    val cancelables = children.map(child => renderTo(container, child))
+
+    Cancelable.merge(Cancelable.merge(cancelables), Cancelable(() => target.removeChild(container)))
+  end handlePortal
+
+  /**
+    * Handle Portal rendering to document.body.
+    */
+  private def handlePortalToBody(children: Seq[DomNode]): Cancelable =
+    // Create a container for this portal instance
+    val container = dom.document.createElement("div")
+    dom.document.body.appendChild(container)
+
+    // Render children into container
+    val cancelables = children.map(child => renderTo(container, child))
+
+    Cancelable.merge(
+      Cancelable.merge(cancelables),
+      Cancelable(() => dom.document.body.removeChild(container))
+    )
+  end handlePortalToBody
+
+  /**
+    * Handle Portal rendering to a specific element.
+    */
+  private def handlePortalToElement(target: dom.Element, children: Seq[DomNode]): Cancelable =
+    // Create a container for this portal instance
+    val container = dom.document.createElement("div")
+    target.appendChild(container)
+
+    // Render children into container
+    val cancelables = children.map(child => renderTo(container, child))
+
+    Cancelable.merge(Cancelable.merge(cancelables), Cancelable(() => target.removeChild(container)))
+  end handlePortalToElement
 
   extension (node: dom.Node)
     private def eval(v: Any): Cancelable =

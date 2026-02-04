@@ -66,6 +66,26 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.ValueBinding
   export wvlet.uni.dom.CheckedBinding
 
+  // Browser API integrations
+  export wvlet.uni.dom.Storage
+  export wvlet.uni.dom.StorageVar
+  export wvlet.uni.dom.StorageCodec
+  export wvlet.uni.dom.Portal
+  export wvlet.uni.dom.PortalNode
+  export wvlet.uni.dom.PortalToBody
+  export wvlet.uni.dom.PortalToElement
+  export wvlet.uni.dom.Intersection
+  export wvlet.uni.dom.IntersectionConfig
+  export wvlet.uni.dom.IntersectionEntry
+  export wvlet.uni.dom.IntersectionBinding
+  export wvlet.uni.dom.IntersectionEntryBinding
+  export wvlet.uni.dom.IntersectionOnceBinding
+  export wvlet.uni.dom.Resize
+  export wvlet.uni.dom.ResizeEntry
+  export wvlet.uni.dom.ResizeBinding
+  export wvlet.uni.dom.ResizeEntryBinding
+  export wvlet.uni.dom.ResizeBindingDebounced
+
   /**
     * Re-export helper functions.
     */
