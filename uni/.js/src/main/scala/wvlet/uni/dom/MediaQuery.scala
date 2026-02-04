@@ -92,41 +92,41 @@ object MediaQuery:
   /**
     * Reactive check for mobile screens (max-width: 767px).
     */
-  def isMobile: Rx[Boolean] = matches("(max-width: 767px)").rx
+  lazy val isMobile: Rx[Boolean] = matches("(max-width: 767px)").rx
 
   /**
     * Reactive check for tablet screens (768px to 1023px).
     */
-  def isTablet: Rx[Boolean] = matches("(min-width: 768px) and (max-width: 1023px)").rx
+  lazy val isTablet: Rx[Boolean] = matches("(min-width: 768px) and (max-width: 1023px)").rx
 
   /**
     * Reactive check for desktop screens (min-width: 1024px).
     */
-  def isDesktop: Rx[Boolean] = matches("(min-width: 1024px)").rx
+  lazy val isDesktop: Rx[Boolean] = matches("(min-width: 1024px)").rx
 
   /**
     * Reactive check for user's dark mode preference.
     */
-  def prefersDarkMode: Rx[Boolean] = matches("(prefers-color-scheme: dark)").rx
+  lazy val prefersDarkMode: Rx[Boolean] = matches("(prefers-color-scheme: dark)").rx
 
   /**
     * Reactive check for user's reduced motion preference.
     */
-  def prefersReducedMotion: Rx[Boolean] = matches("(prefers-reduced-motion: reduce)").rx
+  lazy val prefersReducedMotion: Rx[Boolean] = matches("(prefers-reduced-motion: reduce)").rx
 
   /**
     * Reactive check for high contrast mode preference.
     */
-  def prefersHighContrast: Rx[Boolean] = matches("(prefers-contrast: more)").rx
+  lazy val prefersHighContrast: Rx[Boolean] = matches("(prefers-contrast: more)").rx
 
   /**
     * Reactive check for portrait orientation.
     */
-  def isPortrait: Rx[Boolean] = matches("(orientation: portrait)").rx
+  lazy val isPortrait: Rx[Boolean] = matches("(orientation: portrait)").rx
 
   /**
     * Reactive check for landscape orientation.
     */
-  def isLandscape: Rx[Boolean] = matches("(orientation: landscape)").rx
+  lazy val isLandscape: Rx[Boolean] = matches("(orientation: landscape)").rx
 
 end MediaQuery
