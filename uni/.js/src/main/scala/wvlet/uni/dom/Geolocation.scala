@@ -111,10 +111,17 @@ case class GeoOptions(
 object Geolocation:
 
   /**
-    * Check if geolocation is supported in the current browser.
+    * Check if geolocation is supported in the current environment. Returns false in non-browser
+    * environments (e.g., Node.js) or if the Geolocation API is unavailable.
     */
   def isSupported: Boolean =
-    !js.isUndefined(dom.window.navigator.geolocation) && dom.window.navigator.geolocation != null
+    try
+      !js.isUndefined(dom.window) && !js.isUndefined(dom.window.navigator) &&
+        !js.isUndefined(dom.window.navigator.geolocation) &&
+        dom.window.navigator.geolocation != null
+    catch
+      case _: Throwable =>
+        false
 
   /**
     * Request the current position once.
@@ -176,12 +183,15 @@ object Geolocation:
       watchId = Some(id)
 
     /**
-      * Reactive stream of position updates. Emits None until the first position is acquired.
+      * Reactive stream of position updates. The initial value is `None`, and it emits
+      * `Some(position)` each time a new position is acquired. On success, the error stream is
+      * cleared to `None`.
       */
     def position: Rx[Option[GeoPosition]] = positionVar
 
     /**
-      * Reactive stream of errors. Emits None when there is no error.
+      * Reactive stream of errors. The initial value is `None` (or `Some(NotSupported)` if
+      * geolocation is unavailable). Emits `Some(error)` when an error occurs.
       */
     def error: Rx[Option[GeoError]] = errorVar
 
@@ -220,6 +230,8 @@ object Geolocation:
       timestamp = pos.timestamp.toLong
     )
 
+  // Error codes defined by the Geolocation API spec:
+  // 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
   private def toGeoError(err: dom.PositionError): GeoError =
     err.code match
       case 1 =>
@@ -229,7 +241,7 @@ object Geolocation:
       case 3 =>
         GeoError.Timeout
       case _ =>
-        GeoError.PositionUnavailable
+        GeoError.PositionUnavailable // Fallback for unknown codes
 
   private def toPositionOptions(options: GeoOptions): dom.PositionOptions =
     val opts = js.Dynamic.literal()
@@ -240,6 +252,15 @@ object Geolocation:
       opts.maximumAge = options.maximumAge.toDouble
     opts.asInstanceOf[dom.PositionOptions]
 
-  private def toOption(value: UndefOr[Double]): Option[Double] = value.toOption.filterNot(_.isNaN)
+  // Convert JS undefined/null/NaN values to None for optional coordinate fields
+  private def toOption(value: UndefOr[Double]): Option[Double] =
+    if js.isUndefined(value) then
+      None
+    else
+      val v = value.asInstanceOf[Double]
+      if v.isNaN then
+        None
+      else
+        Some(v)
 
 end Geolocation
