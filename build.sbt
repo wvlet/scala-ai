@@ -221,7 +221,7 @@ lazy val bedrock = project
   )
   .dependsOn(agent, test.jvm % Test)
 
-val NETTY_VERSION = "4.2.9.Final"
+val NETTY_VERSION = "4.2.10.Final"
 
 lazy val netty = project
   .in(file("uni-netty"))
