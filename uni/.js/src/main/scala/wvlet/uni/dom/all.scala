@@ -128,6 +128,12 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.DragData
   export wvlet.uni.dom.DragState
 
+  // Geolocation
+  export wvlet.uni.dom.Geolocation
+  export wvlet.uni.dom.GeoPosition
+  export wvlet.uni.dom.GeoError
+  export wvlet.uni.dom.GeoOptions
+
   /**
     * Re-export helper functions.
     */
