@@ -24,6 +24,11 @@ object DomNode:
     */
   object empty extends DomNode
 
+  /**
+    * Group multiple DomNodes together as a single DomNode.
+    */
+  def group(nodes: DomNode*): DomNode = DomNodeGroup(nodes)
+
 /**
   * Represents raw HTML content that will be inserted directly into the DOM.
   *
@@ -37,3 +42,9 @@ case class RawHtml(html: String) extends DomNode
   * Represents an HTML entity reference (e.g., &nbsp;, &amp;).
   */
 case class EntityRef(entityName: String) extends DomNode
+
+/**
+  * Groups multiple DomNodes together as a single DomNode. Useful for returning multiple modifiers
+  * from a single function.
+  */
+case class DomNodeGroup(nodes: Seq[DomNode]) extends DomNode

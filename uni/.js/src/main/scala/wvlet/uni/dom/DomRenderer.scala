@@ -215,6 +215,9 @@ object DomRenderer extends LogSupport:
       v match
         case DomNode.empty =>
           Cancelable.empty
+        case g: DomNodeGroup =>
+          val cancelables = g.nodes.map(n => traverse(n, anchor, localContext))
+          Cancelable.merge(cancelables)
         case e: DomElement =>
           val elem = createDomNode(e, parentName, parentNs)
           val c    = e.traverseModifiers(m => renderToInternal(localContext, elem, m))
