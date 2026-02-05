@@ -192,7 +192,18 @@ object Focus:
       "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), " +
         "textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"]):not([disabled])"
     val nodeList = container.querySelectorAll(selector)
-    (0 until nodeList.length).map(nodeList(_))
+    (0 until nodeList.length)
+      .map(nodeList(_))
+      .filter { elem =>
+        // Filter out invisible elements (display: none or visibility: hidden)
+        elem match
+          case htmlElem: dom.HTMLElement =>
+            val style = dom.window.getComputedStyle(htmlElem)
+            style.display != "none" && style.visibility != "hidden"
+          case _ =>
+            // For non-HTMLElements (like SVG), assume they are visible if selected
+            true
+      }
 
   /**
     * Stop focus tracking. Call this when the application is shutting down.

@@ -84,10 +84,10 @@ class FocusTest extends UniTest:
       dom.document.activeElement shouldBe testInput
 
       Focus.blur()
-      // After blur, activeElement should be body (or null in some browsers)
-      (
-        dom.document.activeElement == dom.document.body || dom.document.activeElement == testInput
-      ) shouldBe true
+      // After blur, focus should no longer be on the input
+      (dom.document.activeElement == testInput) shouldBe false
+      // And activeElement should be body
+      dom.document.activeElement shouldBe dom.document.body
     finally
       dom.document.body.removeChild(testInput)
 
