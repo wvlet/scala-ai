@@ -120,6 +120,9 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   // Focus management
   export wvlet.uni.dom.Focus
 
+  // Clipboard
+  export wvlet.uni.dom.Clipboard
+
   /**
     * Re-export helper functions.
     */
