@@ -106,7 +106,7 @@ object DragDrop:
 
     def endDrag(): Unit = stateVar := DragState.empty
 
-    override def cancel: Unit = ()
+    override def cancel: Unit = stateVar := DragState.empty
 
   end DragDropState
 
