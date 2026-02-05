@@ -214,7 +214,8 @@ object DragDrop:
     DomNode.group(
       ondragover { (e: dom.DragEvent) =>
         e.preventDefault() // Required to allow drop
-        e.dataTransfer.dropEffect = "move".asInstanceOf[dom.DataTransferDropEffectKind]
+        // Let browser determine appropriate dropEffect based on effectAllowed
+        // Don't override dropEffect to avoid blocking copy/link drags
       },
       ondragenter { (e: dom.DragEvent) =>
         e.preventDefault()
@@ -294,6 +295,9 @@ object DragDrop:
       },
       ondragenter { (e: dom.DragEvent) =>
         e.preventDefault()
+        // Start tracking drag state for external file drags
+        if !instance.currentlyDragging then
+          instance.startDrag(DragData("file", "", "copy"))
         e.currentTarget match
           case elem: dom.Element =>
             instance.setOverElement(Some(elem))
@@ -303,6 +307,8 @@ object DragDrop:
       ondragleave { (e: dom.DragEvent) =>
         if e.currentTarget == e.target then
           instance.setOverElement(None)
+          // End drag state when leaving (for external file drags)
+          instance.endDrag()
       },
       ondropH { (e: dom.DragEvent) =>
         e.preventDefault()
@@ -312,6 +318,8 @@ object DragDrop:
         if files.length > 0 then
           val fileSeq = (0 until files.length).map(files(_))
           onFiles(fileSeq)
+
+        instance.endDrag()
       }
     )
 
