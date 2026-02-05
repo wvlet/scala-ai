@@ -108,6 +108,14 @@ object RxElement:
   private[dom] val NoOp: Any => Unit = (_: Any) => ()
 
   /**
+    * An empty RxElement that renders nothing.
+    */
+  val empty: RxElement =
+    new RxElement():
+      // Return Embedded(DomNode.empty) to terminate recursion in DomRenderer
+      override def render: RxElement = Embedded(DomNode.empty)
+
+  /**
     * Create an RxElement from an existing element.
     */
   def apply(a: RxElement): RxElement =

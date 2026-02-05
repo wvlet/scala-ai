@@ -112,6 +112,14 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.RouteParams
   export wvlet.uni.dom.Location
 
+  // Keyboard shortcuts
+  export wvlet.uni.dom.Keyboard
+  export wvlet.uni.dom.KeyCombination
+  export wvlet.uni.dom.Modifiers
+
+  // Focus management
+  export wvlet.uni.dom.Focus
+
   /**
     * Re-export helper functions.
     */
