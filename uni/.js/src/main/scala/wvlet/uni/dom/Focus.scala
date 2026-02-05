@@ -214,13 +214,17 @@ private case class FocusTrap(children: Seq[DomNode]) extends RxElement:
       case container: dom.Element =>
         containerRef = Some(container)
         updateFocusables()
-        // Focus the first focusable element
-        firstFocusable.foreach {
-          case elem: dom.HTMLElement =>
+        // Focus the first focusable element, or the container itself if none
+        firstFocusable match
+          case Some(elem: dom.HTMLElement) =>
             elem.focus()
           case _ =>
-            ()
-        }
+            // No focusable children, focus the container to activate the trap
+            container match
+              case c: dom.HTMLElement =>
+                c.focus()
+              case _ =>
+                ()
       case _ =>
         ()
 

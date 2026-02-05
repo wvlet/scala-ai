@@ -112,7 +112,8 @@ object RxElement:
     */
   val empty: RxElement =
     new RxElement():
-      override def render: RxElement = this
+      // Return Embedded(DomNode.empty) to terminate recursion in DomRenderer
+      override def render: RxElement = Embedded(DomNode.empty)
 
   /**
     * Create an RxElement from an existing element.
