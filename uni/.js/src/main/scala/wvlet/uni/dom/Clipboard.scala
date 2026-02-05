@@ -112,15 +112,15 @@ object Clipboard:
     * @param text
     *   The text to write
     * @return
-    *   Rx that emits true on success, false on failure
+    *   Rx that emits Some(true) on success, Some(false) on failure, starts as None
     */
-  def writeTextRx(text: String): Rx[Boolean] =
-    val result = Rx.variable(false)
+  def writeTextRx(text: String): Rx[Option[Boolean]] =
+    val result = Rx.variable[Option[Boolean]](None)
     writeText(text).onComplete {
       case Success(_) =>
-        result := true
+        result := Some(true)
       case Failure(_) =>
-        result := false
+        result := Some(false)
     }
     result
 
@@ -135,9 +135,8 @@ object Clipboard:
   def onCopy(handler: String => Unit): DomNode =
     val oncopy = HtmlTags.handler[dom.ClipboardEvent]("oncopy")
     oncopy { (e: dom.ClipboardEvent) =>
-      val selection = dom.window.getSelection()
-      if selection != null then
-        handler(selection.toString)
+      val text = getSelectedText(e.target)
+      handler(text)
     }
 
   /**
@@ -151,10 +150,33 @@ object Clipboard:
   def onCut(handler: String => Unit): DomNode =
     val oncut = HtmlTags.handler[dom.ClipboardEvent]("oncut")
     oncut { (e: dom.ClipboardEvent) =>
-      val selection = dom.window.getSelection()
-      if selection != null then
-        handler(selection.toString)
+      val text = getSelectedText(e.target)
+      handler(text)
     }
+
+  // Get selected text, handling input/textarea elements specially
+  private def getSelectedText(target: dom.EventTarget): String =
+    target match
+      case input: dom.html.Input =>
+        val start = input.selectionStart
+        val end   = input.selectionEnd
+        if start >= 0 && end >= 0 && end > start then
+          input.value.substring(start, end)
+        else
+          ""
+      case textarea: dom.html.TextArea =>
+        val start = textarea.selectionStart
+        val end   = textarea.selectionEnd
+        if start >= 0 && end >= 0 && end > start then
+          textarea.value.substring(start, end)
+        else
+          ""
+      case _ =>
+        val selection = dom.window.getSelection()
+        if selection != null then
+          selection.toString
+        else
+          ""
 
   /**
     * Create a paste handler that intercepts paste events.

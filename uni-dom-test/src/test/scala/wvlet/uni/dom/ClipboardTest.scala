@@ -38,7 +38,7 @@ class ClipboardTest extends UniTest:
     result shouldMatch { case _: Future[?] =>
     }
 
-  test("Clipboard.writeTextRx returns Rx[Boolean]"):
+  test("Clipboard.writeTextRx returns Rx[Option[Boolean]]"):
     val result = Clipboard.writeTextRx("test")
     result shouldMatch { case _: Rx[?] =>
     }
