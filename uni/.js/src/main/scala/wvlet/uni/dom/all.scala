@@ -123,6 +123,11 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   // Clipboard
   export wvlet.uni.dom.Clipboard
 
+  // Drag and Drop
+  export wvlet.uni.dom.DragDrop
+  export wvlet.uni.dom.DragData
+  export wvlet.uni.dom.DragState
+
   /**
     * Re-export helper functions.
     */
