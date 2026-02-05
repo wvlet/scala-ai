@@ -108,6 +108,13 @@ object RxElement:
   private[dom] val NoOp: Any => Unit = (_: Any) => ()
 
   /**
+    * An empty RxElement that renders nothing.
+    */
+  val empty: RxElement =
+    new RxElement():
+      override def render: RxElement = this
+
+  /**
     * Create an RxElement from an existing element.
     */
   def apply(a: RxElement): RxElement =
