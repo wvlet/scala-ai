@@ -193,16 +193,6 @@ class ValidateTest extends UniTest:
 
     cancelable.cancel
 
-  test("FieldValidation.validateNow reads RxVar directly before subscription"):
-    val input  = Rx.variable("hello")
-    val inputV = Validate(input)(Validate.required())
-
-    // Without subscribing, validateNow falls back to reading from RxVar directly
-    inputV.validateNow().isValid shouldBe true
-
-    input := ""
-    inputV.validateNow().isValid shouldBe false
-
   // --- FormValidation ---
 
   test("FormValidation.isValid combines all fields"):

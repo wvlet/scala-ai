@@ -13,7 +13,7 @@
  */
 package wvlet.uni.dom
 
-import wvlet.uni.rx.{Rx, RxVar}
+import wvlet.uni.rx.{Cancelable, Rx, RxVar}
 
 /**
   * Validation result for a field or form.
@@ -67,6 +67,7 @@ trait ValidationRule[A]:
   */
 class FieldValidation[A](source: Rx[A], rules: Seq[ValidationRule[A]]):
   // Track the last value for imperative validation
+  @volatile
   private var lastValue: Option[A] = None
 
   private def runRules(value: A): ValidationState =
@@ -78,17 +79,10 @@ class FieldValidation[A](source: Rx[A], rules: Seq[ValidationRule[A]]):
   val errors: Rx[Seq[String]]    = state.map(_.errors)
 
   /**
-    * Imperatively check the current value against all rules. When the source is an RxVar, reads the
-    * current value directly. Otherwise, uses the last value observed through the reactive chain.
+    * Imperatively check the current value against all rules.
     */
   def validateNow(): ValidationState =
-    val current =
-      source match
-        case rxVar: RxVar[A @unchecked] =>
-          Some(rxVar.get)
-        case _ =>
-          lastValue
-    current match
+    lastValue match
       case Some(v) =>
         runRules(v)
       case None =>
@@ -104,26 +98,41 @@ class FieldValidation[A](source: Rx[A], rules: Seq[ValidationRule[A]]):
   */
 class FormValidation(fields: Seq[FieldValidation[?]]):
   val isValid: Rx[Boolean] =
-    fields
-      .map(_.isValid)
-      .foldLeft[Rx[Boolean]](Rx.variable(true)) { (acc, fieldIsValid) =>
-        acc
-          .join(fieldIsValid)
-          .map { case (a, b) =>
-            a && b
+    fields.size match
+      case 0 =>
+        Rx.variable(true)
+      case 1 =>
+        fields(0).isValid
+      case n =>
+        // Chain pairwise joins for any number of fields
+        val first: Rx[Boolean] = fields(0).isValid
+        fields
+          .tail
+          .foldLeft(first) { (acc, field) =>
+            acc
+              .join(field.isValid)
+              .map { case (a, b) =>
+                a && b
+              }
           }
-      }
 
   val errors: Rx[Seq[String]] =
-    fields
-      .map(_.errors)
-      .foldLeft[Rx[Seq[String]]](Rx.variable(Seq.empty)) { (acc, fieldErrors) =>
-        acc
-          .join(fieldErrors)
-          .map { case (a, b) =>
-            a ++ b
+    fields.size match
+      case 0 =>
+        Rx.variable(Seq.empty)
+      case 1 =>
+        fields(0).errors
+      case n =>
+        val first: Rx[Seq[String]] = fields(0).errors
+        fields
+          .tail
+          .foldLeft(first) { (acc, field) =>
+            acc
+              .join(field.errors)
+              .map { case (a, b) =>
+                a ++ b
+              }
           }
-      }
 
   /**
     * Imperatively check all fields and return whether the form is valid.
@@ -194,8 +203,7 @@ object Validate:
     rule(_.length <= n, msg)
 
   /**
-    * Validates that a string matches a regex pattern. Note: Uses `String.matches`, which requires a
-    * full match (the pattern is implicitly anchored with `^...$`).
+    * Validates that a string matches a regex pattern.
     */
   def pattern(regex: String, message: String = ""): ValidationRule[String] =
     val msg =
@@ -206,9 +214,7 @@ object Validate:
     rule(_.matches(regex), msg)
 
   /**
-    * Validates that a string looks like an email address. Uses a simple practical regex
-    * (local@domain.tld) rather than a full RFC 5322 pattern. For stricter validation, use
-    * `pattern()` or `ruleWith()` with a custom regex.
+    * Validates that a string looks like an email address.
     */
   def email(message: String = "Invalid email address"): ValidationRule[String] = pattern(
     "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
