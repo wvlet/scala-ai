@@ -37,5 +37,5 @@ Add composable, reactive form validation that integrates naturally with the exis
 - Purely Rx-based: validation state is plain `Rx` values consumed by existing reactive DOM binding
 - Validation runs on every change by default (reacts to all updates from `value.bind()`)
 - FormValidation uses chained pairwise `Rx.join` via `foldLeft` to support any number of fields
-- Tracks last value internally for imperative `validateNow()`/`validateAll()`
+- Tracks last value internally for imperative `validateNow()`/`validateAll()`; falls back to reading `RxVar.get` directly when the reactive chain has not been subscribed to
 - Pattern follows Storage.scala: self-contained module, no DomNode extension needed
