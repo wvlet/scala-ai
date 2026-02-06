@@ -134,6 +134,13 @@ object all extends HtmlTags with HtmlAttrs with SvgTags with SvgAttrs:
   export wvlet.uni.dom.GeoError
   export wvlet.uni.dom.GeoOptions
 
+  // Form validation
+  export wvlet.uni.dom.Validate
+  export wvlet.uni.dom.ValidationState
+  export wvlet.uni.dom.ValidationRule
+  export wvlet.uni.dom.FieldValidation
+  export wvlet.uni.dom.FormValidation
+
   /**
     * Re-export helper functions.
     */
