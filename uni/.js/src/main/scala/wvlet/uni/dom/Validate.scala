@@ -206,7 +206,9 @@ object Validate:
     rule(_.matches(regex), msg)
 
   /**
-    * Validates that a string looks like an email address.
+    * Validates that a string looks like an email address. Uses a simple practical regex
+    * (local@domain.tld) rather than a full RFC 5322 pattern. For stricter validation, use
+    * `pattern()` or `ruleWith()` with a custom regex.
     */
   def email(message: String = "Invalid email address"): ValidationRule[String] = pattern(
     "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
