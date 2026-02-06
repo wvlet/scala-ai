@@ -193,6 +193,15 @@ class ValidateTest extends UniTest:
 
     cancelable.cancel
 
+  test("FieldValidation.validateNow returns Invalid before subscription"):
+    val input  = Rx.variable("hello")
+    val inputV = Validate(input)(Validate.required())
+
+    // Without subscribing, lastValue is None
+    val result = inputV.validateNow()
+    result.isValid shouldBe false
+    result.errors shouldBe Seq("No value available")
+
   // --- FormValidation ---
 
   test("FormValidation.isValid combines all fields"):

@@ -13,7 +13,7 @@
  */
 package wvlet.uni.dom
 
-import wvlet.uni.rx.{Cancelable, Rx, RxVar}
+import wvlet.uni.rx.Rx
 
 /**
   * Validation result for a field or form.
@@ -67,7 +67,6 @@ trait ValidationRule[A]:
   */
 class FieldValidation[A](source: Rx[A], rules: Seq[ValidationRule[A]]):
   // Track the last value for imperative validation
-  @volatile
   private var lastValue: Option[A] = None
 
   private def runRules(value: A): ValidationState =
@@ -203,7 +202,8 @@ object Validate:
     rule(_.length <= n, msg)
 
   /**
-    * Validates that a string matches a regex pattern.
+    * Validates that a string matches a regex pattern. Note: Uses `String.matches`, which requires a
+    * full match (the pattern is implicitly anchored with `^...$`).
     */
   def pattern(regex: String, message: String = ""): ValidationRule[String] =
     val msg =
